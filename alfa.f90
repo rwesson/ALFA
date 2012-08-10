@@ -1,0 +1,232 @@
+program alfa
+
+! first read in the file to be fitted
+
+! then read in the file of template lines
+
+! then calculate RMS of spectrum. with all lines at zero flux
+
+! then iterate through template lines, putting in a gaussian and recalculating
+! the RMS.  start by putting the peak to the value of the nearest residual.
+
+! genetic algorithm?
+! uncertainties?
+
+
+! first let's make it read in the files and just create a synthetic spectrum
+! from the template
+implicit none
+integer :: I, lineid, popnumber, gencount, IO, spectrumlength, nlines, counter
+integer :: loc1, loc2, loc
+integer :: wlength
+double precision :: temp1, temp2, gaussian, random
+character*512 :: filename
+
+integer :: popsize, generations
+
+type spectrum
+  double precision :: wavelength
+  double precision :: flux
+end type
+
+type templateline
+  double precision :: wavelength
+  double precision :: peak
+end type
+
+type(templateline), dimension(:),allocatable :: linelist
+type(templateline), dimension(:,:),allocatable :: population
+type(templateline), dimension(:,:),allocatable ::  breed
+type(spectrum), dimension(:,:), allocatable :: synthspec
+type(spectrum), dimension(:), allocatable :: realspec
+CHARACTER*1 :: null
+
+double precision, dimension(:), allocatable :: rms,medianrms
+
+! initialise stuff
+
+popsize=1000
+generations=100
+allocate(rms(popsize))
+rms=0.D0
+! random seed
+
+call init_random_seed()
+
+! read in template spectrum
+
+! TODO replace with reading of filename from command line
+filename=trim("peaks2.txt")
+
+        I = 0
+        OPEN(199, file=filename, iostat=IO, status='old') 
+                DO WHILE (IO >= 0)
+                        READ(199,*,end=111) null
+                        I = I + 1
+                END DO
+        111 print *
+        nlines=I
+
+!then allocate and read
+        allocate (linelist(nlines))
+
+        REWIND (199)
+        DO I=1,nlines
+                READ(199,*,end=110) temp1, temp2
+                linelist(i)%wavelength = temp1
+                linelist(i)%peak = temp2 
+        END DO
+        CLOSE(199)
+
+110 print *
+!        110 PRINT "(X,A11,I4,A15,I4,A9)","read in ", I - 1," lines (out of ",listlength," in file)"
+
+! read in spectrum to fit
+! TODO replace with reading of filename from command line
+
+filename="ngc6543_4553A_short.bdf.ascii"
+
+        I = 0
+        OPEN(199, file=filename, iostat=IO, status='old')
+                DO WHILE (IO >= 0)
+                        READ(199,*,end=112) null
+                        I = I + 1
+                END DO
+        112 print *
+        spectrumlength=I
+
+!then allocate and read
+
+        allocate (synthspec(spectrumlength,popsize))
+        allocate (breed(nlines,popsize/2))
+        allocate (realspec(spectrumlength))
+        allocate (population(nlines,popsize))
+
+        REWIND (199)
+        DO I=1,spectrumlength
+                READ(199,*,end=113) temp1, temp2
+                synthspec(i,:)%wavelength = temp1 
+                realspec(i)%wavelength = temp1
+                realspec(i)%flux = temp2
+        END DO
+        CLOSE(199)
+
+113 print *
+
+! now create population of synthetic spectra
+
+do gencount=1,generations
+
+!reset stuff to zero before doing calculations
+
+rms = 0.D0
+synthspec%flux=0.D0
+
+        do popnumber=1,popsize
+
+        !randomize fluxes for first generation
+
+            if (gencount .eq. 1) then
+                do lineid=1,nlines
+                  call RANDOM_NUMBER(random)
+                  population(lineid,popnumber)%wavelength = linelist(lineid)%wavelength
+!                  population(lineid,popnumber)%peak = (0.9+(0.2*random))*linelist(lineid)%peak !randomize to within +-10% of known flux
+                  population(lineid,popnumber)%peak = random*10.0 !randomize completely arbitrarily
+                end do
+            endif
+
+        !calculate synthetic spectra - reset to 0 before synthesizing
+
+            do wlength=1,spectrumlength 
+              do lineid=1,nlines 
+                synthspec(wlength,popnumber)%flux = synthspec(wlength,popnumber)%flux + &
+                &gaussian(synthspec(wlength,popnumber)%wavelength,&
+                &population(lineid,popnumber)%peak,population(lineid,popnumber)%wavelength, dble(0.7)) 
+              end do
+            end do
+
+        !now calculate RMS for the "models".  reset to zero first
+
+            do wlength=1,spectrumlength
+              rms(popnumber)=rms(popnumber)+((synthspec(wlength,popnumber)%flux-realspec(wlength)%flux)**2)
+            end do
+            rms(popnumber)=(rms(popnumber)/spectrumlength)**0.5
+
+        end do
+
+        !next, cream off the well performing models - put the population member with the lowest RMS into the breed array, replace the RMS with something very high so that it doesn't get copied twice, repeat eg 500 times to get the best half of the models
+if (gencount.eq.1 .or. gencount.eq.generations) then
+  do i=1,spectrumlength
+    print *,synthspec(i,minloc(rms,1))%wavelength,synthspec(i,minloc(rms,1))%flux
+  end do
+end if
+print *,gencount,minval(rms)
+        do i=1,(popsize/40) 
+          breed(:,i) = population(:,minloc(rms,1))
+          rms(minloc(rms,1))=1.e10
+        end do
+
+        !then, "breed" pairs
+
+        do i=1,popsize
+!population(:,i) = breed(:,1)
+          call random_number(random)
+          loc1=int(popsize*random)/40
+          call random_number(random)
+          loc2=int(popsize*random)/40
+          population(:,i)%peak=(breed(:,loc1)%peak + breed(:,loc2)%peak)/2.0 
+        end do
+        !then, "mutate"
+
+       do popnumber=1,popsize
+         do lineid=1,nlines
+           call random_number(random)
+           if (random .le. 0.10) then 
+             population(lineid,popnumber)%peak = population(lineid,popnumber)%peak * 0.5
+           elseif (random .ge. 0.90) then
+             population(lineid,popnumber)%peak = population(lineid,popnumber)%peak * 2.0
+           endif
+         enddo
+       enddo
+
+end do
+
+end program alfa
+
+double precision function gaussian(x,a,b,c)
+!return the value of a gaussian function with parameters a, b, and c, at a value
+!of x
+  implicit none
+  double precision :: x,a,b,c
+
+  gaussian = a*exp((-(x-b)**2)/(2*c**2))
+  return
+
+end function 
+
+character*10 function gettime()
+
+character*10 :: time
+
+  call DATE_AND_TIME(TIME=time)
+  gettime = time(1:2)//":"//time(3:4)//":"//time(5:6)
+  return
+
+end function gettime
+
+SUBROUTINE init_random_seed()
+  INTEGER :: i, n, clock
+  INTEGER, DIMENSION(:), ALLOCATABLE :: seed
+
+  n=20
+  i=n
+  CALL RANDOM_SEED(size = n)
+  ALLOCATE(seed(n))
+
+  CALL SYSTEM_CLOCK(COUNT=clock)
+
+  seed = clock + 37 * (/ (i - 1, i = 1, n) /)
+  CALL RANDOM_SEED(PUT = seed)
+
+  DEALLOCATE(seed)
+END SUBROUTINE

@@ -35,10 +35,10 @@ double precision, dimension(:), allocatable :: rms,medianrms
 
 ! initialise stuff
 
-popsize=1000
+popsize=100
 generations=100
 
-pressure=0.025 !pressure * popsize needs to be an integer
+pressure=0.1 !pressure * popsize needs to be an integer
 mutationrate=0.1 !mutation rate * 3 needs to be less than one
 
 allocate(continuum(popsize))
@@ -127,10 +127,10 @@ synthspec%flux=0.D0
                   call RANDOM_NUMBER(random)
                   population(lineid,popnumber)%wavelength = linelist(lineid)%wavelength
 !                  population(lineid,popnumber)%peak = (0.9+(0.2*random))*linelist(lineid)%peak !randomize to within +-10% of known flux
-                  population(lineid,popnumber)%peak = random*1.0 !randomize completely arbitrarily
+                  population(lineid,popnumber)%peak = random*0.1 !start small
                 end do
                 call RANDOM_NUMBER(random)
-                continuum(popnumber)=random !random value for continuum
+                continuum(popnumber)=random*0.05 !random small value for continuum
             endif
 
         !calculate synthetic spectra - reset to 0 before synthesizing
@@ -143,11 +143,13 @@ synthspec%flux=0.D0
               end do
             end do
 
-        !subtract continuum
+        !add continuum to line fluxes
 
-            synthspec(:,popnumber)%flux = synthspec(:,popnumber)%flux - continuum(popnumber)
+            synthspec(:,popnumber)%flux = synthspec(:,popnumber)%flux + continuum(popnumber)
 
         !now calculate RMS for the "models".  reset to zero first
+
+            rms(popnumber)=0.D0
 
             do wlength=1,spectrumlength
               rms(popnumber)=rms(popnumber)+((synthspec(wlength,popnumber)%flux-realspec(wlength)%flux)**2)
@@ -157,11 +159,15 @@ synthspec%flux=0.D0
         end do
 
         !next, cream off the well performing models - put the population member with the lowest RMS into the breed array, replace the RMS with something very high so that it doesn't get copied twice, repeat eg 500 times to get the best half of the models
-!if (gencount.eq.1 .or. gencount.eq.generations) then
+PRINT *,minval(rms),maxval(rms)
+
+if (gencount.eq.generations) then
+  PRINT *
   do i=1,spectrumlength
     print *,synthspec(i,minloc(rms,1))%wavelength,synthspec(i,minloc(rms,1))%flux
   end do
-!end if
+end if
+
 !print *,gencount,minval(rms)
         do i=1,int(popsize*pressure) 
           breed(:,i) = population(:,minloc(rms,1))
@@ -170,8 +176,7 @@ synthspec%flux=0.D0
 
         !then, "breed" pairs
 
-        do i=1,popsize
-!population(:,i) = breed(:,1)
+        do i=1,popsize 
           call random_number(random)
           loc1=int(popsize*random*pressure)
           call random_number(random)
@@ -183,6 +188,10 @@ synthspec%flux=0.D0
        do popnumber=1,popsize
          do lineid=1,nlines !mutation of line fluxes
            call random_number(random)
+!continuous mutation:
+!population(lineid,popnumber)%peak = population(lineid,popnumber)%peak * &
+!& 1+(1000.*(0.5-random)**7.)
+!discrete mutation:
            if (random .le. (0.5*mutationrate)) then 
              population(lineid,popnumber)%peak = population(lineid,popnumber)%peak * 0.5
            elseif (random .gt. (0.5*mutationrate) .and. random .le. mutationrate) then
@@ -193,6 +202,8 @@ synthspec%flux=0.D0
              population(lineid,popnumber)%peak = population(lineid,popnumber)%peak * 1.05
            endif
          enddo
+
+!if (gencount .gt. 500) then !only start mutating continuum once lines are stable
          call random_number(random) !mutation of continuum
          if (random .le. (0.5*mutationrate)) then
            continuum(popnumber) = continuum(popnumber) * 0.5
@@ -203,6 +214,7 @@ synthspec%flux=0.D0
          elseif (random .gt. (2.0*mutationrate).and. random .le. (3.0*mutationrate)) then
            continuum(popnumber) = continuum(popnumber) * 1.05
          endif
+!endif
        enddo
 
 end do

@@ -94,7 +94,7 @@ filename="ngc6543_4553A_short.bdf.ascii"
 !then allocate and read
 
         allocate (synthspec(spectrumlength,popsize))
-        allocate (breed(nlines,popsize/2))
+        allocate (breed(nlines,int(popsize*pressure)))
         allocate (realspec(spectrumlength))
         allocate (population(nlines,popsize))
 
@@ -159,12 +159,11 @@ synthspec%flux=0.D0
         end do
 
         !next, cream off the well performing models - put the population member with the lowest RMS into the breed array, replace the RMS with something very high so that it doesn't get copied twice, repeat eg 500 times to get the best half of the models
-PRINT *,minval(rms),maxval(rms)
-
+print *,rms(minloc(rms,1)),rms(maxloc(rms,1))
 if (gencount.eq.generations) then
   PRINT *
   do i=1,spectrumlength
-    print *,synthspec(i,minloc(rms,1))%wavelength,synthspec(i,minloc(rms,1))%flux
+    print *,synthspec(i,minloc(rms,1))%wavelength,synthspec(i,minloc(rms,1))%flux,synthspec(i,maxloc(rms,1))%flux
   end do
 end if
 
@@ -178,9 +177,9 @@ end if
 
         do i=1,popsize 
           call random_number(random)
-          loc1=int(popsize*random*pressure)
+          loc1=int(popsize*random*pressure)+1
           call random_number(random)
-          loc2=int(popsize*random*pressure)
+          loc2=int(popsize*random*pressure)+1 
           population(:,i)%peak=(breed(:,loc1)%peak + breed(:,loc2)%peak)/2.0 
         end do
         !then, "mutate"

@@ -28,6 +28,7 @@ type(templateline), dimension(:,:),allocatable ::  breed
 type(spectrum), dimension(:,:), allocatable :: synthspec
 type(spectrum), dimension(:), allocatable :: realspec
 double precision, dimension(:), allocatable :: continuum !linear continuum for each population member
+double precision, dimension(:), allocatable :: breedcontinuum
 
 CHARACTER*1 :: null
 
@@ -97,6 +98,7 @@ filename="ngc6543_4553A_short.bdf.ascii"
         allocate (breed(nlines,int(popsize*pressure)))
         allocate (realspec(spectrumlength))
         allocate (population(nlines,popsize))
+        allocate (breedcontinuum(int(popsize*pressure)))
 
         REWIND (199)
         DO I=1,spectrumlength
@@ -159,7 +161,7 @@ synthspec%flux=0.D0
         end do
 
         !next, cream off the well performing models - put the population member with the lowest RMS into the breed array, replace the RMS with something very high so that it doesn't get copied twice, repeat eg 500 times to get the best half of the models
-print *,rms(minloc(rms,1)),rms(maxloc(rms,1))
+print *,minval(rms),maxval(rms)
 if (gencount.eq.generations) then
   PRINT *
   do i=1,spectrumlength
@@ -167,13 +169,14 @@ if (gencount.eq.generations) then
   end do
 end if
 
-!print *,gencount,minval(rms)
         do i=1,int(popsize*pressure) 
           breed(:,i) = population(:,minloc(rms,1))
+          breedcontinuum(i) = continuum(minloc(rms,1))
           rms(minloc(rms,1))=1.e10
         end do
 
-        !then, "breed" pairs
+!then, "breed" pairs
+!breed line fluxes and continuum!
 
         do i=1,popsize 
           call random_number(random)
@@ -181,6 +184,7 @@ end if
           call random_number(random)
           loc2=int(popsize*random*pressure)+1 
           population(:,i)%peak=(breed(:,loc1)%peak + breed(:,loc2)%peak)/2.0 
+          continuum(i)=(breedcontinuum(loc1) + breedcontinuum(loc2))/2.0
         end do
         !then, "mutate"
 
@@ -202,7 +206,6 @@ end if
            endif
          enddo
 
-!if (gencount .gt. 500) then !only start mutating continuum once lines are stable
          call random_number(random) !mutation of continuum
          if (random .le. (0.5*mutationrate)) then
            continuum(popnumber) = continuum(popnumber) * 0.5
@@ -213,7 +216,6 @@ end if
          elseif (random .gt. (2.0*mutationrate).and. random .le. (3.0*mutationrate)) then
            continuum(popnumber) = continuum(popnumber) * 1.05
          endif
-!endif
        enddo
 
 end do

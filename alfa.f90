@@ -30,6 +30,8 @@ type(spectrum), dimension(:), allocatable :: realspec
 double precision, dimension(:), allocatable :: continuum !linear continuum for each population member
 double precision, dimension(:), allocatable :: breedcontinuum
 
+double precision :: weightfactor
+
 CHARACTER*1 :: null
 
 double precision, dimension(:), allocatable :: rms,medianrms
@@ -37,7 +39,7 @@ double precision, dimension(:), allocatable :: rms,medianrms
 ! initialise stuff
 
 popsize=100
-generations=100
+generations=500
 
 pressure=0.1 !pressure * popsize needs to be an integer
 mutationrate=0.1 !mutation rate * 3 needs to be less than one
@@ -53,7 +55,7 @@ call init_random_seed()
 ! read in template spectrum
 
 ! TODO replace with reading of filename from command line
-filename=trim("peaks2.txt")
+filename=trim("peaks.txt")
 
         I = 0
         OPEN(199, file=filename, iostat=IO, status='old') 
@@ -81,7 +83,7 @@ filename=trim("peaks2.txt")
 ! read in spectrum to fit
 ! TODO replace with reading of filename from command line
 
-filename="ngc6543_4553A_short.bdf.ascii"
+filename="inputspec"
 
         I = 0
         OPEN(199, file=filename, iostat=IO, status='old')
@@ -110,6 +112,7 @@ filename="ngc6543_4553A_short.bdf.ascii"
         CLOSE(199)
 
 113 print *
+weightfactor=2.0*maxval(realspec%flux)
 
 ! now create population of synthetic spectra
 
@@ -129,7 +132,7 @@ synthspec%flux=0.D0
                   call RANDOM_NUMBER(random)
                   population(lineid,popnumber)%wavelength = linelist(lineid)%wavelength
 !                  population(lineid,popnumber)%peak = (0.9+(0.2*random))*linelist(lineid)%peak !randomize to within +-10% of known flux
-                  population(lineid,popnumber)%peak = random*0.1 !start small
+                  population(lineid,popnumber)%peak = 0.1+random*0.5 !start small and definitely not really close to zero
                 end do
                 call RANDOM_NUMBER(random)
                 continuum(popnumber)=random*0.05 !random small value for continuum
@@ -154,16 +157,24 @@ synthspec%flux=0.D0
             rms(popnumber)=0.D0
 
             do wlength=1,spectrumlength
-              rms(popnumber)=rms(popnumber)+((synthspec(wlength,popnumber)%flux-realspec(wlength)%flux)**2)
-            end do
-            rms(popnumber)=(rms(popnumber)/spectrumlength)**0.5
+!least absolute difference
+rms(popnumber) = rms(popnumber) + abs(synthspec(wlength,popnumber)%flux-realspec(wlength)%flux)
+!weighted rms
+!       rms(popnumber)=rms(popnumber)+(((synthspec(wlength,popnumber)%flux-realspec(wlength)%flux)**2) &
+!&* (1-(realspec(wlength)%flux/weightfactor)))
 
+            end do
+!            rms(popnumber)=(rms(popnumber)/spectrumlength)**0.5
         end do
 
         !next, cream off the well performing models - put the population member with the lowest RMS into the breed array, replace the RMS with something very high so that it doesn't get copied twice, repeat eg 500 times to get the best half of the models
-print *,minval(rms),maxval(rms)
-if (gencount.eq.generations) then
+!print *,minval(rms),maxval(rms)
+
+print *,"#",minval(rms),maxval(rms)
+
+if (mod(gencount,100).eq.0) then 
   PRINT *
+print *,"# generation ",gencount,": "
   do i=1,spectrumlength
     print *,synthspec(i,minloc(rms,1))%wavelength,synthspec(i,minloc(rms,1))%flux,synthspec(i,maxloc(rms,1))%flux
   end do
@@ -192,30 +203,41 @@ end if
          do lineid=1,nlines !mutation of line fluxes
            call random_number(random)
 !continuous mutation:
+if (random .le. 0.10) then 
+population(lineid,popnumber)%peak = population(lineid,popnumber)%peak * (1+(10*(0.10-random)))
+elseif (random .ge. 0.90) then
+population(lineid,popnumber)%peak = population(lineid,popnumber)%peak * (1-(10*(random-0.90)))
+endif
 !population(lineid,popnumber)%peak = population(lineid,popnumber)%peak * &
-!& 1+(1000.*(0.5-random)**7.)
+!& 1+(10.*(0.5-random)**7.)
 !discrete mutation:
-           if (random .le. (0.5*mutationrate)) then 
-             population(lineid,popnumber)%peak = population(lineid,popnumber)%peak * 0.5
-           elseif (random .gt. (0.5*mutationrate) .and. random .le. mutationrate) then
-             population(lineid,popnumber)%peak = population(lineid,popnumber)%peak * 2.0
-           elseif (random .gt. mutationrate .and. random .le. (2.0*mutationrate)) then
-             population(lineid,popnumber)%peak = population(lineid,popnumber)%peak * 0.95
-           elseif (random .gt. (2.0*mutationrate).and. random .le. (3.0*mutationrate)) then
-             population(lineid,popnumber)%peak = population(lineid,popnumber)%peak * 1.05
-           endif
+!           if (random .le. (0.5*mutationrate)) then 
+!             population(lineid,popnumber)%peak = population(lineid,popnumber)%peak * 0.5
+!           elseif (random .gt. (0.5*mutationrate) .and. random .le. mutationrate) then
+!             population(lineid,popnumber)%peak = population(lineid,popnumber)%peak * 2.0
+!           elseif (random .gt. mutationrate .and. random .le. (2.0*mutationrate)) then
+!             population(lineid,popnumber)%peak = population(lineid,popnumber)%peak * 0.95
+!           elseif (random .gt. (2.0*mutationrate).and. random .le. (3.0*mutationrate)) then
+!             population(lineid,popnumber)%peak = population(lineid,popnumber)%peak * 1.05
+!           endif
          enddo
 
          call random_number(random) !mutation of continuum
-         if (random .le. (0.5*mutationrate)) then
-           continuum(popnumber) = continuum(popnumber) * 0.5
-         elseif (random .gt. (0.5*mutationrate) .and. random .le. mutationrate) then
-           continuum(popnumber) = continuum(popnumber) * 2.0
-         elseif (random .gt. mutationrate .and. random .le. (2.0*mutationrate)) then
-           continuum(popnumber) = continuum(popnumber) * 0.95
-         elseif (random .gt. (2.0*mutationrate).and. random .le. (3.0*mutationrate)) then
-           continuum(popnumber) = continuum(popnumber) * 1.05
-         endif
+if (random .le. 0.10) then
+continuum(popnumber) = continuum(popnumber) * (1+(10*(0.10-random)))
+elseif (random .ge. 0.90) then
+continuum(popnumber) = continuum(popnumber) * (1-(10*(random-0.90)))
+endif
+
+!         if (random .le. (0.5*mutationrate)) then
+!           continuum(popnumber) = continuum(popnumber) * 0.5
+!         elseif (random .gt. (0.5*mutationrate) .and. random .le. mutationrate) then
+!           continuum(popnumber) = continuum(popnumber) * 2.0
+!         elseif (random .gt. mutationrate .and. random .le. (2.0*mutationrate)) then
+!           continuum(popnumber) = continuum(popnumber) * 0.95
+!         elseif (random .gt. (2.0*mutationrate).and. random .le. (3.0*mutationrate)) then
+!           continuum(popnumber) = continuum(popnumber) * 1.05
+!         endif
        enddo
 
 end do

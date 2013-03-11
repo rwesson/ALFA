@@ -32,14 +32,14 @@ double precision, dimension(:), allocatable :: breedcontinuum
 
 double precision :: weightfactor
 
-CHARACTER*1 :: null
+double precision :: null
 
 double precision, dimension(:), allocatable :: rms,medianrms
 
 ! initialise stuff
 
 popsize=100
-generations=500
+generations=100
 
 pressure=0.1 !pressure * popsize needs to be an integer
 mutationrate=0.1 !mutation rate * 3 needs to be less than one
@@ -52,34 +52,6 @@ rms=0.D0
 
 call init_random_seed()
 
-! read in template spectrum
-
-! TODO replace with reading of filename from command line
-filename=trim("peaks.txt")
-
-        I = 0
-        OPEN(199, file=filename, iostat=IO, status='old') 
-                DO WHILE (IO >= 0)
-                        READ(199,*,end=111) null
-                        I = I + 1
-                END DO
-        111 print *
-        nlines=I
-
-!then allocate and read
-        allocate (linelist(nlines))
-
-        REWIND (199)
-        DO I=1,nlines
-                READ(199,*,end=110) temp1, temp2
-                linelist(i)%wavelength = temp1
-                linelist(i)%peak = temp2 
-        END DO
-        CLOSE(199)
-
-110 print *
-!        110 PRINT "(X,A11,I4,A15,I4,A9)","read in ", I - 1," lines (out of ",listlength," in file)"
-
 ! read in spectrum to fit
 ! TODO replace with reading of filename from command line
 
@@ -91,28 +63,61 @@ filename="inputspec"
                         READ(199,*,end=112) null
                         I = I + 1
                 END DO
-        112 print *
-        spectrumlength=I
+        112 spectrumlength=I
 
 !then allocate and read
 
-        allocate (synthspec(spectrumlength,popsize))
-        allocate (breed(nlines,int(popsize*pressure)))
-        allocate (realspec(spectrumlength))
-        allocate (population(nlines,popsize))
-        allocate (breedcontinuum(int(popsize*pressure)))
+        allocate (synthspec(spectrumlength,popsize)) 
+        allocate (realspec(spectrumlength)) 
 
         REWIND (199)
         DO I=1,spectrumlength
-                READ(199,*,end=113) temp1, temp2
+                READ(199,*) temp1, temp2
                 synthspec(i,:)%wavelength = temp1 
                 realspec(i)%wavelength = temp1
                 realspec(i)%flux = temp2
         END DO
         CLOSE(199)
 
-113 print *
+! read in template spectrum
+! the if conditions is to read in only the template lines that are within the wavelength range of the
+! spectrum being fitted
+! TODO replace with reading of filename from command line
+filename=trim("peaks.txt")
+
+        I = 0
+        OPEN(199, file=filename, iostat=IO, status='old')
+          DO WHILE (IO >= 0)
+            READ(199,*,end=110) null
+            if (null .ge. realspec(1)%wavelength .and. null .le. realspec(spectrumlength)%wavelength) then
+              I = I + 1
+            endif
+          END DO
+
+110     nlines=I
+
+!then allocate and read
+        allocate (linelist(nlines))
+
+        REWIND (199)
+        DO I=1,nlines
+                READ(199,*) temp1, temp2
+                linelist(i)%wavelength = temp1
+                linelist(i)%peak = temp2
+        END DO
+        CLOSE(199)
+
+!        110 PRINT "(X,A11,I4,A15,I4,A9)","read in ", I - 1," lines (out of
+!        ",listlength," in file)"
+
+
 weightfactor=2.0*maxval(realspec%flux)
+
+!allocate some more arrays
+
+        allocate (breed(nlines,int(popsize*pressure)))
+        allocate (breedcontinuum(int(popsize*pressure)))
+        allocate (population(nlines,popsize))
 
 ! now create population of synthetic spectra
 
@@ -132,7 +137,7 @@ synthspec%flux=0.D0
                   call RANDOM_NUMBER(random)
                   population(lineid,popnumber)%wavelength = linelist(lineid)%wavelength
 !                  population(lineid,popnumber)%peak = (0.9+(0.2*random))*linelist(lineid)%peak !randomize to within +-10% of known flux
-                  population(lineid,popnumber)%peak = 0.1+random*0.5 !start small and definitely not really close to zero
+                  population(lineid,popnumber)%peak = 100.!0.1+random*0.5 !start small and definitely not really close to zero
                 end do
                 call RANDOM_NUMBER(random)
                 continuum(popnumber)=random*0.05 !random small value for continuum
@@ -152,16 +157,18 @@ synthspec%flux=0.D0
 
             synthspec(:,popnumber)%flux = synthspec(:,popnumber)%flux + continuum(popnumber)
 
-        !now calculate RMS for the "models".  reset to zero first
+        !now calculate "RMS" for the "models".  reset to zero first
 
             rms(popnumber)=0.D0
 
             do wlength=1,spectrumlength
 !least absolute difference
-rms(popnumber) = rms(popnumber) + abs(synthspec(wlength,popnumber)%flux-realspec(wlength)%flux)
+!rms(popnumber) = rms(popnumber) + abs(synthspec(wlength,popnumber)%flux-realspec(wlength)%flux)
 !weighted rms
 !       rms(popnumber)=rms(popnumber)+(((synthspec(wlength,popnumber)%flux-realspec(wlength)%flux)**2) &
 !&* (1-(realspec(wlength)%flux/weightfactor)))
+!sum of ratios
+             rms(popnumber) = rms(popnumber)+(synthspec(wlength,popnumber)%flux/realspec(wlength)%flux)
 
             end do
 !            rms(popnumber)=(rms(popnumber)/spectrumlength)**0.5
@@ -170,7 +177,7 @@ rms(popnumber) = rms(popnumber) + abs(synthspec(wlength,popnumber)%flux-realspec
         !next, cream off the well performing models - put the population member with the lowest RMS into the breed array, replace the RMS with something very high so that it doesn't get copied twice, repeat eg 500 times to get the best half of the models
 !print *,minval(rms),maxval(rms)
 
-print *,"#",minval(rms),maxval(rms)
+!print *,"#",minval(rms),maxval(rms)
 
 if (mod(gencount,100).eq.0) then 
   PRINT *
@@ -178,6 +185,9 @@ print *,"# generation ",gencount,": "
   do i=1,spectrumlength
     print *,synthspec(i,minloc(rms,1))%wavelength,synthspec(i,minloc(rms,1))%flux,synthspec(i,maxloc(rms,1))%flux
   end do
+!do i=1,nlines
+!  print *,population(i,minloc(rms,1))%wavelength,population(i,minloc(rms,1))%peak
+!end do
 end if
 
         do i=1,int(popsize*pressure) 
@@ -188,6 +198,9 @@ end if
 
 !then, "breed" pairs
 !breed line fluxes and continuum!
+!random approach will mean that some models have no offspring while others might
+!have many.  Alternative approach could be to breed all adjacent pairs so that
+!every model generates one offspring.
 
         do i=1,popsize 
           call random_number(random)

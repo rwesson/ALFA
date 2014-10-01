@@ -6,7 +6,7 @@ implicit none
 integer :: I, J, lineid, popnumber, gencount, IO, spectrumlength, nlines, counter
 integer :: loc1, loc2, loc
 integer :: wlength
-real :: temp1, temp2, gaussian, gaussianflux, random, redshift
+real :: temp1, temp2, gaussian, gaussianflux, random, redshift, continuumtemp
 character*512 :: filename
 character*10 :: gettime
 
@@ -45,10 +45,10 @@ logical :: file_exists
 
 ! initialise stuff for genetics
 
-popsize=100
-generations=1500
+popsize=50
+generations=500
 
-pressure=0.1 !pressure * popsize needs to be an integer
+pressure=0.5 !pressure * popsize needs to be an integer
 mutationrate=0.1 !mutation rate * 3 needs to be less than one
 
 redshift=0.0
@@ -139,18 +139,22 @@ endif
   CLOSE(199)
 
 ! First, subtract the continuum
-! in chunks of the spectrum, calculate the mean of the lowest 5% of the fluxes.
+! in 20-element chunks of the spectrum, calculate the mean of the lowest 5 points.
 ! Take this as the continuum
 
-! todo: median of 5 lowest points in spectrum chunk
 ! todo: spline fit to points
+! or at least linear interpolation
 
 continuum%wavelength = realspec%wavelength
 
 do i=11,spectrumlength-10,20
   spectrumchunk = realspec(i-10:i+9)
+  do j=1,15
+    spectrumchunk(maxloc(spectrumchunk%flux))%flux = 0.0
+  enddo
+  continuumtemp = sum(spectrumchunk%flux)/5.
   do j=-10,9
-     continuum(i+j)%flux = minval(spectrumchunk%flux)
+     continuum(i+j)%flux = continuumtemp
   enddo
 enddo
 
@@ -196,9 +200,7 @@ do popnumber=1,popsize
     end do
   end do
 
-  !now calculate "RMS" for the "models".  reset to zero first
-
-  rms(popnumber)=0.D0
+  !now calculate "RMS" for the "models"
 
   do wlength=1,spectrumlength
 !least absolute difference
@@ -213,6 +215,7 @@ do popnumber=1,popsize
   end do
 
 end do
+!print *, minval(rms,1), maxval(rms,1)
 
   !next, cream off the well performing models - put the population member with the lowest RMS into the breed array, replace the RMS with something very high so that it doesn't get copied twice, repeat until a fraction equal to the pressure factor have been selected
 
@@ -276,14 +279,18 @@ end do
   
   if (mod(gencount,generations/10) .eq.0) then
     print *,gettime()," : completed ",100*gencount/generations, "%"
+    print *,gettime()," : line width = ",population(i,minloc(rms,1))%width
+    print *,gettime()," : min rms = ",minval(rms,1)
   endif
   
-  !if (mod(gencount,10) .eq. 0) then
-  !  do i=1,spectrumlength
-  !    print *,synthspec(i,minloc(rms,1))%wavelength,synthspec(i,minloc(rms,1))%flux,realspec(i)%flux
-  !  end do
-  !  print*
-  !endif
+!  if (mod(gencount,10) .eq. 0) then
+!    do i=1,spectrumlength
+!      print *,synthspec(i,minloc(rms,1))%wavelength,synthspec(i,minloc(rms,1))%flux,realspec(i)%flux
+!    end do
+!    print*
+!  endif
+
+!todo, work out why rms doesn't keep decreasing
 
 end do
 !write out line fluxes of best fitting spectrum
@@ -294,13 +301,12 @@ end do
 !end do
 open(100,file="outputfit")
 
+write (100,*) "#wavelength    fitted spectrum     cont-subbed orig   continuum    residuals"
 do i=1,spectrumlength
-  write(100,*) synthspec(i,minloc(rms,1))%wavelength,synthspec(i,minloc(rms,1))%flux, realspec(i)%flux
+  write(100,*) synthspec(i,minloc(rms,1))%wavelength,synthspec(i,minloc(rms,1))%flux, realspec(i)%flux, continuum(i)%flux, realspec(i)%flux - synthspec(i,minloc(rms,1))%flux
 end do
 
 close(100)
-
-print *,population(1,(minloc(rms,1)))%width
 
 end program alfa
 

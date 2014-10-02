@@ -122,7 +122,10 @@ call init_random_seed()
           OPEN(199, file=filename, iostat=IO, status='old')
     DO WHILE (IO >= 0)
       READ(199,*,end=110) null
-      I = I + 1
+      if (null .ge. minval(realspec%wavelength) .and. null .le. maxval(realspec%wavelength)) then
+      !only read in lines that lie within the observed wavelength range
+        I = I + 1
+      endif
     END DO
   110     nlines=I
 endif
@@ -131,10 +134,14 @@ endif
   allocate (linelist(nlines))
 
   REWIND (199)
-  DO I=1,nlines
+  I=1
+  do while (i .le. nlines)
     READ(199,*) temp1, temp2
-    linelist(i)%wavelength = temp1
-    linelist(i)%peak = temp2
+    if (temp1 .le. minval(realspec%wavelength) .and. temp1 .le. maxval(realspec%wavelength)) then
+      linelist(i)%wavelength = temp1
+      linelist(i)%peak = temp2
+      i=i+1
+    endif
   END DO
   CLOSE(199)
 
@@ -176,7 +183,7 @@ do lineid=1,nlines
 end do
 
 population(:,:)%peak = 0.01
-population(:,:)%width = 7.0
+population(:,:)%width = 10.0
 
 do gencount=1,generations
 
@@ -281,6 +288,12 @@ end do
     print *,gettime()," : completed ",100*gencount/generations, "%"
     print *,gettime()," : line width = ",population(i,minloc(rms,1))%width
     print *,gettime()," : min rms = ",minval(rms,1)
+open (100,file="intermediate",status="old",access="append")
+  do i=1,spectrumlength
+    write (100,*) synthspec(i,minloc(rms,1))%wavelength,synthspec(i,minloc(rms,1))%flux
+  enddo
+  write (100,*)
+close(100)
   endif
   
 !  if (mod(gencount,10) .eq. 0) then

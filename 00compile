@@ -1,1 +1,1 @@
-gfortran -ffree-line-length-none -o alfa source/quicksort.f90 source/alfa.f90
+gfortran -g -Wall -ffree-line-length-none -o alfa source/quicksort.f90 source/alfa.f90

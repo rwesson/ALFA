@@ -3,17 +3,16 @@ program alfa
 use mod_quicksort
 
 implicit none
-integer :: I, J, lineid, popnumber, gencount, IO, spectrumlength, nlines, counter
-integer :: loc1, loc2, loc
+integer :: I, J, lineid, popnumber, gencount, IO, spectrumlength, nlines
+integer :: loc1, loc2
 integer :: wlength
-real :: temp1, temp2, gaussian, gaussianflux, random, redshift, continuumtemp
+real :: temp1, temp2, gaussian, gaussianflux, random, redshift, continuumtemp, mutation
 character*512 :: filename
 character*10 :: gettime
 
 integer :: popsize, generations
 
 real :: pressure ! the fraction of candidate spectra which breed in every generation
-real :: mutationrate ! in each generation, this fraction of lines will be doubled, and this fraction of lines will be halved
 
 type spectrum
   real :: wavelength
@@ -33,23 +32,24 @@ type(spectrum), dimension(:,:), allocatable :: synthspec
 type(spectrum), dimension(:), allocatable :: realspec
 type(spectrum), dimension(20) :: spectrumchunk
 type(spectrum), dimension(:), allocatable :: continuum
-type(spectrum), dimension(1) :: bestfit
 
 real :: weightfactor
 
 real :: null
 
-real, dimension(:), allocatable :: rms,medianrms
+real, dimension(:), allocatable :: rms
 
 logical :: file_exists
+
+!temp XXXX
+open (101,file="intermediate",status="replace")
 
 ! initialise stuff for genetics
 
 popsize=50
-generations=500
+generations=5000
 
 pressure=0.5 !pressure * popsize needs to be an integer
-mutationrate=0.1 !mutation rate * 3 needs to be less than one
 
 redshift=0.0
 
@@ -64,62 +64,62 @@ call init_random_seed()
 
 ! read in spectrum to fit
 
-        call get_command_argument(1,filename)
+  call get_command_argument(1,filename)
 
-        if (trim(filename)=="") then
-          print *,gettime(),": error: No input spectrum specified"
-          stop
-        endif
+  if (trim(filename)=="") then
+    print *,gettime()," : error: No input spectrum specified"
+    stop
+  endif
 
-        inquire(file=filename, exist=file_exists) ! see if the input file is present
+  inquire(file=filename, exist=file_exists) ! see if the input file is present
 
-        if (.not. file_exists) then
-          print *,gettime(),": error: input spectrum ",trim(filename)," does not exist"
-          stop
-        else
-          print *, gettime()," : reading in spectrum ",trim(filename)
-          I = 0
-          OPEN(199, file=filename, iostat=IO, status='old')
-            DO WHILE (IO >= 0)
-            READ(199,*,end=112) null
-            I = I + 1
-          END DO
-          112 spectrumlength=I
-        endif
+  if (.not. file_exists) then
+    print *,gettime()," : error: input spectrum ",trim(filename)," does not exist"
+    stop
+  else
+    print *, gettime()," : reading in spectrum ",trim(filename)
+    I = 0
+    OPEN(199, file=filename, iostat=IO, status='old')
+      DO WHILE (IO >= 0)
+      READ(199,*,end=112) null
+      I = I + 1
+    END DO
+    112 spectrumlength=I
+  endif
 
-        !then allocate and read
+  !then allocate and read
 
-        allocate (synthspec(spectrumlength,popsize))
-        allocate (realspec(spectrumlength))
-        allocate (continuum(spectrumlength))
+  allocate (synthspec(spectrumlength,popsize))
+  allocate (realspec(spectrumlength))
+  allocate (continuum(spectrumlength))
 
-          REWIND (199)
-          DO I=1,spectrumlength
-            READ(199,*) temp1, temp2
-            synthspec(i,:)%wavelength = temp1
-            realspec(i)%wavelength = temp1
-            realspec(i)%flux = temp2
-          END DO
-          CLOSE(199)
+  REWIND (199)
+  DO I=1,spectrumlength
+    READ(199,*) temp1, temp2
+    synthspec(i,:)%wavelength = temp1
+    realspec(i)%wavelength = temp1
+    realspec(i)%flux = temp2
+  END DO
+  CLOSE(199)
 
-        ! read in template spectrum
+  ! read in template spectrum
 
-        call get_command_argument(2,filename)
+  call get_command_argument(2,filename)
 
-        if (trim(filename)=="") then
-          print *,gettime(),": error: No line catalogue specified"
-          stop
-        endif
+  if (trim(filename)=="") then
+    print *,gettime()," : error: No line catalogue specified"
+    stop
+  endif
 
-        inquire(file=filename, exist=file_exists) ! see if the input file is present
+  inquire(file=filename, exist=file_exists) ! see if the input file is present
 
-        if (.not. file_exists) then
-          print *,gettime(),": error: line catalogue ",trim(filename)," does not exist"
-          stop
-        else
-          print *,gettime()," : fitting spectrum using line catalogue ",trim(filename)
-          I = 0
-          OPEN(199, file=filename, iostat=IO, status='old')
+  if (.not. file_exists) then
+    print *,gettime()," : error: line catalogue ",trim(filename)," does not exist"
+    stop
+  else
+    print *,gettime()," : fitting spectrum using line catalogue ",trim(filename)
+    I = 0
+    OPEN(199, file=filename, iostat=IO, status='old')
     DO WHILE (IO >= 0)
       READ(199,*,end=110) null
       if (null .ge. minval(realspec%wavelength) .and. null .le. maxval(realspec%wavelength)) then
@@ -127,8 +127,13 @@ call init_random_seed()
         I = I + 1
       endif
     END DO
-  110     nlines=I
-endif
+    110     nlines=I
+  endif
+
+  if (nlines .eq. 0) then
+    print *,gettime()," : error : Line catalogue does not overlap with input spectrum"
+    stop
+  endif
 
 !then allocate and read
   allocate (linelist(nlines))
@@ -136,11 +141,13 @@ endif
   REWIND (199)
   I=1
   do while (i .le. nlines)
-    READ(199,*) temp1, temp2
-    if (temp1 .le. minval(realspec%wavelength) .and. temp1 .le. maxval(realspec%wavelength)) then
+    READ(199,*) temp1
+    if (temp1 .ge. minval(realspec%wavelength)) then
       linelist(i)%wavelength = temp1
-      linelist(i)%peak = temp2
       i=i+1
+    endif
+    if (temp1 .ge.  maxval(realspec%wavelength)) then
+      exit
     endif
   END DO
   CLOSE(199)
@@ -183,7 +190,7 @@ do lineid=1,nlines
 end do
 
 population(:,:)%peak = 0.01
-population(:,:)%width = 10.0
+population(:,:)%width = 1.0
 
 do gencount=1,generations
 
@@ -210,19 +217,10 @@ do popnumber=1,popsize
   !now calculate "RMS" for the "models"
 
   do wlength=1,spectrumlength
-!least absolute difference
-!rms(popnumber) = rms(popnumber) + abs(synthspec(wlength,popnumber)%flux-realspec(wlength)%flux)
-!weighted rms
-!       rms(popnumber)=rms(popnumber)+(((synthspec(wlength,popnumber)%flux-realspec(wlength)%flux)**2) &
-!&* (1-(realspec(wlength)%flux/weightfactor)))
-!sum of ratios
-!       rms(popnumber) = rms(popnumber)+(synthspec(wlength,popnumber)%flux/realspec(wlength)%flux)
-!simple rms
     rms(popnumber)=rms(popnumber)+(((synthspec(wlength,popnumber)%flux-realspec(wlength)%flux)**2))
   end do
 
 end do
-!print *, minval(rms,1), maxval(rms,1)
 
   !next, cream off the well performing models - put the population member with the lowest RMS into the breed array, replace the RMS with something very high so that it doesn't get copied twice, repeat until a fraction equal to the pressure factor have been selected
 
@@ -249,36 +247,10 @@ end do
     !then, "mutate"
   
     do popnumber=1,popsize ! mutation of line width
-      if (random .le. (0.5*mutationrate)) then
-        population(:,popnumber)%width = population(:,popnumber)%width * 0.5
-      elseif (random .gt. (0.5*mutationrate) .and. random .le. mutationrate) then
-          population(:,popnumber)%width = population(:,popnumber)%width * 2.0
-      elseif (random .gt. mutationrate .and. random .le. (2.0*mutationrate)) then
-          population(:,popnumber)%width = population(:,popnumber)%width * 0.95
-      elseif (random .gt. (2.0*mutationrate).and. random .le. (3.0*mutationrate)) then
-          population(:,popnumber)%width = population(:,popnumber)%width *1.05
-      endif
-  
+      population(:,popnumber)%width = population(:,popnumber)%width * mutation()
+
       do lineid=1,nlines !mutation of line fluxes
-        call random_number(random)
-  !continuous mutation:
-  !if (random .le. 0.10) then 
-  !population(lineid,popnumber)%peak = population(lineid,popnumber)%peak * (1+(10*(0.10-random)))
-  !elseif (random .ge. 0.90) then
-  !population(lineid,popnumber)%peak = population(lineid,popnumber)%peak * (1-(10*(random-0.90)))
-  !endif
-  !population(lineid,popnumber)%peak = population(lineid,popnumber)%peak * &
-  !& 1+(10.*(0.5-random)**7.)
-  !discrete mutation:
-        if (random .le. (0.5*mutationrate)) then 
-          population(lineid,popnumber)%peak = population(lineid,popnumber)%peak * 0.5
-        elseif (random .gt. (0.5*mutationrate) .and. random .le. mutationrate) then
-          population(lineid,popnumber)%peak = population(lineid,popnumber)%peak * 2.0
-        elseif (random .gt. mutationrate .and. random .le. (2.0*mutationrate)) then
-          population(lineid,popnumber)%peak = population(lineid,popnumber)%peak * 0.95
-        elseif (random .gt. (2.0*mutationrate).and. random .le. (3.0*mutationrate)) then
-          population(lineid,popnumber)%peak = population(lineid,popnumber)%peak * 1.05
-        endif
+        population(lineid,popnumber)%peak = population(lineid,popnumber)%peak * mutation()
       enddo
     enddo
   
@@ -288,12 +260,10 @@ end do
     print *,gettime()," : completed ",100*gencount/generations, "%"
     print *,gettime()," : line width = ",population(i,minloc(rms,1))%width
     print *,gettime()," : min rms = ",minval(rms,1)
-open (100,file="intermediate",status="old",access="append")
-  do i=1,spectrumlength
-    write (100,*) synthspec(i,minloc(rms,1))%wavelength,synthspec(i,minloc(rms,1))%flux
-  enddo
-  write (100,*)
-close(100)
+    do i=1,spectrumlength
+      write (101,*) synthspec(i,minloc(rms,1))%wavelength,synthspec(i,minloc(rms,1))%flux
+    enddo
+    write (101,*)
   endif
   
 !  if (mod(gencount,10) .eq. 0) then
@@ -308,18 +278,19 @@ close(100)
 end do
 !write out line fluxes of best fitting spectrum
 
-!do i=1,nlines
-!  print *,"#",population(i,1)%wavelength,gaussianflux(population(i,minloc(rms,1))%peak,linewidth), &
-!    & gaussianflux(population(i,maxloc(rms,1))%peak,linewidth)
-!end do
+do i=1,nlines
+  print *,population(i,1)%wavelength,gaussianflux(population(i,minloc(rms,1))%peak,population(i,minloc(rms,1))%width), population(i,minloc(rms,1))%peak,population(i,minloc(rms,1))%width
+end do
+
 open(100,file="outputfit")
 
-write (100,*) "#wavelength    fitted spectrum     cont-subbed orig   continuum    residuals"
+write (100,*) """wavelength""  ""fitted spectrum""  ""cont-subbed orig"" ""continuum""  ""residuals"""
 do i=1,spectrumlength
   write(100,*) synthspec(i,minloc(rms,1))%wavelength,synthspec(i,minloc(rms,1))%flux, realspec(i)%flux, continuum(i)%flux, realspec(i)%flux - synthspec(i,minloc(rms,1))%flux
 end do
 
 close(100)
+close(101) !temp XXXX
 
 end program alfa
 
@@ -335,12 +306,12 @@ real function gaussian(x,a,b,c)
 end function gaussian
 
 real function gaussianflux(a,c)
-!return the integral of the gaussian, equal to a*c*(pi**0.5)
+!return the integral of the gaussian, equal to a*c*(2*pi**0.5)
   implicit none
   real :: a,c,pi
 
   pi=3.14159265359
-  gaussianflux = a*c*(pi**0.5)
+  gaussianflux = a*c*(2*pi)**0.5
   return
 
 end function gaussianflux
@@ -371,3 +342,20 @@ SUBROUTINE init_random_seed()
 
   DEALLOCATE(seed)
 END SUBROUTINE
+
+real function mutation()
+  implicit none
+  real :: random
+
+  mutation=1.0
+
+  call random_number(random)
+  if (random .le. 0.05) then
+    mutation=random/0.05
+  elseif (random .ge. 0.95) then
+    mutation=2+((random-1)/0.05)
+  endif
+
+  return
+
+end function mutation

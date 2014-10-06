@@ -45,10 +45,10 @@ open (101,file="intermediate",status="replace")
 
 ! initialise stuff for genetics
 
-popsize=50
-generations=500
+popsize=100
+generations=1000
 
-pressure=0.5 !pressure * popsize needs to be an integer
+pressure=0.25 !pressure * popsize needs to be an integer
 
 allocate(rms(popsize))
 
@@ -194,7 +194,8 @@ realspec%flux = realspec%flux - continuum%flux
 do popnumber=1,popsize
   population(popnumber)%wavelength = referencelinelist%wavelength
   population(popnumber)%peak=10.0
-  population(popnumber)%width=0.1
+  population(popnumber)%width=1.5
+  population(popnumber)%redshift=1.0
 end do
 
 do gencount=1,generations
@@ -208,18 +209,17 @@ do popnumber=1,popsize
 
 !calculate synthetic spectra - reset to 0 before synthesizing
 !line fluxes are calculated within 7 sigma of mean
-!print *,"calculating synthetic spectrum ",popnumber," in generation ",gencount
+
   do wlength=1,spectrumlength 
     do lineid=1,nlines
-      if (abs(population(popnumber)%wavelength(lineid) - synthspec(wlength,popnumber)%wavelength) .lt. (7*population(popnumber)%width)) then
+      if (abs(population(popnumber)%redshift*population(popnumber)%wavelength(lineid) - synthspec(wlength,popnumber)%wavelength) .lt. (7*population(popnumber)%width)) then
         synthspec(wlength,popnumber)%flux = synthspec(wlength,popnumber)%flux + &
         &gaussian(synthspec(wlength,popnumber)%wavelength,&
-        &population(popnumber)%peak(lineid),population(popnumber)%wavelength(lineid), population(popnumber)%width)
+        &population(popnumber)%peak(lineid),population(popnumber)%redshift*population(popnumber)%wavelength(lineid), population(popnumber)%width)
       endif
     end do
-!print *,synthspec(wlength,popnumber)%wavelength,synthspec(wlength,popnumber)%flux
   end do
-!print *,"finished calculating"
+
   !now calculate "RMS" for the "models"
 
   do wlength=1,spectrumlength
@@ -249,11 +249,15 @@ end do
       loc2=int(popsize*random*pressure)+1 
       population(i)%peak=(breed(loc1)%peak + breed(loc2)%peak)/2.0
       population(i)%width=(breed(loc1)%width + breed(loc2)%width)/2.0
+      population(i)%redshift=(breed(loc1)%redshift + breed(loc2)%redshift)/2.0
     end do
     !then, "mutate"
     do popnumber=1,popsize ! mutation of line width
       population(popnumber)%width = population(popnumber)%width * mutation()
-
+if (population(popnumber)%width .lt. 0.5) then
+  population(popnumber)%width = 0.5
+endif
+      population(popnumber)%redshift = population(popnumber)%redshift * ((999999.+mutation())/1000000.)
       do lineid=1,nlines !mutation of line fluxes
         population(popnumber)%peak(lineid) = population(popnumber)%peak(lineid) * mutation()
       enddo
@@ -262,7 +266,7 @@ end do
   endif
 
   if (mod(gencount,generations/10) .eq.0 .or. gencount.eq.1) then
-    print *,gettime()," : completed ",100*gencount/generations, "%", population(minloc(rms,1))%width,minval(rms,1)
+    print *,gettime()," : completed ",100*gencount/generations, "%", population(minloc(rms,1))%width,minval(rms,1), 3.e5*(population(minloc(rms,1))%redshift-1)
     do i=1,spectrumlength
       write (101,*) synthspec(i,minloc(rms,1))%wavelength,synthspec(i,minloc(rms,1))%flux
     enddo

@@ -122,11 +122,9 @@ do popnumber=1,popsize
     end do
   end do
 
-  !now calculate "RMS" for the "models"
+  !now calculate RMS for the "models"
 
-  do wlength=1,spectrumlength
-    rms(popnumber)=rms(popnumber)+(((synthspec(wlength,popnumber)%flux-realspec(wlength)%flux)**2))
-  end do
+  rms(popnumber)=sum((synthspec(:,popnumber)%flux-realspec(:)%flux)**2)
 
 end do
 
@@ -158,12 +156,11 @@ end do
 if (population(popnumber)%width .lt. 0.5) then
   population(popnumber)%width = 0.5
 endif
-      population(popnumber)%redshift = population(popnumber)%redshift * ((999999.+mutation())/1000000.)
+      population(popnumber)%redshift = population(popnumber)%redshift * ((99999.+mutation())/100000.)
       do lineid=1,nlines !mutation of line fluxes
         population(popnumber)%peak(lineid) = population(popnumber)%peak(lineid) * mutation()
       enddo
     enddo
-!XXXX
   endif
 
   if (mod(gencount,generations/10) .eq.0 .or. gencount.eq.1) then

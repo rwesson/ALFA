@@ -10,7 +10,7 @@ CONTAINS
 
 ! ***************************************************
 ! *
-  Subroutine Abort(Routine, Msg)
+  Subroutine Abort_qs(Routine, Msg)
 ! *
 ! ***************************************************
     IMPLICIT NONE
@@ -27,11 +27,11 @@ CONTAINS
     Stop
 
     Return
-  End Subroutine Abort
+  End Subroutine Abort_qs
 
 ! ***************************************************
 ! *
-  Subroutine Perror(Routine, Msg)
+  Subroutine Perror_qs(Routine, Msg)
 ! *
 ! ***************************************************
     IMPLICIT NONE
@@ -46,7 +46,7 @@ CONTAINS
     End If
 
     Return
-  End Subroutine Perror
+  End Subroutine Perror_qs
 
 
 End MODULE mod_error

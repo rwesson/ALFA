@@ -1,5 +1,6 @@
 program alfa
 
+use mod_types
 use mod_quicksort
 
 implicit none
@@ -13,18 +14,6 @@ character*10 :: gettime
 integer :: popsize, generations
 
 real :: pressure ! the fraction of candidate spectra which breed in every generation
-
-type spectrum
-  real :: wavelength
-  real :: flux
-end type
-
-type linelist
-  real :: redshift
-  real :: width
-  real, allocatable :: wavelength(:)
-  real, allocatable :: peak(:)
-end type
 
 type(linelist) :: referencelinelist
 type(linelist), dimension(:),allocatable :: population

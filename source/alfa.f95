@@ -4,12 +4,13 @@ use mod_readfiles
 use mod_routines
 use mod_types
 use mod_quicksort
+use mod_continuum
 
 implicit none
-integer :: I, J, lineid, popnumber, gencount, spectrumlength, nlines
+integer :: I, lineid, popnumber, gencount, spectrumlength, nlines
 integer :: loc1, loc2
 integer :: wlength
-real :: random, continuumtemp
+real :: random
 character*512 :: spectrumfile,linelistfile
 
 integer :: popsize, generations
@@ -21,7 +22,6 @@ type(linelist), dimension(:),allocatable :: population
 type(linelist), dimension(:),allocatable ::  breed
 type(spectrum), dimension(:,:), allocatable :: synthspec
 type(spectrum), dimension(:), allocatable :: realspec
-type(spectrum), dimension(20) :: spectrumchunk
 type(spectrum), dimension(:), allocatable :: continuum
 
 real, dimension(:), allocatable :: rms
@@ -34,7 +34,7 @@ real, dimension(:), allocatable :: rms
   popsize=100
   generations=1000
 
-  pressure=0.25 !pressure * popsize needs to be an integer
+  pressure=0.05 !pressure * popsize needs to be an integer
 
   allocate(rms(popsize))
 
@@ -44,36 +44,16 @@ real, dimension(:), allocatable :: rms
 
 !read files
 
-! read in spectrum to fit
+! read in spectrum to fit and line list
 
   call get_command_argument(1,spectrumfile)
   call get_command_argument(2,linelistfile)
 
   call readfiles(spectrumfile,linelistfile,synthspec,realspec,referencelinelist,popsize,spectrumlength, nlines)
 
-! First, subtract the continuum
-! in 20-element chunks of the spectrum, calculate the mean of the lowest 5 points.
-! Take this as the continuum
+! then subtract the continuum
 
-! todo: spline fit to points
-! or at least linear interpolation
-
-  allocate(continuum(spectrumlength))
-
-  continuum%wavelength = realspec%wavelength
-
-  do i=11,spectrumlength-10,20
-    spectrumchunk = realspec(i-10:i+9)
-    do j=1,15
-      spectrumchunk(maxloc(spectrumchunk%flux))%flux = 0.0
-    enddo
-    continuumtemp = sum(spectrumchunk%flux)/5.
-    do j=-10,9
-       continuum(i+j)%flux = continuumtemp
-    enddo
-  enddo
-
-  realspec%flux = realspec%flux - continuum%flux
+  call fit_continuum(realspec,spectrumlength, continuum)
 
 !allocate some more arrays
 
@@ -96,7 +76,7 @@ real, dimension(:), allocatable :: rms
 do popnumber=1,popsize
   population(popnumber)%wavelength = referencelinelist%wavelength
   population(popnumber)%peak=10.0
-  population(popnumber)%width=1.5
+  population(popnumber)%width=7.5
   population(popnumber)%redshift=1.0
 end do
 

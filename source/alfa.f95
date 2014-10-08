@@ -31,10 +31,10 @@ real, dimension(:), allocatable :: rms
 
 ! initialise stuff for genetics
 
-  popsize=100
+  popsize=50
   generations=1000
 
-  pressure=0.05 !pressure * popsize needs to be an integer
+  pressure=0.1 !pressure * popsize needs to be an integer
 
   allocate(rms(popsize))
 
@@ -76,7 +76,7 @@ real, dimension(:), allocatable :: rms
 do popnumber=1,popsize
   population(popnumber)%wavelength = referencelinelist%wavelength
   population(popnumber)%peak=10.0
-  population(popnumber)%width=7.5
+  population(popnumber)%width=1.5
   population(popnumber)%redshift=1.0
 end do
 

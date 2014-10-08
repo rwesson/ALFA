@@ -4,18 +4,17 @@ use mod_routines
 
 contains
 
-subroutine readfiles(spectrumfile,linelistfile,synthspec,realspec,referencelinelist,popsize,spectrumlength,nlines)
+subroutine readfiles(spectrumfile,linelistfile,realspec,referencelinelist,spectrumlength,nlines)
 implicit none
 
 character*512 :: spectrumfile, linelistfile
-integer :: i, popsize
+integer :: i
 real :: input1, input2
 integer :: io, nlines, spectrumlength
 logical :: file_exists
 
 type(linelist) :: referencelinelist
 type(spectrum), dimension(:), allocatable :: realspec
-type(spectrum), dimension(:,:), allocatable :: synthspec
 
 ! read in spectrum to fit
 
@@ -42,13 +41,11 @@ type(spectrum), dimension(:,:), allocatable :: synthspec
 
   !then allocate and read
 
-  allocate (synthspec(spectrumlength,popsize))
   allocate (realspec(spectrumlength))
 
   REWIND (199)
   DO I=1,spectrumlength
     READ(199,*) input1, input2
-    synthspec(i,:)%wavelength = input1
     realspec(i)%wavelength = input1
     realspec(i)%flux = input2
   END DO

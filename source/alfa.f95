@@ -94,7 +94,7 @@ do popnumber=1,popsize
 
   do wlength=1,spectrumlength 
     do lineid=1,nlines
-      if (abs(population(popnumber)%redshift*population(popnumber)%wavelength(lineid) - synthspec(wlength,popnumber)%wavelength) .lt. (7*population(popnumber)%width)) then
+      if (abs(population(popnumber)%redshift*population(popnumber)%wavelength(lineid) - synthspec(wlength,popnumber)%wavelength) .lt. (5*population(popnumber)%width)) then
         synthspec(wlength,popnumber)%flux = synthspec(wlength,popnumber)%flux + &
         &gaussian(synthspec(wlength,popnumber)%wavelength,&
         &population(popnumber)%peak(lineid),population(popnumber)%redshift*population(popnumber)%wavelength(lineid), population(popnumber)%width)

@@ -55,9 +55,12 @@ call fit(realspec, referencelinelist, population, synthspec, rms)
 
 !write out line fluxes of best fitting spectrum
 
+open(100,file="outputlines")
+write(100,*) """wavelength""  ""flux"""
 do i=1,nlines
-  print *,population(1)%wavelength(i),gaussianflux(population(minloc(rms,1))%peak(i),population(minloc(rms,1))%width), population(minloc(rms,1))%peak(i),population(minloc(rms,1))%width
+  write (100,"(F7.2,2X,ES12.3)"),population(1)%wavelength(i),gaussianflux(population(minloc(rms,1))%peak(i),population(minloc(rms,1))%width)!, population(minloc(rms,1))%peak(i),population(minloc(rms,1))%width
 end do
+close(100)
 
 ! write out fit
 

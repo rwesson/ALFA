@@ -37,10 +37,12 @@ real :: random, pressure
   do i=1,int(popsize*pressure)
     allocate (breed(i)%peak(nlines))
     allocate (breed(i)%wavelength(nlines))
+    allocate (breed(i)%uncertainty(nlines))
   end do
   do i=1,popsize
     allocate (population(i)%peak(nlines))
     allocate (population(i)%wavelength(nlines))
+    allocate (population(i)%uncertainty(nlines))
   end do
 
 ! now create population of synthetic spectra

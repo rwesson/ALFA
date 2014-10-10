@@ -6,6 +6,7 @@ use mod_types
 use mod_quicksort
 use mod_continuum
 use mod_fit
+use mod_uncertainties
 
 implicit none
 integer :: I, spectrumlength, nlines
@@ -53,12 +54,18 @@ call fit_continuum(realspec,spectrumlength, continuum)
 
 call fit(realspec, referencelinelist, population, synthspec, rms)
 
+! calculate the uncertainties
+
+call get_uncertainties(synthspec, realspec, population, rms)
+
 !write out line fluxes of best fitting spectrum
 
 open(100,file="outputlines")
-write(100,*) """wavelength""  ""flux"""
+write(100,*) """wavelength""  ""flux""  ""uncertainty"""
 do i=1,nlines
-  write (100,"(F7.2,2X,ES12.3)"),population(1)%wavelength(i),gaussianflux(population(minloc(rms,1))%peak(i),population(minloc(rms,1))%width)!, population(minloc(rms,1))%peak(i),population(minloc(rms,1))%width
+  if (population(minloc(rms,1))%uncertainty(i) .gt. 1.0) then
+    write (100,"(F7.2,2X,ES12.3,ES12.3)"),population(1)%wavelength(i),gaussianflux(population(minloc(rms,1))%peak(i),population(minloc(rms,1))%width), gaussianflux(population(minloc(rms,1))%peak(i),population(minloc(rms,1))%width)/population(minloc(rms,1))%uncertainty(i)!, population(minloc(rms,1))%peak(i),population(minloc(rms,1))%width
+  end if
 end do
 close(100)
 

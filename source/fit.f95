@@ -37,10 +37,12 @@ real :: random, pressure
   do i=1,int(popsize*pressure)
     allocate (breed(i)%peak(nlines))
     allocate (breed(i)%wavelength(nlines))
+    allocate (breed(i)%uncertainty(nlines))
   end do
   do i=1,popsize
     allocate (population(i)%peak(nlines))
     allocate (population(i)%wavelength(nlines))
+    allocate (population(i)%uncertainty(nlines))
   end do
 
 ! now create population of synthetic spectra
@@ -116,10 +118,10 @@ rms=0.D0
       !then, "mutate"
       do popnumber=1,popsize ! mutation of line width
         population(popnumber)%width = population(popnumber)%width * mutation()
-  if (population(popnumber)%width .lt. 0.5) then
-    population(popnumber)%width = 0.5
-  endif
-        population(popnumber)%redshift = population(popnumber)%redshift * ((99999.+mutation())/100000.)
+        if (population(popnumber)%width .lt. 0.5) then !this condition may not always be necessary
+          population(popnumber)%width = 0.5
+        endif
+        population(popnumber)%redshift = population(popnumber)%redshift * ((999.+mutation())/1000.)
         do lineid=1,nlines !mutation of line fluxes
           population(popnumber)%peak(lineid) = population(popnumber)%peak(lineid) * mutation()
         enddo

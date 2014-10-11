@@ -61,10 +61,10 @@ call get_uncertainties(synthspec, realspec, population, rms)
 !write out line fluxes of best fitting spectrum
 
 open(100,file="outputlines")
-write(100,*) """wavelength""  ""flux""  ""uncertainty"""
+write(100,*) """observed wavelength""  ""rest wavelength""  ""flux""  ""uncertainty"""
 do i=1,nlines
   if (population(minloc(rms,1))%uncertainty(i) .gt. 1.0) then
-    write (100,"(F7.2,2X,ES12.3,ES12.3)"),population(1)%wavelength(i),gaussianflux(population(minloc(rms,1))%peak(i),population(minloc(rms,1))%width), gaussianflux(population(minloc(rms,1))%peak(i),population(minloc(rms,1))%width)/population(minloc(rms,1))%uncertainty(i)!, population(minloc(rms,1))%peak(i),population(minloc(rms,1))%width
+    write (100,"(F7.2,2X,F7.2,2X,ES12.3,2X,ES12.3)"),population(1)%wavelength(i)*population(1)%redshift,population(1)%wavelength(i),gaussianflux(population(minloc(rms,1))%peak(i),population(minloc(rms,1))%width), gaussianflux(population(minloc(rms,1))%peak(i),population(minloc(rms,1))%width)/population(minloc(rms,1))%uncertainty(i)!, population(minloc(rms,1))%peak(i),population(minloc(rms,1))%width
   end if
 end do
 close(100)

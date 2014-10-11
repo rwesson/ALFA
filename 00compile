@@ -1,1 +1,0 @@
-gfortran -g -Wall -ffree-line-length-none -o alfa source/functions.f95 source/types.f95 source/readfiles.f95 source/quicksort.f90 source/continuum.f95 source/fit.f95 source/alfa.f95

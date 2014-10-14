@@ -10,8 +10,7 @@ implicit none
 type(spectrum), dimension(:), allocatable :: realspec
 type(spectrum), dimension(:), allocatable :: continuum
 real, dimension(51) :: spectrumchunk
-
-integer :: i, j, spectrumlength
+integer :: i, spectrumlength
 
 ! in 20-element chunks of the spectrum, calculate the mean of the lowest 5 points.
 ! Take this as the continuum

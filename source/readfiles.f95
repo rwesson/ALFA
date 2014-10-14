@@ -7,7 +7,7 @@ contains
 subroutine readfiles(spectrumfile,linelistfile,realspec,referencelinelist,spectrumlength,nlines)
 implicit none
 
-character*512 :: spectrumfile, linelistfile
+character (len=512) :: spectrumfile, linelistfile
 integer :: i
 real :: input1, input2
 integer :: io, nlines, spectrumlength

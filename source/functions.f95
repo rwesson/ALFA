@@ -23,10 +23,10 @@ real function gaussianflux(a,c)
 
 end function gaussianflux
 
-character*10 function gettime()
+character (len=10) function gettime()
 ! write out the time that the function was called
   implicit none
-  character*10 :: time
+  character (len=10) :: time
 
   call DATE_AND_TIME(TIME=time)
   gettime = time(1:2)//":"//time(3:4)//":"//time(5:6)

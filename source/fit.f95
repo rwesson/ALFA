@@ -84,7 +84,7 @@ rms=0.D0
   
     !now calculate RMS for the "models"
   
-    rms(popnumber)=sum((synthspec(:,popnumber)%flux-realspec(:)%flux)**2)
+    rms(popnumber)=sum((synthspec(:,popnumber)%flux-realspec(:)%flux)**2)/spectrumlength
   
   end do
   

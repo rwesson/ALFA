@@ -24,8 +24,9 @@ real function gaussianflux(a,c)
 end function gaussianflux
 
 character*10 function gettime()
-
-character*10 :: time
+! write out the time that the function was called
+  implicit none
+  character*10 :: time
 
   call DATE_AND_TIME(TIME=time)
   gettime = time(1:2)//":"//time(3:4)//":"//time(5:6)
@@ -34,6 +35,8 @@ character*10 :: time
 end function gettime
 
 SUBROUTINE init_random_seed()
+! seed the random number generation
+  implicit none
   INTEGER :: i, n, clock
   INTEGER, DIMENSION(:), ALLOCATABLE :: seed
 

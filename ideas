@@ -1,0 +1,7 @@
+1. cubic spline fit to continuum, include discontinuities
+2. overall fit in chunks, 20 or so lines at a time
+3. calculate uncertainty internal to model as well as external
+4. stop based on convergence, not on simple number of iterations 
+5. ion identification in output line list
+6. latex tables option
+7. change "width" fitting to "resolution"

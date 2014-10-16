@@ -8,7 +8,7 @@ end type
 
 type linelist
   real :: redshift
-  real :: width
+  real :: resolution
   real, allocatable :: wavelength(:)
   real, allocatable :: peak(:)
   real, allocatable :: uncertainty(:)

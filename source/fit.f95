@@ -56,7 +56,7 @@ end do
 do popnumber=1,popsize
   population(popnumber)%wavelength = referencelinelist%wavelength
   population(popnumber)%peak=10.0
-  population(popnumber)%width=1.5
+  population(popnumber)%resolution=3000.
   population(popnumber)%redshift=1.0
 end do
 
@@ -74,10 +74,10 @@ rms=0.D0
   
     do wlength=1,spectrumlength 
       do lineid=1,nlines
-        if (abs(population(popnumber)%redshift*population(popnumber)%wavelength(lineid) - synthspec(wlength,popnumber)%wavelength) .lt.  (5*population(popnumber)%width)) then
+        if (abs(population(popnumber)%redshift*population(popnumber)%wavelength(lineid) - synthspec(wlength,popnumber)%wavelength) .lt.  (5*population(popnumber)%wavelength(lineid)/population(popnumber)%resolution)) then
           synthspec(wlength,popnumber)%flux = synthspec(wlength,popnumber)%flux + &
           &gaussian(synthspec(wlength,popnumber)%wavelength,&
-          &population(popnumber)%peak(lineid),population(popnumber)%redshift*population(popnumber)%wavelength(lineid), population(popnumber)%width)
+          &population(popnumber)%peak(lineid),population(popnumber)%redshift*population(popnumber)%wavelength(lineid), population(popnumber)%wavelength(lineid)/population(popnumber)%resolution)
         endif
       end do
     end do
@@ -112,16 +112,16 @@ rms=0.D0
         call random_number(random)
         loc2=int(popsize*random*pressure)+1 
         population(i)%peak=(breed(loc1)%peak + breed(loc2)%peak)/2.0
-        population(i)%width=(breed(loc1)%width + breed(loc2)%width)/2.0
+        population(i)%resolution=(breed(loc1)%resolution + breed(loc2)%resolution)/2.0
         population(i)%redshift=(breed(loc1)%redshift + breed(loc2)%redshift)/2.0
       end do
       !then, "mutate"
-      do popnumber=1,popsize ! mutation of line width
-        population(popnumber)%width = population(popnumber)%width * mutation()
-        if (population(popnumber)%width .lt. 0.5) then !this condition may not always be necessary
-          population(popnumber)%width = 0.5
+      do popnumber=1,popsize ! mutation of spectral resolution
+        population(popnumber)%resolution = population(popnumber)%resolution * mutation()
+        if (population(popnumber)%resolution .gt. 10000.) then !this condition may not always be necessary
+          population(popnumber)%resolution = 10000.
         endif
-        population(popnumber)%redshift = population(popnumber)%redshift * ((999.+mutation())/1000.)
+        population(popnumber)%redshift = population(popnumber)%redshift * ((99.+mutation())/100.)
         do lineid=1,nlines !mutation of line fluxes
           population(popnumber)%peak(lineid) = population(popnumber)%peak(lineid) * mutation()
         enddo
@@ -129,7 +129,7 @@ rms=0.D0
     endif
   
     if (mod(gencount,generations/10) .eq.0 .or. gencount.eq.1) then
-      print *,gettime()," : completed ",100*gencount/generations, "%", population(minloc(rms,1))%width,minval(rms,1), 3.e5*(population(minloc(rms,1))%redshift-1)
+      print *,gettime()," : completed ",100*gencount/generations, "%", population(minloc(rms,1))%resolution,minval(rms,1), 3.e5*(population(minloc(rms,1))%redshift-1)
       do i=1,spectrumlength
         write (101,*) synthspec(i,minloc(rms,1))%wavelength,synthspec(i,minloc(rms,1))%flux
       enddo

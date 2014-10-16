@@ -42,7 +42,7 @@ wavelengthsampling=realspec(2)%wavelength - realspec(1)%wavelength
 
 do i=1,size(population(1)%uncertainty)
   uncertaintywavelengthindex=minloc(abs(realspec%wavelength-population(minloc(rms,1))%wavelength(i)),1)
-  population(minloc(rms,1))%uncertainty(i)=0.67*(population(minloc(rms,1))%width/wavelengthsampling)**0.5&
+  population(minloc(rms,1))%uncertainty(i)=0.67*(population(minloc(rms,1))%wavelength(i)/(population(minloc(rms,1))%resolution*wavelengthsampling))**0.5&
   &*population(minloc(rms,1))%peak(i)&
   &/realspec(uncertaintywavelengthindex)%uncertainty
 end do

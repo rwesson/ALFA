@@ -118,10 +118,10 @@ rms=0.D0
       !then, "mutate"
       do popnumber=1,popsize ! mutation of spectral resolution
         population(popnumber)%resolution = population(popnumber)%resolution * mutation()
-        if (population(popnumber)%resolution .gt. 10000.) then !this condition may not always be necessary
-          population(popnumber)%resolution = 10000.
+        if (population(popnumber)%resolution .gt. 20000.) then !this condition may not always be necessary
+          population(popnumber)%resolution = 20000.
         endif
-        population(popnumber)%redshift = population(popnumber)%redshift * ((99.+mutation())/100.)
+        population(popnumber)%redshift = population(popnumber)%redshift * ((999.+mutation())/1000.)
         do lineid=1,nlines !mutation of line fluxes
           population(popnumber)%peak(lineid) = population(popnumber)%peak(lineid) * mutation()
         enddo

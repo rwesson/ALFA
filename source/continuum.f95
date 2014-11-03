@@ -12,7 +12,7 @@ type(spectrum), dimension(:), allocatable :: continuum
 real, dimension(51) :: spectrumchunk
 integer :: i, spectrumlength
 
-! in 20-element chunks of the spectrum, calculate the mean of the lowest 5 points.
+! calculate the median value of 51-element chunks of the spectrum
 ! Take this as the continuum
 
 ! todo: spline fit to points
@@ -26,7 +26,7 @@ integer :: i, spectrumlength
   do i=26,spectrumlength-25
     spectrumchunk = realspec(i-25:i+25)%flux
     call qsort(spectrumchunk)
-    continuum(i)%flux = sum(spectrumchunk(1:10))/10
+    continuum(i)%flux = spectrumchunk(26)
   enddo
 !fill in the ends
 

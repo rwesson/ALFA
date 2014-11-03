@@ -129,7 +129,7 @@ rms=0.D0
     endif
   
     if (mod(gencount,generations/10) .eq.0 .or. gencount.eq.1) then
-      print *,gettime()," : completed ",100*gencount/generations, "%", population(minloc(rms,1))%resolution,minval(rms,1), 3.e5*(population(minloc(rms,1))%redshift-1)
+      print *,gettime()," : completed ",100*gencount/generations, "%", population(minloc(rms,1))%resolution, 3.e5*(population(minloc(rms,1))%redshift-1), minval(rms,1)
       do i=1,spectrumlength
         write (101,*) synthspec(i,minloc(rms,1))%wavelength,synthspec(i,minloc(rms,1))%flux
       enddo

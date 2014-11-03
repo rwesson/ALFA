@@ -49,7 +49,7 @@ call get_uncertainties(synthspec, realspec, population, rms)
 
 !write out line fluxes of best fitting spectrum
 
-open(100,file="outputlines")
+open(100,file=trim(spectrumfile)//"_lines")
 write(100,*) """observed wavelength""  ""rest wavelength""  ""flux""  ""uncertainty"""
 do i=1,nlines
   if (population(minloc(rms,1))%uncertainty(i) .gt. 1.0) then
@@ -60,7 +60,7 @@ close(100)
 
 ! write out fit
 
-open(100,file="outputfit")
+open(100,file=trim(spectrumfile)//"_fit")
 
 write (100,*) """wavelength""  ""fitted spectrum""  ""cont-subbed orig"" ""continuum""  ""residuals"""
 do i=1,spectrumlength

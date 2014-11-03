@@ -1,6 +1,11 @@
-1. cubic spline fit to continuum, include discontinuities
-    or try fourier transform, remove lowest frequency information, invert
+1. continuum:
+    - include discontinuities
+    - improve end padding
+    - variable width of median filter
+    - or try fourier transform, remove lowest frequency information, invert
 2. overall fit in chunks, 20 or so lines at a time
+    - fit strongest lines to estimate redshift and resolution
+    - restrict the variation of these and then fit all the lines in chunks
 3. calculate uncertainty internal to model as well as external
 4. stop based on convergence, not on simple number of iterations 
    set target rms based on rms in continuum

@@ -37,17 +37,25 @@ call readfiles(spectrumfile,linelistfile,realspec,referencelinelist,spectrumleng
 
 ! then subtract the continuum
 
+print *,gettime()," : fitting continuum"
 call fit_continuum(realspec,spectrumlength, continuum)
 
 ! now do the fitting
 
+print *,gettime()," : fitting lines"
+print *
+print *,"Best fitting model parameters:          Resolution      Redshift          RMS"
 call fit(realspec, referencelinelist, population, synthspec, rms)
 
 ! calculate the uncertainties
 
+print *
+print *,gettime()," : estimating uncertainties"
 call get_uncertainties(synthspec, realspec, population, rms)
 
 !write out line fluxes of best fitting spectrum
+
+print *,gettime()," : writing output files ",trim(spectrumfile),"_lines and ",trim(spectrumfile),"_fit"
 
 open(100,file=trim(spectrumfile)//"_lines")
 write(100,*) """observed wavelength""  ""rest wavelength""  ""flux""  ""uncertainty"""
@@ -69,5 +77,7 @@ end do
 
 close(100)
 close(101) !temp XXXX
+
+print *,gettime()," : all done"
 
 end program alfa 

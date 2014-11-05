@@ -62,7 +62,7 @@ type(spectrum), dimension(:), allocatable :: realspec
     print *,gettime()," : error: line catalogue ",trim(linelistfile)," does not exist"
     stop
   else
-    print *,gettime()," : fitting spectrum using line catalogue ",trim(linelistfile)
+    print *,gettime()," : reading in line catalogue ",trim(linelistfile)
     I = 0
     OPEN(199, file=linelistfile, iostat=IO, status='old')
     DO WHILE (IO >= 0)

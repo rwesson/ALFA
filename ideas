@@ -1,8 +1,6 @@
 1. continuum:
     - include discontinuities
-    - improve end padding
-    - variable width of median filter
-    - or try fourier transform, remove lowest frequency information, invert
+    - try fourier transform, remove lowest frequency information, invert
 2. overall fit in chunks, 20 or so lines at a time
     - fit strongest lines to estimate redshift and resolution
     - restrict the variation of these and then fit all the lines in chunks
@@ -12,4 +10,6 @@
 5. ion identification in output line list, use better file names
 6. latex tables option
 7. use cfitsio to read in fits files
-8. allow initial guess of redshift and resolution to be specified
+8. command line options:
+     min and max wavelength
+     initial guess of redshift and resolution

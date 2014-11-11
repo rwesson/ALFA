@@ -12,7 +12,7 @@ type(linelist), dimension(:),allocatable :: population
 type(linelist), dimension(:),allocatable ::  breed
 type(spectrum), dimension(:,:), allocatable :: synthspec
 type(spectrum), dimension(:) :: realspec
-integer :: popsize, i, wlength, spectrumlength, generations, lineid, loc1, loc2, nlines, gencount, popnumber
+integer :: popsize, i, specpoint, spectrumlength, generations, lineid, loc1, loc2, nlines, gencount, popnumber
 real, dimension(:), allocatable :: rms
 real :: random, pressure
 
@@ -70,16 +70,14 @@ rms=0.D0
   do popnumber=1,popsize
   
   !calculate synthetic spectra - reset to 0 before synthesizing
-  !line fluxes are calculated within 7 sigma of mean
+  !line fluxes are calculated within 5 sigma of mean
   
-    do wlength=1,spectrumlength 
-      do lineid=1,nlines
-        if (abs(population(popnumber)%redshift*population(popnumber)%wavelength(lineid) - synthspec(wlength,popnumber)%wavelength) .lt.  (5*population(popnumber)%wavelength(lineid)/population(popnumber)%resolution)) then
-          synthspec(wlength,popnumber)%flux = synthspec(wlength,popnumber)%flux + &
-          &gaussian(synthspec(wlength,popnumber)%wavelength,&
-          &population(popnumber)%peak(lineid),population(popnumber)%redshift*population(popnumber)%wavelength(lineid), population(popnumber)%wavelength(lineid)/population(popnumber)%resolution)
-        endif
-      end do
+    do lineid=1,nlines
+      where (abs(population(popnumber)%redshift*population(popnumber)%wavelength(lineid) - synthspec(:,popnumber)%wavelength) .lt. (5*population(popnumber)%wavelength(lineid)/population(popnumber)%resolution))
+          synthspec(:,popnumber)%flux = synthspec(:,popnumber)%flux + &
+          &population(popnumber)%peak(lineid)*exp((-(synthspec(:,popnumber)%wavelength-population(popnumber)%redshift*population(popnumber)%wavelength(lineid))**2)/(2*(population(popnumber)%wavelength(lineid)/population(popnumber)%resolution)**2))
+
+      end where
     end do
   
     !now calculate RMS for the "models"

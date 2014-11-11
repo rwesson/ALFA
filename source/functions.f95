@@ -1,17 +1,6 @@
 module mod_routines
 contains
 
-real function gaussian(x,a,b,c)
-!return the value of a gaussian function with parameters a, b, and c, at a value
-!of x
-  implicit none
-  real :: x,a,b,c
-
-  gaussian = a*exp((-(x-b)**2)/(2*c**2))
-  return
-
-end function gaussian
-
 real function gaussianflux(a,c)
 !return the integral of the gaussian, equal to a*c*(2*pi**0.5)
   implicit none

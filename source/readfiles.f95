@@ -4,10 +4,11 @@ use mod_routines
 
 contains
 
-subroutine readfiles(spectrumfile,linelistfile,realspec,referencelinelist,spectrumlength,nlines)
+subroutine readfiles(spectrumfile,linelistfile,realspec,referencelinelist,spectrumlength,nlines,linedata)
 implicit none
 
 character (len=512) :: spectrumfile, linelistfile
+character (len=85) :: linedatainput
 integer :: i
 real :: input1, input2
 integer :: io, nlines, spectrumlength
@@ -15,6 +16,7 @@ logical :: file_exists
 
 type(linelist) :: referencelinelist
 type(spectrum), dimension(:), allocatable :: realspec
+character(len=85), dimension(:), allocatable :: linedata
 
 ! read in spectrum to fit
 
@@ -84,13 +86,15 @@ type(spectrum), dimension(:), allocatable :: realspec
 
   allocate(referencelinelist%peak(nlines))
   allocate(referencelinelist%wavelength(nlines))
+  allocate(linedata(nlines))
 
   REWIND (199)
   I=1
   do while (i .le. nlines)
-    READ(199,*) input1
+    READ(199,'(F7.3,A)') input1, linedatainput
     if (input1 .ge. minval(realspec%wavelength)) then
       referencelinelist%wavelength(i) = input1
+      linedata(i) = linedatainput
       i=i+1
     endif
     if (input1 .ge.  maxval(realspec%wavelength)) then

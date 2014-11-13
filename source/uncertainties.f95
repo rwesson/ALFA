@@ -28,7 +28,7 @@ do i=11,size(realspec)-10
   spectrumchunk=abs(residuals(i-10:i+10))
   call qsort(spectrumchunk)
   spectrumchunk(15:20)=0.D0
-  realspec(i)%uncertainty=((sum(spectrumchunk**2))**0.5)/15.
+  realspec(i)%uncertainty=((sum(spectrumchunk**2)/15.)**0.5)
 end do
 
 ! fill in the ends with the closest calculated values
@@ -48,12 +48,12 @@ do i=1,size(population(1)%uncertainty)
 end do
 
 !write out uncertainties for debugging purposes:
-!temp=minloc(rms,1)
-!open (999, file="uncertainties")
-!write (999,*) """wavelength"" ""obs. flux"" ""synth. flux"" ""residuals"" ""median-filtered residual"" ""rms"""
-!do i=1,size(realspec)
-!  write (999,*) realspec(i)%wavelength, realspec(i)%flux, synthspec(i,temp)%flux, residuals(i), medianresiduals(i), realspec(i)%uncertainty
-!end do 
+
+open (999, file="uncertainties")
+write (999,*) """wavelength"" ""obs. flux"" ""synth. flux"" ""residuals"" ""rms"""
+do i=1,size(realspec)
+  write (999,*) realspec(i)%wavelength, realspec(i)%flux, synthspec(i,minloc(rms,1))%flux, residuals(i), realspec(i)%uncertainty
+end do 
 
 end subroutine get_uncertainties
 

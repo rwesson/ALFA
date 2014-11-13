@@ -17,8 +17,10 @@ type(linelist), dimension(:),allocatable :: population
 type(spectrum), dimension(:,:), allocatable :: synthspec
 type(spectrum), dimension(:), allocatable :: realspec
 type(spectrum), dimension(:), allocatable :: continuum
+character(len=85), dimension(:), allocatable :: linedata
 
 real, dimension(:), allocatable :: rms
+real :: normalisation
 
 !temp XXXX
 
@@ -33,7 +35,7 @@ call init_random_seed()
 call get_command_argument(1,spectrumfile)
 call get_command_argument(2,linelistfile)
 
-call readfiles(spectrumfile,linelistfile,realspec,referencelinelist,spectrumlength, nlines)
+call readfiles(spectrumfile,linelistfile,realspec,referencelinelist,spectrumlength, nlines, linedata)
 
 ! then subtract the continuum
 
@@ -55,13 +57,23 @@ call get_uncertainties(synthspec, realspec, population, rms)
 
 !write out line fluxes of best fitting spectrum
 
-print *,gettime()," : writing output files ",trim(spectrumfile),"_lines and ",trim(spectrumfile),"_fit"
+print *,gettime()," : writing output files ",trim(spectrumfile),"_lines.tex and ",trim(spectrumfile),"_fit"
 
-open(100,file=trim(spectrumfile)//"_lines")
-write(100,*) """observed wavelength""  ""rest wavelength""  ""flux""  ""uncertainty"""
+!normalise Hb to 100 if present
+
+normalisation = 1.D0
 do i=1,nlines
-  if (population(minloc(rms,1))%uncertainty(i) .gt. 1.0) then
-    write (100,"(F7.2,2X,F7.2,2X,ES12.3,2X,ES12.3)") population(1)%wavelength(i)*population(1)%redshift,population(1)%wavelength(i),gaussianflux(population(minloc(rms,1))%peak(i),(population(minloc(rms,1))%wavelength(i)/population(minloc(rms,1))%resolution)), gaussianflux(population(minloc(rms,1))%peak(i),(population(minloc(rms,1))%wavelength(i)/population(minloc(rms,1))%resolution))/population(minloc(rms,1))%uncertainty(i)!, population(minloc(rms,1))%peak(i),population(minloc(rms,1))%width
+  if (population(1)%wavelength(i) .eq. 4861.33) then
+    normalisation = 100./gaussianflux(population(minloc(rms,1))%peak(i),(population(minloc(rms,1))%wavelength(i)/population(minloc(rms,1))%resolution))
+    exit
+  endif
+enddo
+
+open(100,file=trim(spectrumfile)//"_lines.tex")
+write(100,*) "Observed wavelength & Rest wavelength & Flux & Uncertainty & Ion & Multiplet & Lower term & Upper term & g_1 & g_2 \\"
+do i=1,nlines
+  if (population(minloc(rms,1))%uncertainty(i) .gt. 3.0) then
+    write (100,"(F7.2,' & ',F7.2,' & ',F12.3,' & ',F12.3,A85)") population(1)%wavelength(i)*population(1)%redshift,population(1)%wavelength(i),normalisation*gaussianflux(population(minloc(rms,1))%peak(i),(population(minloc(rms,1))%wavelength(i)/population(minloc(rms,1))%resolution)), normalisation*gaussianflux(population(minloc(rms,1))%peak(i),(population(minloc(rms,1))%wavelength(i)/population(minloc(rms,1))%resolution))/population(minloc(rms,1))%uncertainty(i), linedata(i)
   end if
 end do
 close(100)

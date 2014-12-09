@@ -28,7 +28,7 @@
 
 FC=gfortran
 LD=gfortran
-FFLAGS=-ffree-line-length-0 -fbounds-check
+FFLAGS=-ffree-line-length-0 -fbounds-check -O3 -fno-backtrace
 
 ifeq ($(FC),gfortran)
   FFLAGS = -ffree-line-length-0

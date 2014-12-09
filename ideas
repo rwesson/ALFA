@@ -4,12 +4,12 @@
 2. overall fit in chunks, 20 or so lines at a time
     - fit strongest lines to estimate redshift and resolution
     - restrict the variation of these and then fit all the lines in chunks
+    - maybe two or three stages - mask out lines in three stages to see how deep a line list should be fitted
 3. calculate uncertainty internal to model as well as external
 4. stop based on convergence, not on simple number of iterations 
    set target rms based on rms in continuum
-5. ion identification in output line list, use better file names
-6. latex tables option
-7. use cfitsio to read in fits files
-8. command line options:
+5. use cfitsio to read in fits files
+6. command line options:
      min and max wavelength
      initial guess of redshift and resolution
+7. allow choice of fitting with constant width or constant resolution

@@ -44,7 +44,7 @@ call fit_continuum(realspec,spectrumlength, continuum)
 
 ! now do the fitting
 
-print *,gettime()," : fitting lines"
+print *,gettime()," : fitting ",nlines," lines"
 print *
 print *,"Best fitting model parameters:          Resolution      Redshift          RMS"
 call fit(realspec, referencelinelist, population, synthspec, rms)

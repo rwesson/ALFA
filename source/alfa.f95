@@ -22,18 +22,56 @@ character(len=85), dimension(:), allocatable :: linedata
 real, dimension(:), allocatable :: rms
 real :: normalisation
 
+CHARACTER*2048, DIMENSION(:), allocatable :: options
+CHARACTER*2048 :: commandline
+integer :: narg
+
+logical :: normalise
+
 !temp XXXX
 
 open (101,file="intermediate",status="replace")
+
+!set defaults
+
+normalise = .false.
+
+! start
+
+print *,"ALFA, the Automated Line Fitting Algorithm"
+print *,"------------------------------------------"
+
+print *
+print *,gettime(),": starting code"
+print *,gettime(),": command line: ",trim(commandline)
 
 ! random seed
 
 call init_random_seed()
 
-! read in spectrum to fit and line list
+! read command line
 
-call get_command_argument(1,spectrumfile)
-call get_command_argument(2,linelistfile)
+narg = IARGC() !count input arguments
+if (narg .lt. 2) then
+  print *,gettime()," : Error : files to analyse not specified"
+  stop
+endif
+
+call get_command(commandline)
+ALLOCATE (options(Narg))
+if (narg .gt. 2) then
+  do i=1,Narg-2
+    call get_command_argument(i,options(i))
+    if (options(i) .eq. "-n") then
+      normalise = .true.
+    endif
+  enddo
+endif
+
+call get_command_argument(narg-1,spectrumfile)
+call get_command_argument(narg,linelistfile)
+
+! read in spectrum to fit and line list
 
 call readfiles(spectrumfile,linelistfile,realspec,referencelinelist,spectrumlength, nlines, linedata)
 
@@ -59,15 +97,17 @@ call get_uncertainties(synthspec, realspec, population, rms)
 
 print *,gettime()," : writing output files ",trim(spectrumfile),"_lines.tex and ",trim(spectrumfile),"_fit"
 
-!normalise Hb to 100 if present
+!normalise Hb to 100 if requested
 
 normalisation = 1.D0
-do i=1,nlines
-  if (population(1)%wavelength(i) .eq. 4861.33) then
-    normalisation = 100./gaussianflux(population(minloc(rms,1))%peak(i),(population(minloc(rms,1))%wavelength(i)/population(minloc(rms,1))%resolution))
-    exit
-  endif
-enddo
+if (normalise) then
+  do i=1,nlines
+    if (population(1)%wavelength(i) .eq. 4861.33) then
+      normalisation = 100./gaussianflux(population(minloc(rms,1))%peak(i),(population(minloc(rms,1))%wavelength(i)/population(minloc(rms,1))%resolution))
+      exit
+    endif
+  enddo
+endif
 
 open(100,file=trim(spectrumfile)//"_lines.tex")
 write(100,*) "Observed wavelength & Rest wavelength & Flux & Uncertainty & Ion & Multiplet & Lower term & Upper term & g_1 & g_2 \\"

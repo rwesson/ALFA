@@ -1,3 +1,7 @@
+0. uncertainties:
+     generate synthetic spectra with one line and increasing noise
+     fit with dipso
+     fit with alfa, compare, use to diagnose correct uncertainty calculation
 1. continuum:
     - include discontinuities
     - try fourier transform, remove lowest frequency information, invert

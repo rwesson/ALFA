@@ -43,7 +43,6 @@ print *,"------------------------------------------"
 
 print *
 print *,gettime(),": starting code"
-print *,gettime(),": command line: ",trim(commandline)
 
 ! random seed
 
@@ -67,6 +66,8 @@ if (narg .gt. 2) then
     endif
   enddo
 endif
+
+print *,gettime(),": command line: ",trim(commandline)
 
 call get_command_argument(narg-1,spectrumfile)
 call get_command_argument(narg,linelistfile)

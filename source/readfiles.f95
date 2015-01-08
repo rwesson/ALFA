@@ -21,17 +21,17 @@ character(len=85), dimension(:), allocatable :: linedata
 ! read in spectrum to fit
 
   if (trim(spectrumfile)=="") then
-    print *,gettime()," : error: No input spectrum specified"
+    print *,gettime(),": error: No input spectrum specified"
     stop
   endif
 
   inquire(file=spectrumfile, exist=file_exists) ! see if the input file is present
 
   if (.not. file_exists) then
-    print *,gettime()," : error: input spectrum ",trim(spectrumfile)," does not exist"
+    print *,gettime(),": error: input spectrum ",trim(spectrumfile)," does not exist"
     stop
   else
-    print *, gettime()," : reading in spectrum ",trim(spectrumfile)
+    print *,gettime(),": reading in spectrum ",trim(spectrumfile)
     I = 0
     OPEN(199, file=spectrumfile, iostat=IO, status='old')
       DO WHILE (IO >= 0)
@@ -54,17 +54,17 @@ character(len=85), dimension(:), allocatable :: linedata
   CLOSE(199)
 
   if (trim(linelistfile)=="") then
-    print *,gettime()," : error: No line catalogue specified"
+    print *,gettime(),": error: No line catalogue specified"
     stop
   endif
 
   inquire(file=linelistfile, exist=file_exists) ! see if the input file is present
 
   if (.not. file_exists) then
-    print *,gettime()," : error: line catalogue ",trim(linelistfile)," does not exist"
+    print *,gettime(),": error: line catalogue ",trim(linelistfile)," does not exist"
     stop
   else
-    print *,gettime()," : reading in line catalogue ",trim(linelistfile)
+    print *,gettime(),": reading in line catalogue ",trim(linelistfile)
     I = 0
     OPEN(199, file=linelistfile, iostat=IO, status='old')
     DO WHILE (IO >= 0)
@@ -78,7 +78,7 @@ character(len=85), dimension(:), allocatable :: linedata
   endif
 
   if (nlines .eq. 0) then
-    print *,gettime()," : error : Line catalogue does not overlap with input spectrum"
+    print *,gettime(),": error : Line catalogue does not overlap with input spectrum"
     stop
   endif
 

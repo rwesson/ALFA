@@ -52,7 +52,7 @@ call init_random_seed()
 
 narg = IARGC() !count input arguments
 if (narg .lt. 2) then
-  print *,gettime()," : Error : files to analyse not specified"
+  print *,gettime(),": Error : files to analyse not specified"
   stop
 endif
 
@@ -78,12 +78,12 @@ call readfiles(spectrumfile,linelistfile,realspec,referencelinelist,spectrumleng
 
 ! then subtract the continuum
 
-print *,gettime()," : fitting continuum"
+print *,gettime(),": fitting continuum"
 call fit_continuum(realspec,spectrumlength, continuum)
 
 ! now do the fitting
 
-print *,gettime()," : fitting ",nlines," lines"
+print *,gettime(),": fitting ",nlines," lines"
 print *
 print *,"Best fitting model parameters:          Resolution      Redshift          RMS"
 call fit(realspec, referencelinelist, population, synthspec, rms)
@@ -91,12 +91,12 @@ call fit(realspec, referencelinelist, population, synthspec, rms)
 ! calculate the uncertainties
 
 print *
-print *,gettime()," : estimating uncertainties"
+print *,gettime(),": estimating uncertainties"
 call get_uncertainties(synthspec, realspec, population, rms)
 
 !write out line fluxes of best fitting spectrum
 
-print *,gettime()," : writing output files ",trim(spectrumfile),"_lines.tex and ",trim(spectrumfile),"_fit"
+print *,gettime(),": writing output files ",trim(spectrumfile),"_lines.tex and ",trim(spectrumfile),"_fit"
 
 !normalise Hb to 100 if requested
 
@@ -134,6 +134,6 @@ end do
 close(100)
 close(101) !temp XXXX
 
-print *,gettime()," : all done"
+print *,gettime(),": all done"
 
 end program alfa 

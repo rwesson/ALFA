@@ -30,7 +30,7 @@ logical :: normalise
 
 !temp XXXX
 
-open (101,file="intermediate",status="replace")
+open (999,file="intermediate",status="replace")
 
 !set defaults
 
@@ -100,7 +100,6 @@ print *,gettime(),": writing output files ",trim(spectrumfile),"_lines.tex and "
 
 !normalise Hb to 100 if requested
 
-normalisation = 1.D0
 if (normalise) then
   do i=1,nlines
     if (population(1)%wavelength(i) .eq. 4861.33) then
@@ -108,6 +107,8 @@ if (normalise) then
       exit
     endif
   enddo
+else
+  normalisation = 1.D0
 endif
 
 open(100,file=trim(spectrumfile)//"_lines.tex")
@@ -116,7 +117,7 @@ write(100,*) "Observed wavelength & Rest wavelength & Flux & Uncertainty & Ion &
 do i=1,nlines
   if (population(minloc(rms,1))%uncertainty(i) .gt. 3.0) then
     write (100,"(F7.2,' & ',F7.2,' & ',F12.3,' & ',F12.3,A85)") population(1)%wavelength(i)*population(1)%redshift,population(1)%wavelength(i),normalisation*gaussianflux(population(minloc(rms,1))%peak(i),(population(minloc(rms,1))%wavelength(i)/population(minloc(rms,1))%resolution)), normalisation*gaussianflux(population(minloc(rms,1))%peak(i),(population(minloc(rms,1))%wavelength(i)/population(minloc(rms,1))%resolution))/population(minloc(rms,1))%uncertainty(i), linedata(i)
-    write (101,*) population(1)%wavelength(i),normalisation*gaussianflux(population(minloc(rms,1))%peak(i),(population(minloc(rms,1))%wavelength(i)/population(minloc(rms,1))%resolution)),normalisation*gaussianflux(population(minloc(rms,1))%peak(i),(population(minloc(rms,1))%wavelength(i)/population(minloc(rms,1))%resolution))/population(minloc(rms,1))%uncertainty(i)
+    write (101,*) population(1)%wavelength(i),population(1)%wavelength(i)*population(1)%redshift,normalisation*gaussianflux(population(minloc(rms,1))%peak(i),(population(minloc(rms,1))%wavelength(i)/population(minloc(rms,1))%resolution)),normalisation*gaussianflux(population(minloc(rms,1))%peak(i),(population(minloc(rms,1))%wavelength(i)/population(minloc(rms,1))%resolution))/population(minloc(rms,1))%uncertainty(i)
   end if
 end do
 close(101)
@@ -132,7 +133,7 @@ do i=1,spectrumlength
 end do
 
 close(100)
-close(101) !temp XXXX
+close(999) !temp XXXX
 
 print *,gettime(),": all done"
 

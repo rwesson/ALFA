@@ -114,6 +114,7 @@ endif
 open(100,file=trim(spectrumfile)//"_lines.tex")
 open(101,file=trim(spectrumfile)//"_lines")
 write(100,*) "Observed wavelength & Rest wavelength & Flux & Uncertainty & Ion & Multiplet & Lower term & Upper term & g_1 & g_2 \\"
+write(101,*) "#Obs. wlen.  Rest wlen.   Flux   Uncertainty"
 do i=1,nlines
   if (population(minloc(rms,1))%uncertainty(i) .gt. 3.0) then
     write (100,"(F7.2,' & ',F7.2,' & ',F12.3,' & ',F12.3,A85)") population(1)%wavelength(i)*population(1)%redshift,population(1)%wavelength(i),normalisation*gaussianflux(population(minloc(rms,1))%peak(i),(population(minloc(rms,1))%wavelength(i)/population(minloc(rms,1))%resolution)), normalisation*gaussianflux(population(minloc(rms,1))%peak(i),(population(minloc(rms,1))%wavelength(i)/population(minloc(rms,1))%resolution))/population(minloc(rms,1))%uncertainty(i), linedata(i)

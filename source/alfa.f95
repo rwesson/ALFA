@@ -85,7 +85,7 @@ call fit_continuum(realspec,spectrumlength, continuum)
 
 print *,gettime(),": fitting ",nlines," lines"
 print *
-print *,"Best fitting model parameters:          Resolution      Redshift          RMS"
+print *,"Best fitting model parameters:             Resolution      Redshift       RMS"
 call fit(realspec, referencelinelist, population, synthspec, rms)
 
 ! calculate the uncertainties
@@ -118,7 +118,7 @@ write(101,*) "#Obs. wlen.  Rest wlen.   Flux   Uncertainty"
 do i=1,nlines
   if (population(minloc(rms,1))%uncertainty(i) .gt. 3.0) then
     write (100,"(F7.2,' & ',F7.2,' & ',F12.3,' & ',F12.3,A85)") population(1)%wavelength(i)*population(1)%redshift,population(1)%wavelength(i),normalisation*gaussianflux(population(minloc(rms,1))%peak(i),(population(minloc(rms,1))%wavelength(i)/population(minloc(rms,1))%resolution)), normalisation*gaussianflux(population(minloc(rms,1))%peak(i),(population(minloc(rms,1))%wavelength(i)/population(minloc(rms,1))%resolution))/population(minloc(rms,1))%uncertainty(i), linedata(i)
-    write (101,*) population(1)%wavelength(i),population(1)%wavelength(i)*population(1)%redshift,normalisation*gaussianflux(population(minloc(rms,1))%peak(i),(population(minloc(rms,1))%wavelength(i)/population(minloc(rms,1))%resolution)),normalisation*gaussianflux(population(minloc(rms,1))%peak(i),(population(minloc(rms,1))%wavelength(i)/population(minloc(rms,1))%resolution))/population(minloc(rms,1))%uncertainty(i)
+    write (101,*) population(1)%wavelength(i)*population(1)%redshift,population(1)%wavelength(i),normalisation*gaussianflux(population(minloc(rms,1))%peak(i),(population(minloc(rms,1))%wavelength(i)/population(minloc(rms,1))%resolution)),normalisation*gaussianflux(population(minloc(rms,1))%peak(i),(population(minloc(rms,1))%wavelength(i)/population(minloc(rms,1))%resolution))/population(minloc(rms,1))%uncertainty(i)
   end if
 end do
 close(101)

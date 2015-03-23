@@ -3,7 +3,7 @@ use mod_routines
 use mod_types
 
 contains
-subroutine fit(realspec, referencelinelist, population, synthspec, rms)
+subroutine fit(realspec, referencelinelist, population, synthspec, rms, redshiftguess, resolutionguess)
 
 implicit none
 
@@ -15,7 +15,8 @@ type(spectrum), dimension(:) :: realspec
 integer :: popsize, i, specpoint, spectrumlength, generations, lineid, loc1, loc2, nlines, gencount, popnumber
 real, dimension(:), allocatable :: rms
 real :: random, pressure
-
+real :: resolutionguess, redshiftguess
+real :: tmpvar !XXX
 !initialisation
 
   popsize=50
@@ -56,8 +57,8 @@ end do
 do popnumber=1,popsize
   population(popnumber)%wavelength = referencelinelist%wavelength
   population(popnumber)%peak=10.0
-  population(popnumber)%resolution=3000.
-  population(popnumber)%redshift=1.0
+  population(popnumber)%resolution=resolutionguess
+  population(popnumber)%redshift=redshiftguess
 end do
 
 do gencount=1,generations
@@ -90,7 +91,7 @@ rms=0.D0
     !member with the lowest RMS into the breed array, replace the RMS with
     !something very high so that it doesn't get copied twice, repeat until
     !a fraction equal to the pressure factor have been selected
-  
+tmpvar = maxval(rms,1) !XXX
     do i=1,int(popsize*pressure) 
       breed(i) = population(minloc(rms,1))
       rms(minloc(rms,1))=1.e10
@@ -116,10 +117,13 @@ rms=0.D0
       !then, "mutate"
       do popnumber=1,popsize ! mutation of spectral resolution
         population(popnumber)%resolution = population(popnumber)%resolution * mutation()
-        if (population(popnumber)%resolution .gt. 20000.) then !this condition may not always be necessary
-          population(popnumber)%resolution = 20000.
+        if (population(popnumber)%resolution .lt. 3000.) then !this condition may not always be necessary
+          population(popnumber)%resolution = 3000.
         endif
-        population(popnumber)%redshift = population(popnumber)%redshift * ((999.+mutation())/1000.)
+        if (population(popnumber)%resolution .gt. 12000.) then !this condition may not always be necessary
+          population(popnumber)%resolution = 12000.
+        endif
+        population(popnumber)%redshift = population(popnumber)%redshift * ((9999.+mutation())/10000.)
         do lineid=1,nlines !mutation of line fluxes
           population(popnumber)%peak(lineid) = population(popnumber)%peak(lineid) * mutation()
         enddo
@@ -127,10 +131,10 @@ rms=0.D0
     endif
   
     if (mod(gencount,generations/10) .eq.0 .or. gencount.eq.1) then
-      print "(X,A,A,i5,A,i5,A,3(X,F12.3))",gettime()," : ",gencount," of ",generations, " generations  ", population(minloc(rms,1))%resolution, 3.e5*(population(minloc(rms,1))%redshift-1), minval(rms,1)
+      print "(X,A,A,i5,A,i5,A,4(X,F12.3))",gettime()," : ",gencount," of ",generations, " generations  ", population(minloc(rms,1))%resolution, 3.e5*(population(minloc(rms,1))%redshift-1), minval(rms,1), tmpvar
 ! temporary
       do i=1,spectrumlength
-        write (999,*) synthspec(i,minloc(rms,1))%wavelength,synthspec(i,minloc(rms,1))%flux
+        write (999,*) synthspec(i,minloc(rms,1))%wavelength,synthspec(i,minloc(rms,1))%flux,synthspec(i,maxloc(rms,1))%flux
       enddo
       write (999,*)
 ! end of temporariness

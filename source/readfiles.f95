@@ -94,6 +94,9 @@ character(len=85), dimension(:), allocatable :: linedata
     READ(199,'(F7.3,A)') input1, linedatainput
     if (input1 .ge. minval(realspec%wavelength)) then
       referencelinelist%wavelength(i) = input1
+      ! seed the initial guess for line peaks with the nearest observed flux to
+      ! the line centre
+      referencelinelist%peak(i)=realspec(minloc((realspec%wavelength-input1)**2,1))%flux
       linedata(i) = linedatainput
       i=i+1
     endif

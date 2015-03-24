@@ -12,16 +12,16 @@ type(linelist), dimension(:),allocatable :: population
 type(linelist), dimension(:),allocatable ::  breed
 type(spectrum), dimension(:,:), allocatable :: synthspec
 type(spectrum), dimension(:) :: realspec
-integer :: popsize, i, specpoint, spectrumlength, generations, lineid, loc1, loc2, nlines, gencount, popnumber
+integer :: popsize, i, specpoint, spectrumlength, lineid, loc1, loc2, nlines, gencount, popnumber
 real, dimension(:), allocatable :: rms
-real :: random, pressure
+real :: random, pressure, convergence, oldrms
 real :: resolutionguess, redshiftguess
 real :: tmpvar !XXX
 !initialisation
 
   popsize=50
-  generations=1000
   pressure=0.1 !pressure * popsize needs to be an integer
+  convergence=0.0 !new rms / old rms
 
   nlines=size(referencelinelist%wavelength)
   spectrumlength=size(realspec%wavelength)
@@ -56,17 +56,27 @@ end do
 
 do popnumber=1,popsize
   population(popnumber)%wavelength = referencelinelist%wavelength
-  population(popnumber)%peak=10.0
+  population(popnumber)%peak=referencelinelist%peak
   population(popnumber)%resolution=resolutionguess
   population(popnumber)%redshift=redshiftguess
 end do
 
-do gencount=1,generations
+! iterate until rms changes by less than 1 percent
+
+gencount=1
+
+do while (convergence .lt. 0.99999)
+
+  if (gencount.eq.1) then
+   oldrms=1.e30
+  else
+    oldrms=minval(rms,1)
+  endif
 
 !reset stuff to zero before doing calculations
 
-synthspec%flux=0.D0
-rms=0.D0
+  synthspec%flux=0.D0
+  rms=0.D0
 
   do popnumber=1,popsize
   
@@ -104,34 +114,32 @@ tmpvar = maxval(rms,1) !XXX
   !so that
   !every model generates one offspring.
   
-    if (gencount .ne. generations) then
-      do i=1,popsize 
-        call random_number(random)
-        loc1=int(popsize*random*pressure)+1
-        call random_number(random)
-        loc2=int(popsize*random*pressure)+1 
-        population(i)%peak=(breed(loc1)%peak + breed(loc2)%peak)/2.0
-        population(i)%resolution=(breed(loc1)%resolution + breed(loc2)%resolution)/2.0
-        population(i)%redshift=(breed(loc1)%redshift + breed(loc2)%redshift)/2.0
-      end do
-      !then, "mutate"
-      do popnumber=1,popsize ! mutation of spectral resolution
-        population(popnumber)%resolution = population(popnumber)%resolution * mutation()
-        if (population(popnumber)%resolution .lt. 3000.) then !this condition may not always be necessary
-          population(popnumber)%resolution = 3000.
-        endif
-        if (population(popnumber)%resolution .gt. 12000.) then !this condition may not always be necessary
-          population(popnumber)%resolution = 12000.
-        endif
-        population(popnumber)%redshift = population(popnumber)%redshift * ((9999.+mutation())/10000.)
-        do lineid=1,nlines !mutation of line fluxes
-          population(popnumber)%peak(lineid) = population(popnumber)%peak(lineid) * mutation()
-        enddo
+    do i=1,popsize 
+      call random_number(random)
+      loc1=int(popsize*random*pressure)+1
+      call random_number(random)
+      loc2=int(popsize*random*pressure)+1 
+      population(i)%peak=(breed(loc1)%peak + breed(loc2)%peak)/2.0
+      population(i)%resolution=(breed(loc1)%resolution + breed(loc2)%resolution)/2.0
+      population(i)%redshift=(breed(loc1)%redshift + breed(loc2)%redshift)/2.0
+    end do
+    !then, "mutate"
+    do popnumber=1,popsize ! mutation of spectral resolution
+      population(popnumber)%resolution = population(popnumber)%resolution * mutation()
+      if (population(popnumber)%resolution .lt. 3000.) then !this condition may not always be necessary
+        population(popnumber)%resolution = 3000.
+      endif
+      if (population(popnumber)%resolution .gt. 12000.) then !this condition may not always be necessary
+        population(popnumber)%resolution = 12000.
+      endif
+      population(popnumber)%redshift = population(popnumber)%redshift * ((9999.+mutation())/10000.)
+      do lineid=1,nlines !mutation of line fluxes
+        population(popnumber)%peak(lineid) = population(popnumber)%peak(lineid) * mutation()
       enddo
-    endif
+    enddo
   
-    if (mod(gencount,generations/10) .eq.0 .or. gencount.eq.1) then
-      print "(X,A,A,i5,A,i5,A,4(X,F12.3))",gettime()," : ",gencount," of ",generations, " generations  ", population(minloc(rms,1))%resolution, 3.e5*(population(minloc(rms,1))%redshift-1), minval(rms,1), tmpvar
+  if (mod(gencount,100) .eq.0 .or. gencount.eq.1) then
+      print "(X,A,A,i5,A,4(X,F12.3))",gettime()," : ",gencount, " generations  ", population(minloc(rms,1))%resolution, 3.e5*(population(minloc(rms,1))%redshift-1), minval(rms,1), tmpvar
 ! temporary
       do i=1,spectrumlength
         write (999,*) synthspec(i,minloc(rms,1))%wavelength,synthspec(i,minloc(rms,1))%flux,synthspec(i,maxloc(rms,1))%flux
@@ -148,9 +156,14 @@ tmpvar = maxval(rms,1) !XXX
   !    print*
   !  endif
   
-
-  
+  gencount=gencount+1
+  convergence=minval(rms,1)/oldrms
+  if (convergence .gt. 1.0) then
+    convergence = 1./convergence
+  endif
+!print *,convergence,gencount, oldrms
   end do
+      print "(X,A,A,i5,A,4(X,F12.3))",gettime()," : ",gencount, " generations  ", population(minloc(rms,1))%resolution, 3.e5*(population(minloc(rms,1))%redshift-1), minval(rms,1), tmpvar
  
 end subroutine fit
 end module mod_fit 

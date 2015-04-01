@@ -29,8 +29,8 @@ integer :: narg
 logical :: normalise
 
 real :: redshiftguess, resolutionguess
-redshiftguess=1.000
-resolutionguess=8000.
+redshiftguess=1.0001
+resolutionguess=4800.
 
 !temp XXXX
 
@@ -89,7 +89,7 @@ call fit_continuum(realspec,spectrumlength, continuum)
 
 print *,gettime(),": fitting ",nlines," lines"
 print *
-print *,"Best fitting model parameters:             Resolution      Redshift       RMS"
+print *,"Best fitting model parameters:       Resolution    Redshift    RMS min      RMS max"
 call fit(realspec, referencelinelist, population, synthspec, rms, redshiftguess, resolutionguess)
 
 ! calculate the uncertainties

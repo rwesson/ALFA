@@ -1,3 +1,18 @@
+Questions:
+  why doesn't the maximum RMS end up very close to the minimum RMS?  Where are the large values coming from?
+  why doesn't it converge to a very stable value? - mutations too strong?
+  why doesn't it work on a whole spectrum even with 100,000 generations?
+    goodness of fit weighted towards strong lines
+    wavelength calibration not robust enough to fit whole thing
+
+possible algorithm:
+ 1. fit strong lines to get first estimate of redshift and resolution
+ 2. then fit in chunks, restrict the mutation to say 5% of the initial values
+ 3. allow each line to have its own redshift?
+
+tests:
+  make synthetic spectrum with a few weak lines and one strong line.  increase strength of strong line.  determine if contrast alone causes bad fitting of weak lines.  if it does, then goodness of fit needs improving
+
 0. uncertainties:
      generate synthetic spectra with one line and increasing noise
      fit with dipso

@@ -10,6 +10,8 @@ possible algorithm:
  2. then fit in chunks, restrict the mutation to say 5% of the initial values
  3. allow each line to have its own redshift?
 
+single line list, strong lines marked somehow
+
 tests:
   make synthetic spectrum with a few weak lines and one strong line.  increase strength of strong line.  determine if contrast alone causes bad fitting of weak lines.  if it does, then goodness of fit needs improving
 

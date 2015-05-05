@@ -1,7 +1,7 @@
 Questions:
   why doesn't the maximum RMS end up very close to the minimum RMS?  Where are the large values coming from?
   why doesn't it converge to a very stable value? - mutations too strong?
-  why doesn't it work on a whole spectrum even with 100,000 generations?
+  why doesn't it work well on a whole spectrum even with 100,000 generations?
     goodness of fit weighted towards strong lines
     wavelength calibration not robust enough to fit whole thing
 

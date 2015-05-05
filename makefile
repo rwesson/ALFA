@@ -29,6 +29,7 @@
 FC=gfortran
 LD=gfortran
 FFLAGS=-ffree-line-length-0 -fbounds-check -O3 -fno-backtrace
+SDIR=source
 
 ifeq ($(FC),gfortran)
   FFLAGS = -ffree-line-length-0
@@ -73,9 +74,9 @@ all: alfa
 %.o: %.f95
 	$(FC) $(FFLAGS) $< -c -o $@
 
-alfa: source/functions.o source/types.o source/readfiles.o source/quicksort.o source/continuum.o source/fit.o source/uncertainties.o source/alfa.o
+alfa: $(SDIR)/functions.o $(SDIR)/types.o $(SDIR)/readfiles.o $(SDIR)/quicksort.o $(SDIR)/continuum.o $(SDIR)/fit.o $(SDIR)/uncertainties.o $(SDIR)/alfa.o
 
 	$(LD) $(LDFLAGS) $(FFLAGS) -o $@ $^
 
 clean:
-	rm -f alfa source/*.o source/*.mod
+	rm -f alfa $(SDIR)/*.o $(SDIR)/*.mod

@@ -65,7 +65,8 @@ end do
 
 gencount=1
 
-do while (convergence .lt. 0.99999)
+do while (gencount .lt. 1001)
+!do while (convergence .lt. 0.99999)
 
   if (gencount.eq.1) then
    oldrms=1.e30
@@ -127,12 +128,13 @@ tmpvar = maxval(rms,1) !XXX
     do popnumber=1,popsize ! mutation of spectral resolution
       population(popnumber)%resolution = population(popnumber)%resolution * mutation()
       if (population(popnumber)%resolution .lt. 3000.) then !this condition may not always be necessary
-        population(popnumber)%resolution = 3000.
+        population(popnumber)%resolution = 7000.
       endif
       if (population(popnumber)%resolution .gt. 12000.) then !this condition may not always be necessary
-        population(popnumber)%resolution = 12000.
+        population(popnumber)%resolution = 9000.
       endif
       population(popnumber)%redshift = population(popnumber)%redshift * ((9999.+mutation())/10000.)
+      if (abs(population(popnumber)%redshift) .gt. 1.0) population(popnumber)%redshift = 0.9996
       do lineid=1,nlines !mutation of line fluxes
         population(popnumber)%peak(lineid) = population(popnumber)%peak(lineid) * mutation()
       enddo

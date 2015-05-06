@@ -4,7 +4,7 @@ use mod_routines
 
 contains
 
-subroutine readfiles(spectrumfile,linelistfile,realspec,referencelinelist,spectrumlength,nlines,linedata)
+subroutine readfiles(spectrumfile,linelistfile,realspec,referencelinelist,spectrumlength,nlines,linedata,fittedspectrum, fittedlines)
 implicit none
 
 character (len=512) :: spectrumfile, linelistfile
@@ -14,8 +14,8 @@ real :: input1, input2
 integer :: io, nlines, spectrumlength
 logical :: file_exists
 
-type(linelist) :: referencelinelist
-type(spectrum), dimension(:), allocatable :: realspec
+type(linelist) :: referencelinelist, fittedlines
+type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum
 character(len=85), dimension(:), allocatable :: linedata
 
 ! read in spectrum to fit
@@ -44,6 +44,7 @@ character(len=85), dimension(:), allocatable :: linedata
   !then allocate and read
 
   allocate (realspec(spectrumlength))
+  allocate (fittedspectrum(spectrumlength))
 
   REWIND (199)
   DO I=1,spectrumlength
@@ -86,6 +87,8 @@ character(len=85), dimension(:), allocatable :: linedata
 
   allocate(referencelinelist%peak(nlines))
   allocate(referencelinelist%wavelength(nlines))
+  allocate(fittedlines%peak(nlines))
+  allocate(fittedlines%wavelength(nlines))
   allocate(linedata(nlines))
 
   REWIND (199)

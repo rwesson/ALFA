@@ -4,13 +4,11 @@ use mod_quicksort
 
 contains
 
-subroutine get_uncertainties(synthspec, realspec, population, rms)
+subroutine get_uncertainties(fittedspectrum, realspec, fittedlines)
 implicit none
 
-real, dimension(:) :: rms
-type(spectrum), dimension(:,:), allocatable :: synthspec
-type(spectrum), dimension(:), allocatable :: realspec
-type(linelist), dimension(:), allocatable :: population
+type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum
+type(linelist) :: fittedlines
 real, dimension(:), allocatable :: residuals
 real, dimension(20) :: spectrumchunk
 real :: wavelengthsampling
@@ -18,14 +16,14 @@ integer :: i, uncertaintywavelengthindex
 
 allocate(residuals(size(realspec)))
 
-residuals=realspec(:)%flux - synthspec(:,minloc(rms,1))%flux
+residuals=realspec%flux - fittedspectrum%flux
 
 ! in a moving 20 unit window, calculated the RMS of the residuals, excluding the
 ! 5 largest (this avoids the uncertainty calculation being biased by unfitted
 ! lines or large residuals from the wings of lines)
 
-do i=11,size(realspec)-10
-  spectrumchunk=abs(residuals(i-10:i+10))
+do i=10,size(realspec)-10
+  spectrumchunk=abs(residuals(i-9:i+10))
   call qsort(spectrumchunk)
   spectrumchunk(15:20)=0.D0
   realspec(i)%uncertainty=((sum(spectrumchunk**2)/15.)**0.5)
@@ -40,11 +38,10 @@ realspec(size(realspec%uncertainty)-10:size(realspec%uncertainty))%uncertainty=r
 
 wavelengthsampling=realspec(2)%wavelength - realspec(1)%wavelength
 
-do i=1,size(population(1)%uncertainty)
-  uncertaintywavelengthindex=minloc(abs(realspec%wavelength-population(minloc(rms,1))%wavelength(i)),1)
-  population(minloc(rms,1))%uncertainty(i)=0.67*(population(minloc(rms,1))%wavelength(i)/(population(minloc(rms,1))%resolution*wavelengthsampling))**0.5&
-  &*population(minloc(rms,1))%peak(i)&
-  &/realspec(uncertaintywavelengthindex)%uncertainty
+do i=1,size(fittedlines%uncertainty)
+  uncertaintywavelengthindex=minloc(abs(realspec%wavelength-fittedlines%wavelength(i)),1)
+  fittedlines%uncertainty(i)=0.67*(fittedlines%wavelength(i)/(fittedlines%resolution*wavelengthsampling))**0.5&
+  &*fittedlines%peak(i)/realspec(uncertaintywavelengthindex)%uncertainty
 end do
 
 !write out uncertainties for debugging purposes:
@@ -52,7 +49,7 @@ end do
 open (999, file="uncertainties")
 write (999,*) """wavelength"" ""obs. flux"" ""synth. flux"" ""residuals"" ""rms"""
 do i=1,size(realspec)
-  write (999,*) realspec(i)%wavelength, realspec(i)%flux, synthspec(i,minloc(rms,1))%flux, residuals(i), realspec(i)%uncertainty
+  write (999,*) realspec(i)%wavelength, realspec(i)%flux, fittedspectrum(i)%flux, residuals(i), realspec(i)%uncertainty
 end do 
 
 end subroutine get_uncertainties

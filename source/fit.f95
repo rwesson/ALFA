@@ -3,16 +3,16 @@ use mod_routines
 use mod_types
 
 contains
-subroutine fit(realspec, referencelinelist, population, synthspec, rms, redshiftguess, resolutionguess)
+subroutine fit(realspec, referencelinelist, redshiftguess, resolutionguess, fittedspectrum, fittedlines)
 
 implicit none
 
-type(linelist) :: referencelinelist
+type(linelist) :: referencelinelist, fittedlines
 type(linelist), dimension(:),allocatable :: population
 type(linelist), dimension(:),allocatable ::  breed
 type(spectrum), dimension(:,:), allocatable :: synthspec
-type(spectrum), dimension(:) :: realspec
-integer :: popsize, i, specpoint, spectrumlength, lineid, loc1, loc2, nlines, gencount, popnumber
+type(spectrum), dimension(:) :: realspec, fittedspectrum
+integer :: popsize, i, spectrumlength, lineid, loc1, loc2, nlines, gencount, popnumber
 real, dimension(:), allocatable :: rms
 real :: random, pressure, convergence, oldrms
 real :: resolutionguess, redshiftguess
@@ -97,7 +97,11 @@ do while (gencount .lt. 1001)
     rms(popnumber)=sum((synthspec(:,popnumber)%flux-realspec(:)%flux)**2)/spectrumlength
   
   end do
-  
+ 
+    !if that was the last generation then exit before mutating
+
+  if (gencount .eq. 1000) exit
+ 
     !next, cream off the well performing models - put the population
     !member with the lowest RMS into the breed array, replace the RMS with
     !something very high so that it doesn't get copied twice, repeat until
@@ -165,7 +169,20 @@ tmpvar = maxval(rms,1) !XXX
   endif
 !print *,convergence,gencount, oldrms
   end do
-      print "(X,A,A,i5,A,4(X,F12.3))",gettime()," : ",gencount, " generations  ", population(minloc(rms,1))%resolution, 3.e5*(population(minloc(rms,1))%redshift-1), minval(rms,1), tmpvar
+
+!copy fit results into arrays to return
+
+  fittedspectrum = synthspec(:,minloc(rms,1))
+  fittedlines = population(minloc(rms,1))
+
+!deallocate arrays
+
+  deallocate(synthspec)
+  deallocate(rms)
+  deallocate(breed)
+  deallocate(population)
+
+!  print "(X,A,A,i5,A,4(X,F12.3))",gettime()," : ",gencount, " generations  ", population(minloc(rms,1))%resolution, 3.e5*(population(minloc(rms,1))%redshift-1), minval(rms,1), tmpvar
  
 end subroutine fit
 end module mod_fit 

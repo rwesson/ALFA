@@ -12,14 +12,11 @@ implicit none
 integer :: I, spectrumlength, nlines
 character (len=512) :: spectrumfile,linelistfile
 
-type(linelist) :: referencelinelist
-type(linelist), dimension(:),allocatable :: population
-type(spectrum), dimension(:,:), allocatable :: synthspec
-type(spectrum), dimension(:), allocatable :: realspec
+type(linelist) :: referencelinelist, fittedlines
+type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum
 type(spectrum), dimension(:), allocatable :: continuum
 character(len=85), dimension(:), allocatable :: linedata
 
-real, dimension(:), allocatable :: rms
 real :: normalisation
 
 CHARACTER*2048, DIMENSION(:), allocatable :: options
@@ -78,7 +75,7 @@ call get_command_argument(narg,linelistfile)
 
 ! read in spectrum to fit and line list
 
-call readfiles(spectrumfile,linelistfile,realspec,referencelinelist,spectrumlength, nlines, linedata)
+call readfiles(spectrumfile,linelistfile,realspec,referencelinelist,spectrumlength, nlines, linedata, fittedspectrum, fittedlines)
 
 ! then subtract the continuum
 
@@ -90,13 +87,13 @@ call fit_continuum(realspec,spectrumlength, continuum)
 print *,gettime(),": fitting ",nlines," lines"
 print *
 print *,"Best fitting model parameters:       Resolution    Redshift    RMS min      RMS max"
-call fit(realspec, referencelinelist, population, synthspec, rms, redshiftguess, resolutionguess)
+call fit(realspec, referencelinelist, redshiftguess, resolutionguess, fittedspectrum, fittedlines)
 
 ! calculate the uncertainties
 
 print *
 print *,gettime(),": estimating uncertainties"
-call get_uncertainties(synthspec, realspec, population, rms)
+call get_uncertainties(fittedspectrum, realspec, fittedlines)
 
 !write out line fluxes of best fitting spectrum
 
@@ -105,9 +102,10 @@ print *,gettime(),": writing output files ",trim(spectrumfile),"_lines.tex and "
 !normalise Hb to 100 if requested
 
 if (normalise) then
+print *,gettime(),": normalising to Hb=100"
   do i=1,nlines
-    if (population(1)%wavelength(i) .eq. 4861.33) then
-      normalisation = 100./gaussianflux(population(minloc(rms,1))%peak(i),(population(minloc(rms,1))%wavelength(i)/population(minloc(rms,1))%resolution))
+    if (fittedlines%wavelength(i) .eq. 4861.33) then
+      normalisation = 100./gaussianflux(fittedlines%peak(i),(fittedlines%wavelength(i)/fittedlines%resolution))
       exit
     endif
   enddo
@@ -120,9 +118,9 @@ open(101,file=trim(spectrumfile)//"_neat_input")
 write(100,*) "Observed wavelength & Rest wavelength & Flux & Uncertainty & Ion & Multiplet & Lower term & Upper term & g_1 & g_2 \\"
 write(101,*) "#Obs. wlen.  Rest wlen.   Flux   Uncertainty"
 do i=1,nlines
-  if (population(minloc(rms,1))%uncertainty(i) .gt. 3.0) then
-    write (100,"(F7.2,' & ',F7.2,' & ',F12.3,' & ',F12.3,A85)") population(1)%wavelength(i)*population(1)%redshift,population(1)%wavelength(i),normalisation*gaussianflux(population(minloc(rms,1))%peak(i),(population(minloc(rms,1))%wavelength(i)/population(minloc(rms,1))%resolution)), normalisation*gaussianflux(population(minloc(rms,1))%peak(i),(population(minloc(rms,1))%wavelength(i)/population(minloc(rms,1))%resolution))/population(minloc(rms,1))%uncertainty(i), linedata(i)
-    write (101,"(F7.2, F12.3, F12.3)") population(1)%wavelength(i),normalisation*gaussianflux(population(minloc(rms,1))%peak(i),(population(minloc(rms,1))%wavelength(i)/population(minloc(rms,1))%resolution)),normalisation*gaussianflux(population(minloc(rms,1))%peak(i),(population(minloc(rms,1))%wavelength(i)/population(minloc(rms,1))%resolution))/population(minloc(rms,1))%uncertainty(i)
+  if (fittedlines%uncertainty(i) .gt. 3.0) then
+    write (100,"(F7.2,' & ',F7.2,' & ',F12.3,' & ',F12.3,A85)") fittedlines%wavelength(i)*fittedlines%redshift,fittedlines%wavelength(i),normalisation*gaussianflux(fittedlines%peak(i),(fittedlines%wavelength(i)/fittedlines%resolution)), normalisation*gaussianflux(fittedlines%peak(i),(fittedlines%wavelength(i)/fittedlines%resolution))/fittedlines%uncertainty(i), linedata(i)
+    write (101,"(F7.2, 3(F12.3))") fittedlines%wavelength(i),normalisation*gaussianflux(fittedlines%peak(i),(fittedlines%wavelength(i)/fittedlines%resolution)),normalisation*gaussianflux(fittedlines%peak(i),(fittedlines%wavelength(i)/fittedlines%resolution))/fittedlines%uncertainty(i), fittedlines%resolution
   end if
 end do
 close(101)
@@ -134,7 +132,7 @@ open(100,file=trim(spectrumfile)//"_fit")
 
 write (100,*) """wavelength""  ""fitted spectrum""  ""cont-subbed orig"" ""continuum""  ""residuals"""
 do i=1,spectrumlength
-  write(100,*) synthspec(i,minloc(rms,1))%wavelength,synthspec(i,minloc(rms,1))%flux, realspec(i)%flux, continuum(i)%flux, realspec(i)%flux - synthspec(i,minloc(rms,1))%flux
+  write(100,*) fittedspectrum(i)%wavelength,fittedspectrum(i)%flux, realspec(i)%flux, continuum(i)%flux, realspec(i)%flux - fittedspectrum(i)%flux
 end do
 
 close(100)
@@ -142,4 +140,4 @@ close(999) !temp XXXX
 
 print *,gettime(),": all done"
 
-end program alfa 
+end program alfa

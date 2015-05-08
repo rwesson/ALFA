@@ -48,6 +48,7 @@ subroutine readspectrum(spectrumfile, realspec, spectrumlength, fittedspectrum)
     READ(199,*) input1, input2
     realspec(i)%wavelength = input1
     realspec(i)%flux = input2
+    realspec(i)%uncertainty = 0.d0
   END DO
   CLOSE(199)
 

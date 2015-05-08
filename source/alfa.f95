@@ -3,7 +3,6 @@ program alfa
 use mod_readfiles
 use mod_routines
 use mod_types
-use mod_quicksort
 use mod_continuum
 use mod_fit
 use mod_uncertainties

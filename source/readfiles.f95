@@ -68,6 +68,13 @@ subroutine readlinelist(linelistfile,referencelinelist,nlines,linedata,fittedlin
   type(spectrum), dimension(:), allocatable :: realspec
   character(len=85), dimension(:), allocatable :: linedata
 
+  ! deallocate if necessary
+  if (allocated(referencelinelist%peak)) deallocate(referencelinelist%peak)
+  if (allocated(referencelinelist%wavelength)) deallocate(referencelinelist%wavelength)
+  if (allocated(fittedlines%peak)) deallocate(fittedlines%peak)
+  if (allocated(fittedlines%wavelength)) deallocate(fittedlines%wavelength)
+  if (allocated(linedata)) deallocate(linedata)
+
   if (trim(linelistfile)=="") then
     print *,gettime(),": error: No line catalogue specified"
     stop

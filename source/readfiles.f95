@@ -4,21 +4,18 @@ use mod_routines
 
 contains
 
-subroutine readfiles(spectrumfile,linelistfile,realspec,referencelinelist,spectrumlength,nlines,linedata,fittedspectrum, fittedlines)
-implicit none
+subroutine readspectrum(spectrumfile, realspec, spectrumlength, fittedspectrum)
 
-character (len=512) :: spectrumfile, linelistfile
-character (len=85) :: linedatainput
-integer :: i
-real :: input1, input2
-integer :: io, nlines, spectrumlength
-logical :: file_exists
+  implicit none
+  character (len=512) :: spectrumfile
+  integer :: i
+  real :: input1, input2
+  integer :: io, spectrumlength
+  logical :: file_exists
 
-type(linelist) :: referencelinelist, fittedlines
-type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum
-character(len=85), dimension(:), allocatable :: linedata
+  type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum
 
-! read in spectrum to fit
+  !read in spectrum to fit
 
   if (trim(spectrumfile)=="") then
     print *,gettime(),": error: No input spectrum specified"
@@ -53,6 +50,22 @@ character(len=85), dimension(:), allocatable :: linedata
     realspec(i)%flux = input2
   END DO
   CLOSE(199)
+
+end subroutine readspectrum
+
+subroutine readlinelist(linelistfile,referencelinelist,nlines,linedata,fittedlines, realspec)
+
+  implicit none
+  character (len=512) :: linelistfile
+  character (len=85) :: linedatainput
+  integer :: i
+  real :: input1, input2
+  integer :: io, nlines
+  logical :: file_exists
+
+  type(linelist) :: referencelinelist, fittedlines
+  type(spectrum), dimension(:), allocatable :: realspec
+  character(len=85), dimension(:), allocatable :: linedata
 
   if (trim(linelistfile)=="") then
     print *,gettime(),": error: No line catalogue specified"
@@ -109,5 +122,5 @@ character(len=85), dimension(:), allocatable :: linedata
   END DO
   CLOSE(199)
 
-end subroutine readfiles
+end subroutine readlinelist
 end module mod_readfiles

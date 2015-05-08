@@ -3,7 +3,7 @@ use mod_routines
 use mod_types
 
 contains
-subroutine fit(realspec, referencelinelist, redshiftguess, resolutionguess, fittedspectrum, fittedlines)
+subroutine fit(realspec, referencelinelist, redshiftguess, resolutionguess, fittedspectrum, fittedlines, tolerance)
 
 implicit none
 
@@ -15,7 +15,7 @@ type(spectrum), dimension(:) :: realspec, fittedspectrum
 integer :: popsize, i, spectrumlength, lineid, loc1, loc2, nlines, gencount, popnumber
 real, dimension(:), allocatable :: rms
 real :: random, pressure, convergence, oldrms
-real :: resolutionguess, redshiftguess
+real :: resolutionguess, redshiftguess, tolerance
 real :: tmpvar !XXX
 !initialisation
 
@@ -131,14 +131,13 @@ tmpvar = maxval(rms,1) !XXX
     !then, "mutate"
     do popnumber=1,popsize ! mutation of spectral resolution
       population(popnumber)%resolution = population(popnumber)%resolution * mutation()
-      if (population(popnumber)%resolution .lt. 3000.) then !this condition may not always be necessary
-        population(popnumber)%resolution = 7000.
-      endif
-      if (population(popnumber)%resolution .gt. 12000.) then !this condition may not always be necessary
-        population(popnumber)%resolution = 9000.
+      if ((abs(population(popnumber)%resolution-resolutionguess)/resolutionguess) .gt. tolerance) then
+        population(popnumber)%resolution = resolutionguess
       endif
       population(popnumber)%redshift = population(popnumber)%redshift * ((9999.+mutation())/10000.)
-      if (abs(population(popnumber)%redshift) .gt. 1.0) population(popnumber)%redshift = 0.9996
+      if ((abs(population(popnumber)%redshift-redshiftguess)/redshiftguess) .gt. tolerance) then
+        population(popnumber)%redshift = redshiftguess
+      endif
       do lineid=1,nlines !mutation of line fluxes
         population(popnumber)%peak(lineid) = population(popnumber)%peak(lineid) * mutation()
       enddo

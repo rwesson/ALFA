@@ -60,7 +60,7 @@ subroutine readlinelist(linelistfile,referencelinelist,nlines,linedata,fittedlin
   character (len=512) :: linelistfile
   character (len=85) :: linedatainput
   integer :: i
-  real :: input1, input2
+  real :: input1
   integer :: io, nlines
   logical :: file_exists
 
@@ -97,11 +97,6 @@ subroutine readlinelist(linelistfile,referencelinelist,nlines,linedata,fittedlin
       endif
     END DO
     110     nlines=I
-  endif
-
-  if (nlines .eq. 0) then
-    print *,gettime(),": error : Line catalogue does not overlap with input spectrum"
-    stop
   endif
 
 !then allocate and read

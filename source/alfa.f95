@@ -12,7 +12,7 @@ integer :: I, spectrumlength, nlines
 character (len=512) :: spectrumfile,linelistfile
 
 type(linelist) :: referencelinelist, fittedlines
-type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum
+type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum, spectrumchunk
 type(spectrum), dimension(:), allocatable :: continuum
 character(len=85), dimension(:), allocatable :: linedata
 
@@ -25,10 +25,6 @@ integer :: narg
 logical :: normalise
 
 real :: redshiftguess, resolutionguess, tolerance
-
-!temp XXXX
-
-open (999,file="intermediate",status="replace")
 
 !set defaults
 
@@ -73,8 +69,6 @@ call get_command_argument(narg,linelistfile)
 ! read in spectrum to fit and line list
 
 call readspectrum(spectrumfile, realspec, spectrumlength, fittedspectrum)
-call readlinelist(linelistfile, referencelinelist, nlines, linedata, fittedlines, realspec)
-!call readfiles(spectrumfile,linelistfile,realspec,referencelinelist,spectrumlength, nlines, linedata, fittedspectrum, fittedlines)
 
 ! then subtract the continuum
 
@@ -87,6 +81,8 @@ call fit_continuum(realspec,spectrumlength, continuum)
 redshiftguess=1.0001
 resolutionguess=4800.
 tolerance=1.0
+linelistfile="linelists/strong_optical"
+call readlinelist(linelistfile, referencelinelist, nlines, linedata, fittedlines, realspec)
 
 print *,gettime(),": fitting ",nlines," lines"
 print *
@@ -97,12 +93,21 @@ call fit(realspec, referencelinelist, redshiftguess, resolutionguess, fittedspec
 
 redshiftguess=fittedlines%redshift
 resolutionguess=fittedlines%resolution
-tolerance=0.05
+tolerance=0.1
+
+linelistfile="linelists/deep_full"
+allocate(spectrumchunk(200))
+spectrumchunk = realspec(1:200)
+call readlinelist(linelistfile, referencelinelist, nlines, linedata, fittedlines, spectrumchunk)
 
 print *,gettime(),": fitting ",nlines," lines"
 print *
 print *,"Best fitting model parameters:       Resolution    Redshift    RMS min      RMS max"
-call fit(realspec, referencelinelist, redshiftguess, resolutionguess, fittedspectrum, fittedlines, tolerance)
+call fit(spectrumchunk, referencelinelist, redshiftguess, resolutionguess, fittedspectrum, fittedlines, tolerance)
+
+deallocate(realspec)
+allocate(realspec(200))
+realspec = spectrumchunk
 
 ! calculate the uncertainties
 
@@ -151,7 +156,6 @@ do i=1,spectrumlength
 end do
 
 close(100)
-close(999) !temp XXXX
 
 print *,gettime(),": all done"
 

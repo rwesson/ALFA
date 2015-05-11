@@ -8,7 +8,7 @@ use mod_fit
 use mod_uncertainties
 
 implicit none
-integer :: I, spectrumlength, nlines
+integer :: I, spectrumlength, chunklength, nlines, linearraypos
 character (len=512) :: spectrumfile,linelistfile
 
 type(linelist) :: referencelinelist, fittedlines
@@ -45,15 +45,15 @@ call init_random_seed()
 ! read command line
 
 narg = IARGC() !count input arguments
-if (narg .lt. 2) then
-  print *,gettime(),": Error : files to analyse not specified"
+if (narg .lt. 1) then
+  print *,gettime(),": Error : file to analyse not specified"
   stop
 endif
 
 call get_command(commandline)
 ALLOCATE (options(Narg))
-if (narg .gt. 2) then
-  do i=1,Narg-2
+if (narg .gt. 1) then
+  do i=1,Narg-1
     call get_command_argument(i,options(i))
     if (options(i) .eq. "-n") then
       normalise = .true.
@@ -63,8 +63,8 @@ endif
 
 print *,gettime(),": command line: ",trim(commandline)
 
-call get_command_argument(narg-1,spectrumfile)
-call get_command_argument(narg,linelistfile)
+call get_command_argument(narg,spectrumfile)
+!call get_command_argument(narg,linelistfile)
 
 ! read in spectrum to fit and line list
 
@@ -83,31 +83,50 @@ resolutionguess=4800.
 tolerance=1.0
 linelistfile="linelists/strong_optical"
 call readlinelist(linelistfile, referencelinelist, nlines, linedata, fittedlines, realspec)
+if (nlines .eq. 0) then
+  print *,gettime(),": Error: Line catalogue does not overlap with input spectrum"
+  stop
+endif
 
 print *,gettime(),": fitting ",nlines," lines"
 print *
 print *,"Best fitting model parameters:       Resolution    Redshift    RMS min      RMS max"
 call fit(realspec, referencelinelist, redshiftguess, resolutionguess, fittedspectrum, fittedlines, tolerance)
 
-! then again with tighter tolerance
+! then again in chunks with tighter tolerance
 
 redshiftguess=fittedlines%redshift
 resolutionguess=fittedlines%resolution
 tolerance=0.1
-
 linelistfile="linelists/deep_full"
-allocate(spectrumchunk(200))
-spectrumchunk = realspec(1:200)
-call readlinelist(linelistfile, referencelinelist, nlines, linedata, fittedlines, spectrumchunk)
 
-print *,gettime(),": fitting ",nlines," lines"
-print *
-print *,"Best fitting model parameters:       Resolution    Redshift    RMS min      RMS max"
-call fit(spectrumchunk, referencelinelist, redshiftguess, resolutionguess, fittedspectrum, fittedlines, tolerance)
+linearraypos=1
 
-deallocate(realspec)
-allocate(realspec(200))
-realspec = spectrumchunk
+do i=1,spectrumlength,200
+
+  if (spectrumlength - i .lt. 200) then
+    chunklength = spectrumlength - i
+  else
+    chunklength = 200
+  endif
+
+  allocate(spectrumchunk(chunklength))
+  spectrumchunk = realspec(i:i+chunklength)
+  call readlinelist(linelistfile, referencelinelist, nlines, linedata, fittedlines, spectrumchunk)
+
+  if (nlines .gt. 0) then
+    print *,gettime(),": fitting ",nlines," lines"
+    print *
+    print *,"Best fitting model parameters:       Resolution    Redshift    RMS min      RMS max"
+    call fit(spectrumchunk, referencelinelist, redshiftguess, resolutionguess, fittedspectrum(i:i+chunklength), fittedlines(linearraypos:linearraypos+nlines), tolerance)
+  endif
+
+  !todo: copy results from chunk to main array
+
+  deallocate(spectrumchunk)
+  linearraypos=linearraypos+nlines
+
+end do
 
 ! calculate the uncertainties
 
@@ -152,7 +171,7 @@ open(100,file=trim(spectrumfile)//"_fit")
 
 write (100,*) """wavelength""  ""fitted spectrum""  ""cont-subbed orig"" ""continuum""  ""residuals"""
 do i=1,spectrumlength
-  write(100,*) fittedspectrum(i)%wavelength,fittedspectrum(i)%flux, realspec(i)%flux, continuum(i)%flux, realspec(i)%flux - fittedspectrum(i)%flux
+  write(100,"(F7.2, 4(F12.3))") fittedspectrum(i)%wavelength,fittedspectrum(i)%flux, realspec(i)%flux, continuum(i)%flux, realspec(i)%flux - fittedspectrum(i)%flux
 end do
 
 close(100)

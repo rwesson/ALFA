@@ -12,6 +12,7 @@ type linelist
   real :: uncertainty
   real :: redshift
   real :: resolution
+  character(len=85) :: linedata
 end type
 
 end module mod_types

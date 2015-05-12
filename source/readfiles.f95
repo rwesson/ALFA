@@ -54,7 +54,7 @@ subroutine readspectrum(spectrumfile, realspec, spectrumlength, fittedspectrum)
 
 end subroutine readspectrum
 
-subroutine readlinelist(linelistfile,referencelinelist,nlines,linedata,fittedlines, realspec)
+subroutine readlinelist(linelistfile,referencelinelist,nlines,fittedlines, realspec)
 
   implicit none
   character (len=512) :: linelistfile
@@ -66,12 +66,10 @@ subroutine readlinelist(linelistfile,referencelinelist,nlines,linedata,fittedlin
 
   type(linelist), dimension(:), allocatable :: referencelinelist, fittedlines
   type(spectrum), dimension(:), allocatable :: realspec
-  character(len=85), dimension(:), allocatable :: linedata
 
   ! deallocate if necessary
   if (allocated(referencelinelist)) deallocate(referencelinelist)
   if (allocated(fittedlines)) deallocate(fittedlines)
-  if (allocated(linedata)) deallocate(linedata)
 
   if (trim(linelistfile)=="") then
     print *,gettime(),": error: No line catalogue specified"
@@ -101,7 +99,6 @@ subroutine readlinelist(linelistfile,referencelinelist,nlines,linedata,fittedlin
 
   allocate(referencelinelist(nlines))
   allocate(fittedlines(nlines))
-  allocate(linedata(nlines))
 
   REWIND (199)
   I=1
@@ -112,7 +109,7 @@ subroutine readlinelist(linelistfile,referencelinelist,nlines,linedata,fittedlin
       ! seed the initial guess for line peaks with the nearest observed flux to
       ! the line centre
       referencelinelist(i)%peak=realspec(minloc((realspec%wavelength-input1)**2,1))%flux
-      linedata(i) = linedatainput
+      referencelinelist(i)%linedata = linedatainput
       i=i+1
     endif
     if (input1 .ge.  maxval(realspec%wavelength)) then

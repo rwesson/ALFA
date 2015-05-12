@@ -17,8 +17,8 @@ type(spectrum), dimension(:), allocatable :: continuum
 
 real :: normalisation
 
-CHARACTER*2048, DIMENSION(:), allocatable :: options
-CHARACTER*2048 :: commandline
+CHARACTER(len=2048), DIMENSION(:), allocatable :: options
+CHARACTER(len=2048) :: commandline
 integer :: narg
 
 logical :: normalise
@@ -78,8 +78,8 @@ call fit_continuum(realspec,spectrumlength, continuum)
 ! now do the fitting
 ! first get guesses for the redshift and resolution
 
-redshiftguess=1.0001
-resolutionguess=4800.
+redshiftguess=1.0000
+resolutionguess=6800.
 tolerance=1.0
 linelistfile="linelists/strong_optical"
 print *,gettime(),": reading in line catalogue ",trim(linelistfile)

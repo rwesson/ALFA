@@ -49,6 +49,7 @@ real :: tmpvar !XXX
     population(popnumber,:)%peak=referencelinelist%peak
     population(popnumber,:)%resolution=resolutionguess
     population(popnumber,:)%redshift=redshiftguess
+    population(popnumber,:)%linedata=referencelinelist%linedata
   end do
 
 ! iterate until rms changes by less than 1 percent

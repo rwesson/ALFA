@@ -56,7 +56,7 @@ real :: tmpvar !XXX
 
   gencount=1
 
-  do while (gencount .lt. 1001)
+  do while (gencount .lt. 201)
   !do while (convergence .lt. 0.99999)
 
     if (gencount.eq.1) then

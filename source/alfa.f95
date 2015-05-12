@@ -67,6 +67,7 @@ call get_command_argument(narg,spectrumfile)
 
 ! read in spectrum to fit and line list
 
+print *,gettime(),": reading in spectrum ",trim(spectrumfile)
 call readspectrum(spectrumfile, realspec, spectrumlength, fittedspectrum)
 
 ! then subtract the continuum
@@ -81,6 +82,7 @@ redshiftguess=1.0001
 resolutionguess=4800.
 tolerance=1.0
 linelistfile="linelists/strong_optical"
+print *,gettime(),": reading in line catalogue ",trim(linelistfile)
 call readlinelist(linelistfile, referencelinelist, nlines, fittedlines, realspec)
 
 if (nlines .eq. 0) then
@@ -88,11 +90,11 @@ if (nlines .eq. 0) then
   stop
 endif
 
-print *,gettime(),": fitting ",nlines," lines"
-print *
-print *,"Best fitting model parameters:       Resolution    Redshift    RMS min      RMS max"
+print *,gettime(),": estimating resolution and redshift using ",nlines," lines"
 
 call fit(realspec, referencelinelist, redshiftguess, resolutionguess, fittedspectrum, fittedlines, tolerance)
+
+print *,gettime(),": estimated redshift and resolution: ",fittedlines(1)%redshift,fittedlines(1)%resolution
 
 ! then again in chunks with tighter tolerance
 
@@ -102,9 +104,11 @@ tolerance=0.1
 linelistfile="linelists/deep_full"
 
 linearraypos=1
-!call readlinelist with full wavelength range to get total number of lines, allocate full array
+!call readlinelist with full wavelength range to get total number of lines and an array to put them all in
+print *,gettime(),": reading in line catalogue ",trim(linelistfile)
 call readlinelist(linelistfile, referencelinelist, totallines, fittedlines, realspec)
-print *, nlines
+
+print *, gettime(), ": fitting full spectrum with ",nlines," lines"
 
 do i=1,spectrumlength,200
 
@@ -119,14 +123,13 @@ do i=1,spectrumlength,200
   call readlinelist(linelistfile, referencelinelist, nlines, fittedlines_section, spectrumchunk)
 
   if (nlines .gt. 0) then
-    print *,gettime(),": fitting ",nlines," lines"
-    print *
-    print *,"Best fitting model parameters:       Resolution    Redshift    RMS min      RMS max"
+    print *,gettime(),": fitting section",(i+199)/200," with ",nlines," lines"
+!    print *,"Best fitting model parameters:       Resolution    Redshift    RMS min      RMS max"
     call fit(spectrumchunk, referencelinelist, redshiftguess, resolutionguess, fittedspectrum(i:i+chunklength), fittedlines_section, tolerance)
   endif
 
   !copy line fitting results from chunk to main array
-print *,size(fittedlines_section),size(fittedlines)
+
   deallocate(spectrumchunk)
   fittedlines(linearraypos:linearraypos+nlines-1)=fittedlines_section
   linearraypos=linearraypos+nlines
@@ -164,7 +167,7 @@ write(101,*) "#Obs. wlen.  Rest wlen.   Flux   Uncertainty"
 do i=1,totallines
   if (fittedlines(i)%uncertainty .gt. 3.0) then
     write (100,"(F7.2,' & ',F7.2,' & ',F12.3,' & ',F12.3,A85)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,normalisation*gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), normalisation*gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty, fittedlines(i)%linedata
-    write (101,"(F7.2, 3(F12.3))") fittedlines(i)%wavelength,normalisation*gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)),normalisation*gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty, fittedlines(i)%resolution
+    write (101,"(F7.2, 3(F12.3))") fittedlines(i)%wavelength,normalisation*gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)),normalisation*gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty
   end if
 end do
 close(101)

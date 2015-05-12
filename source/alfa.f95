@@ -8,10 +8,10 @@ use mod_fit
 use mod_uncertainties
 
 implicit none
-integer :: I, spectrumlength, chunklength, nlines, linearraypos
+integer :: I, spectrumlength, chunklength, nlines, linearraypos, totallines
 character (len=512) :: spectrumfile,linelistfile
 
-type(linelist) :: referencelinelist, fittedlines
+type(linelist), dimension(:), allocatable :: referencelinelist, fittedlines, fittedlines_section
 type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum, spectrumchunk
 type(spectrum), dimension(:), allocatable :: continuum
 character(len=85), dimension(:), allocatable :: linedata
@@ -83,6 +83,7 @@ resolutionguess=4800.
 tolerance=1.0
 linelistfile="linelists/strong_optical"
 call readlinelist(linelistfile, referencelinelist, nlines, linedata, fittedlines, realspec)
+
 if (nlines .eq. 0) then
   print *,gettime(),": Error: Line catalogue does not overlap with input spectrum"
   stop
@@ -91,16 +92,20 @@ endif
 print *,gettime(),": fitting ",nlines," lines"
 print *
 print *,"Best fitting model parameters:       Resolution    Redshift    RMS min      RMS max"
+
 call fit(realspec, referencelinelist, redshiftguess, resolutionguess, fittedspectrum, fittedlines, tolerance)
 
 ! then again in chunks with tighter tolerance
 
-redshiftguess=fittedlines%redshift
-resolutionguess=fittedlines%resolution
+redshiftguess=fittedlines(1)%redshift
+resolutionguess=fittedlines(1)%resolution
 tolerance=0.1
 linelistfile="linelists/deep_full"
 
 linearraypos=1
+!call readlinelist with full wavelength range to get total number of lines, allocate full array
+call readlinelist(linelistfile, referencelinelist, totallines, linedata, fittedlines, realspec)
+print *, nlines
 
 do i=1,spectrumlength,200
 
@@ -112,18 +117,19 @@ do i=1,spectrumlength,200
 
   allocate(spectrumchunk(chunklength))
   spectrumchunk = realspec(i:i+chunklength)
-  call readlinelist(linelistfile, referencelinelist, nlines, linedata, fittedlines, spectrumchunk)
+  call readlinelist(linelistfile, referencelinelist, nlines, linedata, fittedlines_section, spectrumchunk)
 
   if (nlines .gt. 0) then
     print *,gettime(),": fitting ",nlines," lines"
     print *
     print *,"Best fitting model parameters:       Resolution    Redshift    RMS min      RMS max"
-    call fit(spectrumchunk, referencelinelist, redshiftguess, resolutionguess, fittedspectrum(i:i+chunklength), fittedlines(linearraypos:linearraypos+nlines), tolerance)
+    call fit(spectrumchunk, referencelinelist, redshiftguess, resolutionguess, fittedspectrum(i:i+chunklength), fittedlines_section, tolerance)
   endif
 
-  !todo: copy results from chunk to main array
-
+  !copy line fitting results from chunk to main array
+print *,size(fittedlines_section),size(fittedlines)
   deallocate(spectrumchunk)
+  fittedlines(linearraypos:linearraypos+nlines-1)=fittedlines_section
   linearraypos=linearraypos+nlines
 
 end do
@@ -142,9 +148,9 @@ print *,gettime(),": writing output files ",trim(spectrumfile),"_lines.tex and "
 
 if (normalise) then
 print *,gettime(),": normalising to Hb=100"
-  do i=1,nlines
-    if (fittedlines%wavelength(i) .eq. 4861.33) then
-      normalisation = 100./gaussianflux(fittedlines%peak(i),(fittedlines%wavelength(i)/fittedlines%resolution))
+  do i=1,totallines
+    if (fittedlines(i)%wavelength .eq. 4861.33) then
+      normalisation = 100./gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))
       exit
     endif
   enddo
@@ -156,10 +162,10 @@ open(100,file=trim(spectrumfile)//"_lines.tex")
 open(101,file=trim(spectrumfile)//"_neat_input")
 write(100,*) "Observed wavelength & Rest wavelength & Flux & Uncertainty & Ion & Multiplet & Lower term & Upper term & g_1 & g_2 \\"
 write(101,*) "#Obs. wlen.  Rest wlen.   Flux   Uncertainty"
-do i=1,nlines
-  if (fittedlines%uncertainty(i) .gt. 3.0) then
-    write (100,"(F7.2,' & ',F7.2,' & ',F12.3,' & ',F12.3,A85)") fittedlines%wavelength(i)*fittedlines%redshift,fittedlines%wavelength(i),normalisation*gaussianflux(fittedlines%peak(i),(fittedlines%wavelength(i)/fittedlines%resolution)), normalisation*gaussianflux(fittedlines%peak(i),(fittedlines%wavelength(i)/fittedlines%resolution))/fittedlines%uncertainty(i), linedata(i)
-    write (101,"(F7.2, 3(F12.3))") fittedlines%wavelength(i),normalisation*gaussianflux(fittedlines%peak(i),(fittedlines%wavelength(i)/fittedlines%resolution)),normalisation*gaussianflux(fittedlines%peak(i),(fittedlines%wavelength(i)/fittedlines%resolution))/fittedlines%uncertainty(i), fittedlines%resolution
+do i=1,totallines
+  if (fittedlines(i)%uncertainty .gt. 3.0) then
+    write (100,"(F7.2,' & ',F7.2,' & ',F12.3,' & ',F12.3,A85)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,normalisation*gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), normalisation*gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty, linedata(i)
+    write (101,"(F7.2, 3(F12.3))") fittedlines(i)%wavelength,normalisation*gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)),normalisation*gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty, fittedlines(i)%resolution
   end if
 end do
 close(101)

@@ -7,11 +7,11 @@ type spectrum
 end type
 
 type linelist
+  real :: wavelength
+  real :: peak
+  real :: uncertainty
   real :: redshift
   real :: resolution
-  real, allocatable :: wavelength(:)
-  real, allocatable :: peak(:)
-  real, allocatable :: uncertainty(:)
 end type
 
 end module mod_types

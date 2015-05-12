@@ -8,7 +8,7 @@ subroutine get_uncertainties(fittedspectrum, realspec, fittedlines)
 implicit none
 
 type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum
-type(linelist) :: fittedlines
+type(linelist), dimension(:), allocatable :: fittedlines
 real, dimension(:), allocatable :: residuals
 real, dimension(20) :: spectrumchunk
 real :: wavelengthsampling
@@ -39,9 +39,9 @@ realspec(size(realspec%uncertainty)-10:size(realspec%uncertainty))%uncertainty=r
 wavelengthsampling=realspec(2)%wavelength - realspec(1)%wavelength
 
 do i=1,size(fittedlines%uncertainty)
-  uncertaintywavelengthindex=minloc(abs(realspec%wavelength-fittedlines%wavelength(i)),1)
-  fittedlines%uncertainty(i)=0.67*(fittedlines%wavelength(i)/(fittedlines%resolution*wavelengthsampling))**0.5&
-  &*fittedlines%peak(i)/realspec(uncertaintywavelengthindex)%uncertainty
+  uncertaintywavelengthindex=minloc(abs(realspec%wavelength-fittedlines(i)%wavelength),1)
+  fittedlines(i)%uncertainty=0.67*(fittedlines(i)%wavelength/(fittedlines(i)%resolution*wavelengthsampling))**0.5&
+  &*fittedlines(i)%peak/realspec(uncertaintywavelengthindex)%uncertainty
 end do
 
 !write out uncertainties for debugging purposes:

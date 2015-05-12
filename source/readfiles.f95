@@ -64,15 +64,13 @@ subroutine readlinelist(linelistfile,referencelinelist,nlines,linedata,fittedlin
   integer :: io, nlines
   logical :: file_exists
 
-  type(linelist) :: referencelinelist, fittedlines
+  type(linelist), dimension(:), allocatable :: referencelinelist, fittedlines
   type(spectrum), dimension(:), allocatable :: realspec
   character(len=85), dimension(:), allocatable :: linedata
 
   ! deallocate if necessary
-  if (allocated(referencelinelist%peak)) deallocate(referencelinelist%peak)
-  if (allocated(referencelinelist%wavelength)) deallocate(referencelinelist%wavelength)
-  if (allocated(fittedlines%peak)) deallocate(fittedlines%peak)
-  if (allocated(fittedlines%wavelength)) deallocate(fittedlines%wavelength)
+  if (allocated(referencelinelist)) deallocate(referencelinelist)
+  if (allocated(fittedlines)) deallocate(fittedlines)
   if (allocated(linedata)) deallocate(linedata)
 
   if (trim(linelistfile)=="") then
@@ -101,10 +99,8 @@ subroutine readlinelist(linelistfile,referencelinelist,nlines,linedata,fittedlin
 
 !then allocate and read
 
-  allocate(referencelinelist%peak(nlines))
-  allocate(referencelinelist%wavelength(nlines))
-  allocate(fittedlines%peak(nlines))
-  allocate(fittedlines%wavelength(nlines))
+  allocate(referencelinelist(nlines))
+  allocate(fittedlines(nlines))
   allocate(linedata(nlines))
 
   REWIND (199)
@@ -112,10 +108,10 @@ subroutine readlinelist(linelistfile,referencelinelist,nlines,linedata,fittedlin
   do while (i .le. nlines)
     READ(199,'(F7.3,A)') input1, linedatainput
     if (input1 .ge. minval(realspec%wavelength)) then
-      referencelinelist%wavelength(i) = input1
+      referencelinelist(i)%wavelength = input1
       ! seed the initial guess for line peaks with the nearest observed flux to
       ! the line centre
-      referencelinelist%peak(i)=realspec(minloc((realspec%wavelength-input1)**2,1))%flux
+      referencelinelist(i)%peak=realspec(minloc((realspec%wavelength-input1)**2,1))%flux
       linedata(i) = linedatainput
       i=i+1
     endif

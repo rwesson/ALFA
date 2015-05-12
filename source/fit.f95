@@ -3,20 +3,21 @@ use mod_routines
 use mod_types
 
 contains
-subroutine fit(realspec, referencelinelist, redshiftguess, resolutionguess, fittedspectrum, fittedlines, tolerance)
+subroutine fit(inputspectrum, referencelinelist, redshiftguess, resolutionguess, fittedspectrum, fittedlines, tolerance)
 
 implicit none
 
-type(linelist) :: referencelinelist, fittedlines
-type(linelist), dimension(:),allocatable :: population
-type(linelist), dimension(:),allocatable ::  breed
+type(linelist), dimension(:), allocatable :: referencelinelist, fittedlines
+type(linelist), dimension(:,:), allocatable :: population
+type(linelist), dimension(:,:), allocatable ::  breed
 type(spectrum), dimension(:,:), allocatable :: synthspec
-type(spectrum), dimension(:) :: realspec, fittedspectrum
+type(spectrum), dimension(:) :: inputspectrum, fittedspectrum
 integer :: popsize, i, spectrumlength, lineid, loc1, loc2, nlines, gencount, popnumber
 real, dimension(:), allocatable :: rms
 real :: random, pressure, convergence, oldrms
 real :: resolutionguess, redshiftguess, tolerance
 real :: tmpvar !XXX
+
 !initialisation
 
   popsize=50
@@ -24,7 +25,7 @@ real :: tmpvar !XXX
   convergence=0.0 !new rms / old rms
 
   nlines=size(referencelinelist%wavelength)
-  spectrumlength=size(realspec%wavelength)
+  spectrumlength=size(inputspectrum%wavelength)
 
   call init_random_seed()
 
@@ -32,75 +33,64 @@ real :: tmpvar !XXX
 
   allocate(synthspec(spectrumlength,popsize))
   allocate(rms(popsize))
-  allocate(breed(int(popsize*pressure)))
-  allocate(population(popsize))
-
-  do i=1,int(popsize*pressure)
-    allocate (breed(i)%peak(nlines))
-    allocate (breed(i)%wavelength(nlines))
-    allocate (breed(i)%uncertainty(nlines))
-  end do
-  do i=1,popsize
-    allocate (population(i)%peak(nlines))
-    allocate (population(i)%wavelength(nlines))
-    allocate (population(i)%uncertainty(nlines))
-  end do
+  allocate(breed(int(popsize*pressure),nlines))
+  allocate(population(popsize,nlines))
 
 ! now create population of synthetic spectra
 ! todo, make sure no lines are included which are outside the wavelength range
 ! of the observations
 
-do i=1,popsize
-  synthspec(:,i)%wavelength=realspec%wavelength
-end do
+  do i=1,popsize
+    synthspec(:,i)%wavelength=inputspectrum%wavelength
+  end do
 
-do popnumber=1,popsize
-  population(popnumber)%wavelength = referencelinelist%wavelength
-  population(popnumber)%peak=referencelinelist%peak
-  population(popnumber)%resolution=resolutionguess
-  population(popnumber)%redshift=redshiftguess
-end do
+  do popnumber=1,popsize
+    population(popnumber,:)%wavelength = referencelinelist%wavelength
+    population(popnumber,:)%peak=referencelinelist%peak
+    population(popnumber,:)%resolution=resolutionguess
+    population(popnumber,:)%redshift=redshiftguess
+  end do
 
 ! iterate until rms changes by less than 1 percent
 
-gencount=1
+  gencount=1
 
-do while (gencount .lt. 1001)
-!do while (convergence .lt. 0.99999)
+  do while (gencount .lt. 1001)
+  !do while (convergence .lt. 0.99999)
 
-  if (gencount.eq.1) then
-   oldrms=1.e30
-  else
-    oldrms=minval(rms,1)
-  endif
+    if (gencount.eq.1) then
+     oldrms=1.e30
+    else
+      oldrms=minval(rms,1)
+    endif
 
 !reset stuff to zero before doing calculations
 
-  synthspec%flux=0.D0
-  rms=0.D0
+    synthspec%flux=0.D0
+    rms=0.D0
 
-  do popnumber=1,popsize
+    do popnumber=1,popsize
   
   !calculate synthetic spectra - reset to 0 before synthesizing
   !line fluxes are calculated within 5 sigma of mean
   
-    do lineid=1,nlines
-      where (abs(population(popnumber)%redshift*population(popnumber)%wavelength(lineid) - synthspec(:,popnumber)%wavelength) .lt. (5*population(popnumber)%wavelength(lineid)/population(popnumber)%resolution))
+      do lineid=1,nlines
+        where (abs(population(popnumber,lineid)%redshift*population(popnumber,lineid)%wavelength - synthspec(:,popnumber)%wavelength) .lt. (5*population(popnumber,lineid)%wavelength/population(popnumber,lineid)%resolution))
           synthspec(:,popnumber)%flux = synthspec(:,popnumber)%flux + &
-          &population(popnumber)%peak(lineid)*exp((-(synthspec(:,popnumber)%wavelength-population(popnumber)%redshift*population(popnumber)%wavelength(lineid))**2)/(2*(population(popnumber)%wavelength(lineid)/population(popnumber)%resolution)**2))
+          &population(popnumber,lineid)%peak*exp((-(synthspec(:,popnumber)%wavelength-population(popnumber,lineid)%redshift*population(popnumber,lineid)%wavelength)**2)/(2*(population(popnumber,lineid)%wavelength/population(popnumber,lineid)%resolution)**2))
 
-      end where
-    end do
+        end where
+      end do
   
     !now calculate RMS for the "models"
   
-    rms(popnumber)=sum((synthspec(:,popnumber)%flux-realspec(:)%flux)**2)/spectrumlength
+      rms(popnumber)=sum((synthspec(:,popnumber)%flux-inputspectrum(:)%flux)**2)/spectrumlength
   
-  end do
+    end do
  
     !if that was the last generation then exit before mutating
 
-  if (gencount .eq. 1000) exit
+    if (gencount .eq. 1000) exit
  
     !next, cream off the well performing models - put the population
     !member with the lowest RMS into the breed array, replace the RMS with
@@ -108,71 +98,54 @@ do while (gencount .lt. 1001)
     !a fraction equal to the pressure factor have been selected
 tmpvar = maxval(rms,1) !XXX
     do i=1,int(popsize*pressure) 
-      breed(i) = population(minloc(rms,1))
+      breed(i,:) = population(minloc(rms,1),:)
       rms(minloc(rms,1))=1.e10
     end do
   
   !then, "breed" pairs
-  !random approach will mean that some models have no offspring while
-  !others might
-  !have many.  Alternative approach could be to breed all adjacent pairs
-  !so that
-  !every model generates one offspring.
+  !random approach will mean that some models have no offspring while others might have many.
+  !Alternative approach could be to breed all adjacent pairs so that every model generates one offspring.
   
     do i=1,popsize 
       call random_number(random)
       loc1=int(popsize*random*pressure)+1
       call random_number(random)
       loc2=int(popsize*random*pressure)+1 
-      population(i)%peak=(breed(loc1)%peak + breed(loc2)%peak)/2.0
-      population(i)%resolution=(breed(loc1)%resolution + breed(loc2)%resolution)/2.0
-      population(i)%redshift=(breed(loc1)%redshift + breed(loc2)%redshift)/2.0
+      population(i,:)%peak=(breed(loc1,:)%peak + breed(loc2,:)%peak)/2.0
+      population(i,:)%resolution=(breed(loc1,:)%resolution + breed(loc2,:)%resolution)/2.0
+      population(i,:)%redshift=(breed(loc1,:)%redshift + breed(loc2,:)%redshift)/2.0
     end do
     !then, "mutate"
     do popnumber=1,popsize ! mutation of spectral resolution
-      population(popnumber)%resolution = population(popnumber)%resolution * mutation()
-      if ((abs(population(popnumber)%resolution-resolutionguess)/resolutionguess) .gt. tolerance) then
-        population(popnumber)%resolution = resolutionguess
+      population(popnumber,:)%resolution = population(popnumber,:)%resolution * mutation()
+      if ((abs(population(popnumber,1)%resolution-resolutionguess)/resolutionguess) .gt. tolerance) then
+        population(popnumber,:)%resolution = resolutionguess
       endif
-      population(popnumber)%redshift = population(popnumber)%redshift * ((9999.+mutation())/10000.)
-      if ((abs(population(popnumber)%redshift-redshiftguess)/redshiftguess) .gt. tolerance) then
-        population(popnumber)%redshift = redshiftguess
+      population(popnumber,:)%redshift = population(popnumber,:)%redshift * ((9999.+mutation())/10000.)
+      if ((abs(population(popnumber,1)%redshift-redshiftguess)/redshiftguess) .gt. tolerance) then
+        population(popnumber,:)%redshift = redshiftguess
       endif
       do lineid=1,nlines !mutation of line fluxes
-        population(popnumber)%peak(lineid) = population(popnumber)%peak(lineid) * mutation()
+        population(popnumber,lineid)%peak = population(popnumber,lineid)%peak * mutation()
       enddo
     enddo
   
-  if (mod(gencount,100) .eq.0 .or. gencount.eq.1) then
-      print "(X,A,A,i5,A,4(X,F12.3))",gettime()," : ",gencount, " generations  ", population(minloc(rms,1))%resolution, 3.e5*(population(minloc(rms,1))%redshift-1), minval(rms,1), tmpvar
-! temporary
-      do i=1,spectrumlength
-        write (999,*) synthspec(i,minloc(rms,1))%wavelength,synthspec(i,minloc(rms,1))%flux,synthspec(i,maxloc(rms,1))%flux
-      enddo
-      write (999,*)
-! end of temporariness
+!    if (mod(gencount,100) .eq.0 .or. gencount.eq.1) then
+!      print "(X,A,A,i5,A,4(X,F12.3))",gettime()," : ",gencount, " generations  ", population(minloc(rms,1),1)%resolution, 3.e5*(population(minloc(rms,1),1)%redshift-1), minval(rms,1), tmpvar
+!    endif
+
+    gencount=gencount+1
+    convergence=minval(rms,1)/oldrms
+    if (convergence .gt. 1.0) then
+      convergence = 1./convergence
     endif
-  
-  !  if (mod(gencount,10) .eq. 0) then
-  !    do i=1,spectrumlength
-  !      print
-  !      *,synthspec(i,minloc(rms,1))%wavelength,synthspec(i,minloc(rms,1))%flux,realspec(i)%flux
-  !    end do
-  !    print*
-  !  endif
-  
-  gencount=gencount+1
-  convergence=minval(rms,1)/oldrms
-  if (convergence .gt. 1.0) then
-    convergence = 1./convergence
-  endif
-!print *,convergence,gencount, oldrms
+  !print *,convergence,gencount, oldrms
   end do
 
 !copy fit results into arrays to return
 
   fittedspectrum = synthspec(:,minloc(rms,1))
-  fittedlines = population(minloc(rms,1))
+  fittedlines = population(minloc(rms,1),:)
 
 !deallocate arrays
 
@@ -181,7 +154,5 @@ tmpvar = maxval(rms,1) !XXX
   deallocate(breed)
   deallocate(population)
 
-!  print "(X,A,A,i5,A,4(X,F12.3))",gettime()," : ",gencount, " generations  ", population(minloc(rms,1))%resolution, 3.e5*(population(minloc(rms,1))%redshift-1), minval(rms,1), tmpvar
- 
 end subroutine fit
 end module mod_fit 

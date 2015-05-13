@@ -123,7 +123,7 @@ do i=1,spectrumlength,200
   call readlinelist(linelistfile, referencelinelist, nlines, fittedlines_section, spectrumchunk)
 
   if (nlines .gt. 0) then
-    print *,gettime(),": fitting section",(i+199)/200," with ",nlines," lines"
+    print "(X,A,A,I3,A,I3,A)",gettime(),": fitting section",(i+199)/200," with ",nlines," lines"
 !    print *,"Best fitting model parameters:       Resolution    Redshift    RMS min      RMS max"
     call fit(spectrumchunk, referencelinelist, redshiftguess, resolutionguess, fittedspectrum(i:i+chunklength), fittedlines_section, tolerance)
   endif
@@ -133,6 +133,11 @@ do i=1,spectrumlength,200
   deallocate(spectrumchunk)
   fittedlines(linearraypos:linearraypos+nlines-1)=fittedlines_section
   linearraypos=linearraypos+nlines
+
+  !use redshift and resolution from this chunk as initial values for next chunk
+
+  redshiftguess=fittedlines(1)%redshift
+  resolutionguess=fittedlines(1)%resolution
 
 end do
 

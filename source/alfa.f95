@@ -108,7 +108,7 @@ linearraypos=1
 print *,gettime(),": reading in line catalogue ",trim(linelistfile)
 call readlinelist(linelistfile, referencelinelist, totallines, fittedlines, realspec)
 
-print *, gettime(), ": fitting full spectrum with ",nlines," lines"
+print *, gettime(), ": fitting full spectrum with ",totallines," lines"
 
 do i=1,spectrumlength,200
 

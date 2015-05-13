@@ -40,8 +40,12 @@ wavelengthsampling=realspec(2)%wavelength - realspec(1)%wavelength
 
 do i=1,size(fittedlines%uncertainty)
   uncertaintywavelengthindex=minloc(abs(realspec%wavelength-fittedlines(i)%wavelength),1)
-  fittedlines(i)%uncertainty=0.67*(fittedlines(i)%wavelength/(fittedlines(i)%resolution*wavelengthsampling))**0.5&
-  &*fittedlines(i)%peak/realspec(uncertaintywavelengthindex)%uncertainty
+  if (realspec(uncertaintywavelengthindex)%uncertainty .ne. 0.d0) then
+    fittedlines(i)%uncertainty=0.67*(fittedlines(i)%wavelength/(fittedlines(i)%resolution*wavelengthsampling))**0.5&
+    &*fittedlines(i)%peak/realspec(uncertaintywavelengthindex)%uncertainty
+  else
+    fittedlines(i)%uncertainty=0.d0
+  endif
 end do
 
 !write out uncertainties for debugging purposes:

@@ -27,7 +27,7 @@ do i=10,size(realspec)-10
   call qsort(spectrumchunk)
   spectrumchunk(15:20)=0.D0
   realspec(i)%uncertainty=((sum(spectrumchunk**2)/15.)**0.5)
-end do
+enddo
 
 ! fill in the ends with the closest calculated values
 
@@ -46,7 +46,7 @@ do i=1,size(fittedlines%uncertainty)
   else
     fittedlines(i)%uncertainty=0.d0
   endif
-end do
+enddo
 
 !write out uncertainties for debugging purposes:
 
@@ -54,7 +54,7 @@ open (999, file="uncertainties")
 write (999,*) """wavelength"" ""obs. flux"" ""synth. flux"" ""residuals"" ""rms"""
 do i=1,size(realspec)
   write (999,*) realspec(i)%wavelength, realspec(i)%flux, fittedspectrum(i)%flux, residuals(i), realspec(i)%uncertainty
-end do 
+enddo
 
 end subroutine get_uncertainties
 

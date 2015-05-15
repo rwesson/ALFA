@@ -42,7 +42,7 @@ real :: tmpvar !XXX
 
   do i=1,popsize
     synthspec(:,i)%wavelength=inputspectrum%wavelength
-  end do
+  enddo
 
   do popnumber=1,popsize
     population(popnumber,:)%wavelength = referencelinelist%wavelength
@@ -50,13 +50,13 @@ real :: tmpvar !XXX
     population(popnumber,:)%resolution=resolutionguess
     population(popnumber,:)%redshift=redshiftguess
     population(popnumber,:)%linedata=referencelinelist%linedata
-  end do
+  enddo
 
 ! iterate until rms changes by less than 1 percent
 
   gencount=1
 
-  do while (gencount .lt. 201)
+  do while (gencount .lt. 401)
   !do while (convergence .lt. 0.99999)
 
     if (gencount.eq.1) then
@@ -81,13 +81,13 @@ real :: tmpvar !XXX
           &population(popnumber,lineid)%peak*exp((-(synthspec(:,popnumber)%wavelength-population(popnumber,lineid)%redshift*population(popnumber,lineid)%wavelength)**2)/(2*(population(popnumber,lineid)%wavelength/population(popnumber,lineid)%resolution)**2))
 
         end where
-      end do
+      enddo
   
     !now calculate RMS for the "models"
   
       rms(popnumber)=sum((synthspec(:,popnumber)%flux-inputspectrum(:)%flux)**2)/spectrumlength
   
-    end do
+    enddo
  
     !if that was the last generation then exit before mutating
 
@@ -101,7 +101,7 @@ tmpvar = maxval(rms,1) !XXX
     do i=1,int(popsize*pressure) 
       breed(i,:) = population(minloc(rms,1),:)
       rms(minloc(rms,1))=1.e10
-    end do
+    enddo
   
   !then, "breed" pairs
   !random approach will mean that some models have no offspring while others might have many.
@@ -115,8 +115,8 @@ tmpvar = maxval(rms,1) !XXX
       population(i,:)%peak=(breed(loc1,:)%peak + breed(loc2,:)%peak)/2.0
       population(i,:)%resolution=(breed(loc1,:)%resolution + breed(loc2,:)%resolution)/2.0
       population(i,:)%redshift=(breed(loc1,:)%redshift + breed(loc2,:)%redshift)/2.0
-    end do
-    !then, "mutate"
+    enddo
+    !then, mutate
     do popnumber=1,popsize ! mutation of spectral resolution
       population(popnumber,:)%resolution = population(popnumber,:)%resolution * mutation()
       if ((abs(population(popnumber,1)%resolution-resolutionguess)/resolutionguess) .gt. tolerance) then
@@ -140,8 +140,8 @@ tmpvar = maxval(rms,1) !XXX
     if (convergence .gt. 1.0) then
       convergence = 1./convergence
     endif
-  !print *,convergence,gencount, oldrms
-  end do
+
+  enddo
 
 !copy fit results into arrays to return
 

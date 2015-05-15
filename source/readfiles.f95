@@ -106,7 +106,7 @@ subroutine readlinelist(linelistfile,referencelinelist,nlines,fittedlines, reals
       referencelinelist(i)%wavelength = input1
       ! seed the initial guess for line peaks with the nearest observed flux to the line centre
       ! use absolute value because in case of weak lines, flux could be seeded with a spurious negative value
-      referencelinelist(i)%peak=abs(realspec(minloc((realspec%wavelength-input1)**2,1))%flux)
+      referencelinelist(i)%peak=1. !abs(realspec(minloc((realspec%wavelength-input1)**2,1))%flux)
       referencelinelist(i)%linedata = linedatainput
       i=i+1
     endif

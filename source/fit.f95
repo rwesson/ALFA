@@ -3,7 +3,7 @@ use mod_routines
 use mod_types
 
 contains
-subroutine fit(inputspectrum, referencelinelist, redshiftguess, resolutionguess, fittedspectrum, fittedlines, tolerance)
+subroutine fit(inputspectrum, referencelinelist, redshiftguess, resolutionguess, fittedspectrum, fittedlines, redshifttolerance, resolutiontolerance)
 
 implicit none
 
@@ -15,7 +15,7 @@ type(spectrum), dimension(:) :: inputspectrum, fittedspectrum
 integer :: popsize, i, spectrumlength, lineid, loc1, loc2, nlines, gencount, popnumber
 real, dimension(:), allocatable :: rms
 real :: random, pressure, convergence, oldrms
-real :: resolutionguess, redshiftguess, tolerance
+real :: resolutionguess, redshiftguess, redshifttolerance, resolutiontolerance
 real :: tmpvar !XXX
 
 !initialisation
@@ -56,7 +56,7 @@ real :: tmpvar !XXX
 
   gencount=1
 
-  do while (gencount .lt. 401)
+  do while (gencount .lt. 1001)
   !do while (convergence .lt. 0.99999)
 
     if (gencount.eq.1) then
@@ -119,11 +119,11 @@ tmpvar = maxval(rms,1) !XXX
     !then, mutate
     do popnumber=1,popsize ! mutation of spectral resolution
       population(popnumber,:)%resolution = population(popnumber,:)%resolution * mutation()
-      if ((abs(population(popnumber,1)%resolution-resolutionguess)/resolutionguess) .gt. tolerance) then
+      if (abs(population(popnumber,1)%resolution-resolutionguess) .gt. resolutiontolerance) then
         population(popnumber,:)%resolution = resolutionguess
       endif
       population(popnumber,:)%redshift = population(popnumber,:)%redshift * ((9999.+mutation())/10000.)
-      if ((abs(population(popnumber,1)%redshift-redshiftguess)/redshiftguess) .gt. tolerance) then
+      if (abs(population(popnumber,1)%redshift-redshiftguess) .gt. redshifttolerance) then
         population(popnumber,:)%redshift = redshiftguess
       endif
       do lineid=1,nlines !mutation of line fluxes

@@ -23,7 +23,7 @@ integer :: narg
 
 logical :: normalise
 
-real :: redshiftguess, resolutionguess, tolerance
+real :: redshiftguess, resolutionguess, redshifttolerance, resolutiontolerance
 
 !set defaults
 
@@ -78,8 +78,9 @@ call fit_continuum(realspec,spectrumlength, continuum)
 ! first get guesses for the redshift and resolution
 
 redshiftguess=1.0000
-resolutionguess=4800.
-tolerance=0.5
+resolutionguess=6800.
+redshifttolerance=0.003 ! maximum absolute change in 1+v/c allowed from initial guess.  0.003 = 900 km/s
+resolutiontolerance=3000. ! maximum absolute change in lambda/delta lambda allowed from initial guess
 linelistfile="linelists/strong_optical"
 print *,gettime(),": reading in line catalogue ",trim(linelistfile)
 call readlinelist(linelistfile, referencelinelist, nlines, fittedlines, realspec)
@@ -91,15 +92,16 @@ endif
 
 print *,gettime(),": estimating resolution and redshift using ",nlines," lines"
 
-call fit(realspec, referencelinelist, redshiftguess, resolutionguess, fittedspectrum, fittedlines, tolerance)
+call fit(realspec, referencelinelist, redshiftguess, resolutionguess, fittedspectrum, fittedlines, redshifttolerance, resolutiontolerance)
 
-print *,gettime(),": estimated redshift and resolution: ",fittedlines(1)%redshift,fittedlines(1)%resolution
+print *,gettime(),": estimated redshift and resolution: ",3.e5*(fittedlines(1)%redshift-1),fittedlines(1)%resolution
 
 ! then again in chunks with tighter tolerance
 
 redshiftguess=fittedlines(1)%redshift
 resolutionguess=fittedlines(1)%resolution
-tolerance=0.1
+redshifttolerance=0.0004 ! 120 km/s
+resolutiontolerance=300.
 linelistfile="linelists/deep_full"
 
 linearraypos=1
@@ -109,12 +111,12 @@ call readlinelist(linelistfile, referencelinelist, totallines, fittedlines, real
 
 print *, gettime(), ": fitting full spectrum with ",totallines," lines"
 
-do i=1,spectrumlength,400
+do i=1,spectrumlength,300
 
-  if (spectrumlength - i .lt. 400) then
+  if (spectrumlength - i .lt. 300) then
     chunklength = spectrumlength - i
   else
-    chunklength = 400
+    chunklength = 300
   endif
 
   allocate(spectrumchunk(chunklength))
@@ -124,7 +126,7 @@ do i=1,spectrumlength,400
   if (nlines .gt. 0) then
     print "(X,A,A,F6.1,A,F6.1,A,I3,A)",gettime(),": fitting from ",spectrumchunk(1)%wavelength," to ",spectrumchunk(size(spectrumchunk))%wavelength," with ",nlines," lines"
 !    print *,"Best fitting model parameters:       Resolution    Redshift    RMS min      RMS max"
-    call fit(spectrumchunk, referencelinelist, redshiftguess, resolutionguess, fittedspectrum(i:i+chunklength-1), fittedlines_section, tolerance)
+    call fit(spectrumchunk, referencelinelist, redshiftguess, resolutionguess, fittedspectrum(i:i+chunklength-1), fittedlines_section, redshifttolerance, resolutiontolerance)
   endif
 
   !copy line fitting results from chunk to main array

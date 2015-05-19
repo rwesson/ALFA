@@ -127,8 +127,8 @@ do i=1,spectrumlength,200
 
   !use redshift and resolution from this chunk as initial values for next chunk
 
-  redshiftguess=fittedlines(1)%redshift
-  resolutionguess=fittedlines(1)%resolution
+  redshiftguess=fittedlines_section(1)%redshift
+  resolutionguess=fittedlines_section(1)%resolution
 
 enddo
 

@@ -12,7 +12,7 @@ type(linelist), dimension(:,:), allocatable :: population
 type(linelist), dimension(:,:), allocatable ::  breed
 type(spectrum), dimension(:,:), allocatable :: synthspec
 type(spectrum), dimension(:) :: inputspectrum, fittedspectrum
-integer :: popsize, i, spectrumlength, lineid, loc1, loc2, nlines, gencount, popnumber
+integer :: popsize, i, spectrumlength, lineid, loc1, loc2, nlines, gencount, generations, popnumber
 real, dimension(:), allocatable :: rms
 real :: random, pressure, convergence, oldrms
 real :: resolutionguess, redshiftguess, redshifttolerance, resolutiontolerance
@@ -23,6 +23,7 @@ real :: tmpvar !XXX
   popsize=50
   pressure=0.1 !pressure * popsize needs to be an integer
   convergence=0.0 !new rms / old rms
+  generations=500
 
   nlines=size(referencelinelist%wavelength)
   spectrumlength=size(inputspectrum%wavelength)
@@ -56,7 +57,7 @@ real :: tmpvar !XXX
 
   gencount=1
 
-  do while (gencount .lt. 1001)
+  do while (gencount .le. generations)
   !do while (convergence .lt. 0.99999)
 
     if (gencount.eq.1) then
@@ -91,7 +92,7 @@ real :: tmpvar !XXX
  
     !if that was the last generation then exit before mutating
 
-    if (gencount .eq. 1000) exit
+    if (gencount .eq. generations) exit
  
     !next, cream off the well performing models - put the population
     !member with the lowest RMS into the breed array, replace the RMS with

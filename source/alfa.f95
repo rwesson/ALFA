@@ -20,8 +20,8 @@ CHARACTER(len=2048) :: commandline
 integer :: narg
 
 real :: redshiftguess, resolutionguess, redshifttolerance, resolutiontolerance
-
 real :: blendpeak
+real :: normalisation
 
 ! start
 
@@ -134,15 +134,16 @@ do i=1,spectrumlength,200
 
 enddo
 
-!account for blends - for each line, determine if the subsequent line is separated by less than the resolution
+!account for blends - for each line, determine if the subsequent line is separated by less than half the resolution
 !if it is, then flag that line with the lineid of the first member of the blend
 
+print *
 print *,gettime(),": flagging blends"
 
 fittedlines%blended = 0
 
 do i=1,totallines-1
-  if (abs(fittedlines(i)%wavelength-fittedlines(i+1)%wavelength) .lt. fittedlines(i)%wavelength/fittedlines(i)%resolution) then
+  if (abs(fittedlines(i)%wavelength-fittedlines(i+1)%wavelength) .lt. 0.5*fittedlines(i)%wavelength/fittedlines(i)%resolution) then
     if (fittedlines(i)%blended .gt. 0) then
       fittedlines(i+1)%blended = fittedlines(i)%blended
     else
@@ -178,9 +179,19 @@ enddo
 
 ! calculate the uncertainties
 
-print *
 print *,gettime(),": estimating uncertainties"
 call get_uncertainties(fittedspectrum, realspec, fittedlines)
+
+! normalise if H beta is present
+
+do i=1,totallines
+  if (abs(fittedlines(i)%wavelength - 4861.33) .lt. 0.005) then
+    normalisation = 100./gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))
+    print "(' ',A,A,F9.3,A)",gettime(),": H beta detected with flux ",gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))," - normalising to 100.0"
+  endif
+enddo
+
+fittedlines%peak = fittedlines%peak * normalisation
 
 ! now write out the line list.
 

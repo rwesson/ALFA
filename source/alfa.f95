@@ -21,6 +21,8 @@ integer :: narg
 
 real :: redshiftguess, resolutionguess, redshifttolerance, resolutiontolerance
 
+real :: blendpeak
+
 ! start
 
 print *,"ALFA, the Automated Line Fitting Algorithm"
@@ -114,7 +116,7 @@ do i=1,spectrumlength,200
   call readlinelist(linelistfile, referencelinelist, nlines, fittedlines_section, spectrumchunk)
 
   if (nlines .gt. 0) then
-    print "(X,A,A,F6.1,A,F6.1,A,I3,A)",gettime(),": fitting from ",spectrumchunk(1)%wavelength," to ",spectrumchunk(size(spectrumchunk))%wavelength," with ",nlines," lines"
+    print "(' ',A,A,F6.1,A,F6.1,A,I3,A)",gettime(),": fitting from ",spectrumchunk(1)%wavelength," to ",spectrumchunk(size(spectrumchunk))%wavelength," with ",nlines," lines"
 !    print *,"Best fitting model parameters:       Resolution    Redshift    RMS min      RMS max"
     call fit(spectrumchunk, referencelinelist, redshiftguess, resolutionguess, fittedspectrum(i:i+chunklength-1), fittedlines_section, redshifttolerance, resolutiontolerance)
   endif
@@ -142,15 +144,66 @@ call get_uncertainties(fittedspectrum, realspec, fittedlines)
 
 print *,gettime(),": writing output files ",trim(spectrumfile),"_lines.tex and ",trim(spectrumfile),"_fit"
 
+print *,gettime(),": first checking for unresolved blends"
+
+!account for blends - for each line, determine if the subsequent line is separated by less than the resolution
+!if it is, then flag that line with the lineid of the first member of the blend
+
+fittedlines%blended = 0
+
+do i=1,totallines-1
+  if (abs(fittedlines(i)%wavelength-fittedlines(i+1)%wavelength) .lt. fittedlines(i)%wavelength/fittedlines(i)%resolution) then
+    if (fittedlines(i)%blended .gt. 0) then
+      fittedlines(i+1)%blended = fittedlines(i)%blended
+    else
+      fittedlines(i+1)%blended = i
+    endif
+  endif
+enddo
+
+! now, go through the list and add all blended line fluxes to the first line in the blend
+! uncertainty at a given wavelength is independent of the line flux, so the uncertainty calculated
+! at the position of the blend will apply to the total flux.
+
+blendpeak = 0.d0
+
+do i=1,totallines-1
+  if (fittedlines(i+1)%blended .gt. 0 .and. blendpeak .eq. 0.d0) then
+    !line is first in blend. add line flux to temporary variable, store line number
+    blendpeak = blendpeak + fittedlines(i)%peak
+  elseif (fittedlines(i+1)%blended .gt. 0 .and. blendpeak .gt. 0) then
+    !line is part of multiple blend. add line flux to temporary variable, leave line number alone
+    blendpeak = blendpeak + fittedlines(i)%peak
+    fittedlines(i)%peak = 0.d0
+!  elseif (fittedlines(i)%blended .eq. 0 .and. blendpeak .eq. 0.d0)
+    !line is isolated, nothing to be done
+  elseif (fittedlines(i+1)%blended .eq. 0 .and. blendpeak .gt. 0) then
+    !line was last component of blend. total flux needs to be attributed to first line in blend
+    blendpeak = blendpeak + fittedlines(i)%peak
+    fittedlines(i)%peak = 0.d0
+    fittedlines(fittedlines(i)%blended)%peak = blendpeak
+    blendpeak = 0.d0
+  endif
+enddo
+
+! now write out the line list.
+
+open(999, file='blend.tmp')
+
 open(100,file=trim(spectrumfile)//"_lines.tex")
 write(100,*) "Observed wavelength & Rest wavelength & Flux & Uncertainty & Ion & Multiplet & Lower term & Upper term & g_1 & g_2 \\"
 do i=1,totallines
+write (999,*) fittedlines(i)%wavelength,fittedlines(i)%blended
   if (fittedlines(i)%uncertainty .gt. 3.0) then
-    write (100,"(F7.2,' & ',F7.2,' & ',F12.3,' & ',F12.3,A85,2(' & ',F12.3))") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty, fittedlines(i)%linedata, (1.0-fittedlines(i)%redshift)*3.e5, fittedlines(i)%resolution
+    if (fittedlines(i)%blended .eq. 0) then
+      write (100,"(F7.2,' & ',F7.2,' & ',F12.3,' & ',F12.3,A85,2(' & ',F12.3))") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty, fittedlines(i)%linedata, (1.0-fittedlines(i)%redshift)*3.e5, fittedlines(i)%resolution
+    elseif (fittedlines(i)%blended .ne. 0 .and. fittedlines(fittedlines(i)%blended)%uncertainty .gt. 3.0) then
+      write (100,"(F7.2,' & ',F7.2,' &            * &            *',A85,2(' & ',F12.3))") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,fittedlines(i)%linedata, (1.0-fittedlines(i)%redshift)*3.e5,fittedlines(i)%resolution
+    endif
   endif
 enddo
 close(100)
-
+close(999)
 ! write out fit
 
 open(100,file=trim(spectrumfile)//"_fit")

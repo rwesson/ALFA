@@ -134,20 +134,10 @@ do i=1,spectrumlength,200
 
 enddo
 
-! calculate the uncertainties
-
-print *
-print *,gettime(),": estimating uncertainties"
-call get_uncertainties(fittedspectrum, realspec, fittedlines)
-
-!write out line fluxes of best fitting spectrum
-
-print *,gettime(),": writing output files ",trim(spectrumfile),"_lines.tex and ",trim(spectrumfile),"_fit"
-
-print *,gettime(),": first checking for unresolved blends"
-
 !account for blends - for each line, determine if the subsequent line is separated by less than the resolution
 !if it is, then flag that line with the lineid of the first member of the blend
+
+print *,gettime(),": flagging blends"
 
 fittedlines%blended = 0
 
@@ -186,24 +176,27 @@ do i=1,totallines-1
   endif
 enddo
 
+! calculate the uncertainties
+
+print *
+print *,gettime(),": estimating uncertainties"
+call get_uncertainties(fittedspectrum, realspec, fittedlines)
+
 ! now write out the line list.
 
-open(999, file='blend.tmp')
+print *,gettime(),": writing output files ",trim(spectrumfile),"_lines.tex and ",trim(spectrumfile),"_fit"
 
 open(100,file=trim(spectrumfile)//"_lines.tex")
 write(100,*) "Observed wavelength & Rest wavelength & Flux & Uncertainty & Ion & Multiplet & Lower term & Upper term & g_1 & g_2 \\"
 do i=1,totallines
-write (999,*) fittedlines(i)%wavelength,fittedlines(i)%blended
-  if (fittedlines(i)%uncertainty .gt. 3.0) then
-    if (fittedlines(i)%blended .eq. 0) then
-      write (100,"(F7.2,' & ',F7.2,' & ',F12.3,' & ',F12.3,A85,2(' & ',F12.3))") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty, fittedlines(i)%linedata, (1.0-fittedlines(i)%redshift)*3.e5, fittedlines(i)%resolution
-    elseif (fittedlines(i)%blended .ne. 0 .and. fittedlines(fittedlines(i)%blended)%uncertainty .gt. 3.0) then
-      write (100,"(F7.2,' & ',F7.2,' &            * &            *',A85,2(' & ',F12.3))") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,fittedlines(i)%linedata, (1.0-fittedlines(i)%redshift)*3.e5,fittedlines(i)%resolution
-    endif
+  if (fittedlines(i)%blended .eq. 0 .and. fittedlines(i)%uncertainty .gt. 3.0) then
+    write (100,"(F7.2,' & ',F7.2,' & ',F12.3,' & ',F12.3,A85,2(' & ',F12.3))") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty, fittedlines(i)%linedata, (1.0-fittedlines(i)%redshift)*3.e5, fittedlines(i)%resolution
+  elseif (fittedlines(i)%blended .ne. 0 .and. fittedlines(fittedlines(i)%blended)%uncertainty .gt. 3.0) then
+    write (100,"(F7.2,' & ',F7.2,' &            * &            *',A85,2(' & ',F12.3))") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,fittedlines(i)%linedata, (1.0-fittedlines(i)%redshift)*3.e5,fittedlines(i)%resolution
   endif
 enddo
 close(100)
-close(999)
+
 ! write out fit
 
 open(100,file=trim(spectrumfile)//"_fit")

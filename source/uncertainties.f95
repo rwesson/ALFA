@@ -48,14 +48,6 @@ do i=1,size(fittedlines%uncertainty)
   endif
 enddo
 
-!write out uncertainties for debugging purposes:
-
-open (999, file="uncertainties")
-write (999,*) """wavelength"" ""obs. flux"" ""synth. flux"" ""residuals"" ""rms"""
-do i=1,size(realspec)
-  write (999,*) realspec(i)%wavelength, realspec(i)%flux, fittedspectrum(i)%flux, residuals(i), realspec(i)%uncertainty
-enddo
-
 end subroutine get_uncertainties
 
 end module mod_uncertainties

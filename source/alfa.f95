@@ -184,12 +184,19 @@ call get_uncertainties(fittedspectrum, realspec, fittedlines)
 
 ! normalise if H beta is present
 
+normalisation = 0.d0
+
 do i=1,totallines
   if (abs(fittedlines(i)%wavelength - 4861.33) .lt. 0.005) then
     normalisation = 100./gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))
     print "(' ',A,A,F9.3,A)",gettime(),": H beta detected with flux ",gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))," - normalising to 100.0"
   endif
 enddo
+
+if (normalisation .eq. 0.d0) then
+  print *,gettime(),": no H beta detected, no normalisation applied"
+  normalisation = 1.d0
+endif
 
 fittedlines%peak = fittedlines%peak * normalisation
 

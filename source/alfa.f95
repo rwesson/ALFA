@@ -23,6 +23,8 @@ real :: redshiftguess, resolutionguess, redshifttolerance, resolutiontolerance
 real :: blendpeak
 real :: normalisation
 
+logical :: normalise=.false. !false means spectrum normalised to whatever H beta is detected, true means spectrum normalised to user specified value
+
 ! start
 
 print *,"ALFA, the Automated Line Fitting Algorithm"
@@ -46,15 +48,22 @@ endif
 call get_command(commandline)
 ALLOCATE (options(Narg))
 if (narg .gt. 1) then
-  do i=1,Narg-1
+  do i=1,Narg
     call get_command_argument(i,options(i))
     ! no command line options implemented yet
   enddo
 endif
 
+do i=1,narg
+  if ((trim(options(i))=="-n") .and. (i+1) .le. Narg) then
+    read (options(i+1),*) normalisation
+    normalise=.true.
+  endif
+enddo
+
 print *,gettime(),": command line: ",trim(commandline)
 
-call get_command_argument(narg,spectrumfile)
+call get_command_argument(1,spectrumfile)
 
 ! read in spectrum to fit and line list
 
@@ -182,20 +191,28 @@ enddo
 print *,gettime(),": estimating uncertainties"
 call get_uncertainties(fittedspectrum, realspec, fittedlines)
 
-! normalise if H beta is present
+! normalise if H beta is present and user did not specify a normalisation
 
-normalisation = 0.d0
+if (.not. normalise) then
 
-do i=1,totallines
-  if (abs(fittedlines(i)%wavelength - 4861.33) .lt. 0.005) then
-    normalisation = 100./gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))
-    print "(' ',A,A,F9.3,A)",gettime(),": H beta detected with flux ",gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))," - normalising to 100.0"
+  normalisation = 0.d0
+
+  do i=1,totallines
+    if (abs(fittedlines(i)%wavelength - 4861.33) .lt. 0.005) then
+      normalisation = 100./gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))
+      print "(' ',A,A,F9.3,A)",gettime(),": H beta detected with flux ",gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))," - normalising to 100.0"
+    endif
+  enddo
+
+  if (normalisation .eq. 0.d0) then
+    print *,gettime(),": no H beta detected, no normalisation applied"
+    normalisation = 1.d0
   endif
-enddo
 
-if (normalisation .eq. 0.d0) then
-  print *,gettime(),": no H beta detected, no normalisation applied"
-  normalisation = 1.d0
+else
+
+  print *,gettime(),": normalising H beta to 100.0 assuming measured flux of ",normalisation
+
 endif
 
 fittedlines%peak = fittedlines%peak * normalisation

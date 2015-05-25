@@ -212,6 +212,7 @@ if (.not. normalise) then
 else
 
   print *,gettime(),": normalising H beta to 100.0 assuming measured flux of ",normalisation
+  normalisation = 100./normalisation
 
 endif
 

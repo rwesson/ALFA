@@ -34,4 +34,4 @@ integer :: i, spectrumlength
 
 end subroutine fit_continuum
 
-end module mod_continuum 
+end module mod_continuum

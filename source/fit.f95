@@ -72,10 +72,10 @@ real :: tmpvar !XXX
     rms=0.D0
 
     do popnumber=1,popsize
-  
+
   !calculate synthetic spectra - reset to 0 before synthesizing
   !line fluxes are calculated within 5 sigma of mean
-  
+
       do lineid=1,nlines
         where (abs(population(popnumber,lineid)%redshift*population(popnumber,lineid)%wavelength - synthspec(:,popnumber)%wavelength) .lt. (5*population(popnumber,lineid)%wavelength/population(popnumber,lineid)%resolution))
           synthspec(:,popnumber)%flux = synthspec(:,popnumber)%flux + &
@@ -83,36 +83,36 @@ real :: tmpvar !XXX
 
         end where
       enddo
-  
+
     !now calculate RMS for the "models"
-  
+
       rms(popnumber)=sum((synthspec(:,popnumber)%flux-inputspectrum(:)%flux)**2)/spectrumlength
-  
+
     enddo
- 
+
     !if that was the last generation then exit before mutating
 
     if (gencount .eq. generations) exit
- 
+
     !next, cream off the well performing models - put the population
     !member with the lowest RMS into the breed array, replace the RMS with
     !something very high so that it doesn't get copied twice, repeat until
     !a fraction equal to the pressure factor have been selected
 tmpvar = maxval(rms,1) !XXX
-    do i=1,int(popsize*pressure) 
+    do i=1,int(popsize*pressure)
       breed(i,:) = population(minloc(rms,1),:)
       rms(minloc(rms,1))=1.e10
     enddo
-  
+
   !then, "breed" pairs
   !random approach will mean that some models have no offspring while others might have many.
   !Alternative approach could be to breed all adjacent pairs so that every model generates one offspring.
-  
-    do i=1,popsize 
+
+    do i=1,popsize
       call random_number(random)
       loc1=int(popsize*random*pressure)+1
       call random_number(random)
-      loc2=int(popsize*random*pressure)+1 
+      loc2=int(popsize*random*pressure)+1
       population(i,:)%peak=(breed(loc1,:)%peak + breed(loc2,:)%peak)/2.0
       population(i,:)%resolution=(breed(loc1,:)%resolution + breed(loc2,:)%resolution)/2.0
       population(i,:)%redshift=(breed(loc1,:)%redshift + breed(loc2,:)%redshift)/2.0
@@ -131,7 +131,7 @@ tmpvar = maxval(rms,1) !XXX
         population(popnumber,lineid)%peak = population(popnumber,lineid)%peak * mutation()
       enddo
     enddo
-  
+
 !    if (mod(gencount,100) .eq.0 .or. gencount.eq.1) then
 !      print "(X,A,A,i5,A,4(X,F12.3))",gettime()," : ",gencount, " generations  ", population(minloc(rms,1),1)%resolution, 3.e5*(population(minloc(rms,1),1)%redshift-1), minval(rms,1), tmpvar
 !    endif
@@ -157,4 +157,4 @@ tmpvar = maxval(rms,1) !XXX
   deallocate(population)
 
 end subroutine fit
-end module mod_fit 
+end module mod_fit

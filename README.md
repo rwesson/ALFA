@@ -3,12 +3,12 @@ ALFA
 
 Automatic line fitting algorithm.
 
-The program reads in an observed spectrum, and a list of lines that might be expected to be present in that spectrum (at the moment, the observed spectrum is a short exposure on NGC 6543, the Cat's Eye Nebula, and the line list is the observed wavelengths of lines measured in a long exposure of the Cat's Eye).
+ALFA can identify and fit hundreds of lines in emission line spectra in just a few seconds.  It does this using a genetic algorithm to optimise the line parameters, which works as follows:
 
-The program attempts to match the observations as follows
+1. A population of synthetic spectra is generated using a reference line catalogue.
+2. The goodness of fit for each synthetic spectrum is calculated.  The best 10% is retained and the rest discarded.
+3. A new population of synthetic spectra is obtained by averaging pairs of the best performers.
+4. A small fraction of the parameters of the lines in the new generation are randomly altered.
+5. The process repeats until a good fit is obtained.
 
-1. it generates a set of spectra using the wavelengths of the line list and random fluxes
-2. it calculates the RMS of the residuals for each of the synthetic spectra
-3. from the spectra with the lowest RMS, it creates new synthetic spectra by averaging random pairs
-4. a small fraction of the lines in the new spectra have their flux altered
-5. steps 2-4 are repeated many times, ideally resulting in increasingly good fits to the spectrum being generated
+The code is currently optimised for optical spectra but the algorithm is entirely indifferent to the wavelength range and resolution of the spectra to be analysed.  The only requirement to get a good fit out is to create a meaningful reference line catalogue.

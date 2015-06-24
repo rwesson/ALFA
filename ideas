@@ -1,15 +1,6 @@
 write out balmer jump fluxes
-combine blended lines afterwards
- - find lines separated by less than the instrumental resolution
- - add their fluxes
- - list them as blends in the output table
 
 breed, mutate, fitness, select
-Questions:
-  why doesn't the maximum RMS end up very close to the minimum RMS?  Where are the large values coming from?
-
-tests:
-  make synthetic spectrum with a few weak lines and one strong line.  increase strength of strong line.  determine if contrast alone causes bad fitting of weak lines.  if it does, then goodness of fit needs improving
 
 0. uncertainties:
      generate synthetic spectra with one line and increasing noise
@@ -18,6 +9,7 @@ tests:
 1. continuum:
     - include discontinuities
     - try fourier transform, remove lowest frequency information, invert
+    - try calculating gradients to mask lines
 2. calculate uncertainty internal to model as well as external
 3. stop based on convergence, not on simple number of iterations 
    set target rms based on rms in continuum

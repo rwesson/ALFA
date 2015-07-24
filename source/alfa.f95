@@ -224,9 +224,9 @@ open(100,file=trim(spectrumfile)//"_lines.tex")
 write(100,*) "Observed wavelength & Rest wavelength & Flux & Uncertainty & Ion & Multiplet & Lower term & Upper term & g_1 & g_2 \\"
 do i=1,totallines
   if (fittedlines(i)%blended .eq. 0 .and. fittedlines(i)%uncertainty .gt. 3.0) then
-    write (100,"(F7.2,' & ',F7.2,' & ',F12.3,' & ',F12.3,A85,2(' & ',F12.3))") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty, fittedlines(i)%linedata, (1.0-fittedlines(i)%redshift)*3.e5, fittedlines(i)%resolution
+    write (100,"(F8.2,' & ',F8.2,' & ',F12.3,' & ',F12.3,A85,2(' & ',F12.3))") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty, fittedlines(i)%linedata, (1.0-fittedlines(i)%redshift)*3.e5, fittedlines(i)%resolution
   elseif (fittedlines(i)%blended .ne. 0 .and. fittedlines(fittedlines(i)%blended)%uncertainty .gt. 3.0) then
-    write (100,"(F7.2,' & ',F7.2,' &            * &            *',A85,2(' & ',F12.3))") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,fittedlines(i)%linedata, (1.0-fittedlines(i)%redshift)*3.e5,fittedlines(i)%resolution
+    write (100,"(F8.2,' & ',F8.2,' &            * &            *',A85,2(' & ',F12.3))") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,fittedlines(i)%linedata, (1.0-fittedlines(i)%redshift)*3.e5,fittedlines(i)%resolution
   endif
 enddo
 close(100)
@@ -237,7 +237,7 @@ open(100,file=trim(spectrumfile)//"_fit")
 
 write (100,*) """wavelength""  ""fitted spectrum""  ""cont-subbed orig"" ""continuum""  ""residuals"""
 do i=1,spectrumlength
-  write(100,"(F7.2, 4(F12.3))") fittedspectrum(i)%wavelength,fittedspectrum(i)%flux, realspec(i)%flux, continuum(i)%flux, realspec(i)%flux - fittedspectrum(i)%flux
+  write(100,"(F8.2, 4(F12.3))") fittedspectrum(i)%wavelength,fittedspectrum(i)%flux, realspec(i)%flux, continuum(i)%flux, realspec(i)%flux - fittedspectrum(i)%flux
 enddo
 
 close(100)

@@ -123,7 +123,7 @@ print *,gettime(),": estimated redshift and resolution: ",c*(fittedlines(1)%reds
 
 redshiftguess=fittedlines(1)%redshift
 resolutionguess=fittedlines(1)%resolution
-redshifttolerance=0.0002 ! 60 km/s
+redshifttolerance=0.0001 ! 30 km/s
 resolutiontolerance=500.
 linelistfile="linelists/deep_full"
 
@@ -147,7 +147,7 @@ do i=1,spectrumlength,400
   call readlinelist(linelistfile, referencelinelist, nlines, fittedlines_section, spectrumchunk)
 
   if (nlines .gt. 0) then
-    print "(' ',A,A,F6.1,A,F6.1,A,I3,A)",gettime(),": fitting from ",spectrumchunk(1)%wavelength," to ",spectrumchunk(size(spectrumchunk))%wavelength," with ",nlines," lines"
+    print "(' ',A,A,F7.1,A,F7.1,A,I3,A)",gettime(),": fitting from ",spectrumchunk(1)%wavelength," to ",spectrumchunk(size(spectrumchunk))%wavelength," with ",nlines," lines"
 !    print *,"Best fitting model parameters:       Resolution    Redshift    RMS min      RMS max"
     call fit(spectrumchunk, referencelinelist, redshiftguess, resolutionguess, fittedspectrum(i:i+chunklength-1), fittedlines_section, redshifttolerance, resolutiontolerance)
   !use redshift and resolution from this chunk as initial values for next chunk

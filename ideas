@@ -14,7 +14,4 @@ breed, mutate, fitness, select
 3. stop based on convergence, not on simple number of iterations 
    set target rms based on rms in continuum
 4. use cfitsio to read in fits files
-5. command line options:
-     min and max wavelength
-     initial guess of redshift and resolution
-6. allow choice of fitting with constant width or constant resolution
+5. allow choice of fitting with constant width or constant resolution

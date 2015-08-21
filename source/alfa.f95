@@ -27,7 +27,8 @@ real :: c
 logical :: normalise=.false. !false means spectrum normalised to whatever H beta is detected, true means spectrum normalised to user specified value
 
 c=299792.458 !km/s
-redshiftguess=1.0000 !default values in absence of user specificed guess
+!default values in absence of user specificed guess
+redshiftguess=0.0 !km/s
 resolutionguess=15000.
 
 ! start
@@ -216,7 +217,7 @@ if (.not. normalise) then
   do i=1,totallines
     if (abs(fittedlines(i)%wavelength - 4861.33) .lt. 0.005) then
       normalisation = 100./gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))
-      print "(' ',A,A,F9.3,A)",gettime(),": H beta detected with flux ",gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))," - normalising to 100.0"
+      print "(' ',A,A,ES9.3,A)",gettime(),": H beta detected with flux ",gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))," - normalising to 100.0"
     endif
   enddo
 
@@ -242,9 +243,9 @@ open(100,file=trim(spectrumfile)//"_lines.tex")
 write(100,*) "Observed wavelength & Rest wavelength & Flux & Uncertainty & Ion & Multiplet & Lower term & Upper term & g_1 & g_2 \\"
 do i=1,totallines
   if (fittedlines(i)%blended .eq. 0 .and. fittedlines(i)%uncertainty .gt. 3.0) then
-    write (100,"(F8.2,' & ',F8.2,' & ',F12.3,' & ',F12.3,A85,2(' & ',F12.3))") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty, fittedlines(i)%linedata, (1.0-fittedlines(i)%redshift)*c, fittedlines(i)%resolution
+    write (100,"(F8.2,' & ',F8.2,' & ',F12.3,' & ',F12.3,A85)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty, fittedlines(i)%linedata
   elseif (fittedlines(i)%blended .ne. 0 .and. fittedlines(fittedlines(i)%blended)%uncertainty .gt. 3.0) then
-    write (100,"(F8.2,' & ',F8.2,' &            * &            *',A85,2(' & ',F12.3))") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,fittedlines(i)%linedata, (1.0-fittedlines(i)%redshift)*c,fittedlines(i)%resolution
+    write (100,"(F8.2,' & ',F8.2,' &            * &            *',A85)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,fittedlines(i)%linedata
   endif
 enddo
 close(100)
@@ -255,7 +256,7 @@ open(100,file=trim(spectrumfile)//"_fit")
 
 write (100,*) """wavelength""  ""fitted spectrum""  ""cont-subbed orig"" ""continuum""  ""residuals"""
 do i=1,spectrumlength
-  write(100,"(F8.2, 4(F12.3))") fittedspectrum(i)%wavelength,fittedspectrum(i)%flux, realspec(i)%flux, continuum(i)%flux, realspec(i)%flux - fittedspectrum(i)%flux
+  write(100,"(F8.2, 4(ES12.3))") fittedspectrum(i)%wavelength,fittedspectrum(i)%flux, realspec(i)%flux, continuum(i)%flux, realspec(i)%flux - fittedspectrum(i)%flux
 enddo
 
 close(100)

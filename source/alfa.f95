@@ -50,10 +50,8 @@ if (narg .eq. 0) then
   print *,"  [file] is an ascii file with columns for wavelength and flux"
   print *,"  [options]:"
   print *,"  -n [value]: normalise to Hb=100 assuming that F(Hb)=value"
-  print *,"  -redg: initial guess for the redshift of the object"
-  print *,"         values between 0 and 3 are assumed to be z"
-  print *,"         any other values are assumed to be km/s"
-  print *,"  -resg: initial guess for the resolution, lambda/delta lambda"
+  print *,"  -redg: initial guess for the velocity of the object [km/s]"
+  print *,"  -resg: initial guess for the resolution [lambda/delta lambda]"
   stop
 endif
 
@@ -78,11 +76,9 @@ do i=1,narg
   endif
 enddo
 
-!if user-specified redshift is between 0 and 3, assume it's z; otherwise km/s
+! convert from velocity to redshift
 
-if (redshiftguess .lt. 0.0 .or. redshiftguess .gt. 3.0) then
-  redshiftguess=1.+(redshiftguess/c)
-endif
+redshiftguess=1.+(redshiftguess/c)
 
 print *,gettime(),": command line: ",trim(commandline)
 

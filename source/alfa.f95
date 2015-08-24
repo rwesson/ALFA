@@ -51,8 +51,8 @@ if (narg .eq. 0) then
   print *,"  [file] is an ascii file with columns for wavelength and flux"
   print *,"  [options]:"
   print *,"  -n [value]: normalise to Hb=100 assuming that F(Hb)=value"
-  print *,"  -redg: initial guess for the velocity of the object [km/s]"
-  print *,"  -resg: initial guess for the resolution [lambda/delta lambda]"
+  print *,"  -vg / --velocity-guess: initial guess for the velocity of the object [km/s]"
+  print *,"  -rg / --resolution-guess: initial guess for the resolution [lambda/delta lambda]"
   stop
 endif
 
@@ -69,10 +69,10 @@ do i=1,narg
     read (options(i+1),*) normalisation
     normalise=.true.
   endif
-  if ((trim(options(i))=="-redg") .and. (i+1) .le. Narg) then
+  if ((trim(options(i))=="-vg" .or. trim(options(i))=="--velocity-guess:") .and. (i+1) .le. Narg) then
     read (options(i+1),*) redshiftguess
   endif
-  if ((trim(options(i))=="-resg") .and. (i+1) .le. Narg) then
+  if ((trim(options(i))=="-rg" .or. trim(options(i))=="--resolution-guess") .and. (i+1) .le. Narg) then
     read (options(i+1),*) resolutionguess
   endif
 enddo

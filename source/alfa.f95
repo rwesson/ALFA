@@ -228,8 +228,13 @@ if (.not. normalise) then
 
 else
 
-  print *,gettime(),": normalising H beta to 100.0 assuming measured flux of ",normalisation
-  normalisation = 100./normalisation
+  if (normalisation .eq. 0.0) then
+    print *,gettime(),": no normalisation applied, measured fluxes will be reported"
+    normalisation = 1.d0
+  else
+    print *,gettime(),": normalising to H beta = 100.0 assuming flux of ",normalisation
+    normalisation = 100./normalisation
+  endif
 
 endif
 

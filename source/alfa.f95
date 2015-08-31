@@ -148,7 +148,7 @@ do i=1,spectrumlength,400
     endwlen=realspec(spectrumlength)%wavelength
   else
     endpos=i+410
-    endwlen=realspec(i+400)%wavelength
+    endwlen=realspec(i+399)%wavelength
   endif
 
   allocate(spectrumchunk(endpos-startpos))

@@ -8,7 +8,8 @@ use mod_fit
 use mod_uncertainties
 
 implicit none
-integer :: I, spectrumlength, chunklength, nlines, linearraypos, totallines
+integer :: I, spectrumlength, nlines, linearraypos, totallines, startpos, endpos
+real :: startwlen, endwlen
 character (len=512) :: spectrumfile,linelistfile
 
 type(linelist), dimension(:), allocatable :: referencelinelist, fittedlines, fittedlines_section
@@ -102,7 +103,7 @@ redshifttolerance=0.003 ! maximum absolute change in 1+v/c allowed from initial 
 resolutiontolerance=resolutionguess/2.0 ! maximum absolute change in lambda/delta lambda allowed from initial guess
 linelistfile="linelists/strong_optical"
 print *,gettime(),": reading in line catalogue ",trim(linelistfile)
-call readlinelist(linelistfile, referencelinelist, nlines, fittedlines, realspec)
+call readlinelist(linelistfile, referencelinelist, nlines, fittedlines, realspec, minval(realspec%wavelength), maxval(realspec%wavelength))
 
 if (nlines .eq. 0) then
   print *,gettime(),": Error: Line catalogue does not overlap with input spectrum"
@@ -127,26 +128,37 @@ linelistfile="linelists/deep_full"
 linearraypos=1
 !call readlinelist with full wavelength range to get total number of lines and an array to put them all in
 print *,gettime(),": reading in line catalogue ",trim(linelistfile)
-call readlinelist(linelistfile, referencelinelist, totallines, fittedlines, realspec)
+call readlinelist(linelistfile, referencelinelist, totallines, fittedlines, realspec, realspec(1)%wavelength, realspec(size(realspec))%wavelength)
 
 print *, gettime(), ": fitting full spectrum with ",totallines," lines"
 
+!now go through spectrum in chunks of 420 units.  Each one overlaps by 10 units with the previous and succeeding chunk, to avoid the code attempting to fit part of a line profile
 do i=1,spectrumlength,400
 
-  if (spectrumlength - i .lt. 400) then
-    chunklength = spectrumlength - i
+  if (i-10 .le. 0) then
+    startpos=1
+    startwlen=realspec(1)%wavelength
   else
-    chunklength = 400
+    startpos=i-10
+    startwlen=realspec(i)%wavelength
   endif
 
-  allocate(spectrumchunk(chunklength))
-  spectrumchunk = realspec(i:i+chunklength-1)
-  call readlinelist(linelistfile, referencelinelist, nlines, fittedlines_section, spectrumchunk)
+  if (i+410 .ge. spectrumlength) then
+    endpos=spectrumlength
+    endwlen=realspec(spectrumlength)%wavelength
+  else
+    endpos=i+410
+    endwlen=realspec(i+400)%wavelength
+  endif
+
+  allocate(spectrumchunk(endpos-startpos))
+  spectrumchunk = realspec(startpos:endpos)
+  call readlinelist(linelistfile, referencelinelist, nlines, fittedlines_section, spectrumchunk, startwlen, endwlen)
 
   if (nlines .gt. 0) then
     print "(' ',A,A,F7.1,A,F7.1,A,I3,A)",gettime(),": fitting from ",spectrumchunk(1)%wavelength," to ",spectrumchunk(size(spectrumchunk))%wavelength," with ",nlines," lines"
 !    print *,"Best fitting model parameters:       Resolution    Redshift    RMS min      RMS max"
-    call fit(spectrumchunk, referencelinelist, redshiftguess, resolutionguess, fittedspectrum(i:i+chunklength-1), fittedlines_section, redshifttolerance, resolutiontolerance)
+    call fit(spectrumchunk, referencelinelist, redshiftguess, resolutionguess, fittedspectrum(startpos:endpos), fittedlines_section, redshifttolerance, resolutiontolerance)
   !use redshift and resolution from this chunk as initial values for next chunk
     redshiftguess=fittedlines_section(1)%redshift
     resolutionguess=fittedlines_section(1)%resolution

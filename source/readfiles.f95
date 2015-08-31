@@ -53,13 +53,19 @@ subroutine readspectrum(spectrumfile, realspec, spectrumlength, fittedspectrum)
 
 end subroutine readspectrum
 
-subroutine readlinelist(linelistfile,referencelinelist,nlines,fittedlines, realspec)
-
+subroutine readlinelist(linelistfile,referencelinelist,nlines,fittedlines, realspec, wavelength1, wavelength2)
+!this subroutine reads in the line catalogue
+! - linelistfile is the name of the line catalogue file
+! - referencelinelist is the array into which the values are read
+! - nlines is the number of lines successfully read into the array
+! - fittedlines is an array with the line wavelengths, created for subsequent use in the fit subroutine
+! - realspec is the spectrum to be fitted
+! - wavelength1 and wavelength2 are the shortest and longest wavelengths to be considered - lines outside them will not be read in from the catalogue.  realspec is unaffected.  This is so that lines being fitted are completely within the spectrum chunk
   implicit none
   character (len=512) :: linelistfile
   character (len=85) :: linedatainput
   integer :: i
-  real :: input1
+  real :: input1, wavelength1, wavelength2
   integer :: io, nlines
   logical :: file_exists
 
@@ -85,7 +91,7 @@ subroutine readlinelist(linelistfile,referencelinelist,nlines,fittedlines, reals
     OPEN(199, file=linelistfile, iostat=IO, status='old')
     DO WHILE (IO >= 0)
       READ(199,*,end=110) input1
-      if (input1 .ge. minval(realspec%wavelength) .and. input1 .le.  maxval(realspec%wavelength)) then
+      if (input1 .ge. wavelength1 .and. input1 .le.  wavelength2) then
       !only read in lines that lie within the observed wavelength range
         I = I + 1
       endif

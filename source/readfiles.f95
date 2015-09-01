@@ -108,14 +108,14 @@ subroutine readlinelist(linelistfile,referencelinelist,nlines,fittedlines, reals
   I=1
   do while (i .le. nlines)
     READ(199,'(F7.3,A)') input1, linedatainput
-    if (input1 .ge. minval(realspec%wavelength)) then
+    if (input1 .ge. wavelength1) then
       referencelinelist(i)%wavelength = input1
       referencelinelist(i)%peak=1.
 !formerly abs(realspec(minloc((realspec%wavelength-input1)**2,1))%flux) but in case of weak lines near to negative flux values this prevented them being fitted. it makes a negligible difference to the running time
       referencelinelist(i)%linedata = linedatainput
       i=i+1
     endif
-    if (input1 .ge.  maxval(realspec%wavelength)) then
+    if (input1 .ge.  wavelength2) then
       exit
     endif
   END DO

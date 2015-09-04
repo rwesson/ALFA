@@ -51,7 +51,7 @@ if (narg .eq. 0) then
   print *,"Usage: alfa [file] [options]"
   print *,"  [file] is an ascii file with columns for wavelength and flux"
   print *,"  [options]:"
-  print *,"  -n [value]: normalise to Hb=100 assuming that F(Hb)=value"
+  print *,"  -n / --normalise [value]: normalise to Hb=100 assuming that F(Hb)=value"
   print *,"  -vg / --velocity-guess: initial guess for the velocity of the object [km/s]"
   print *,"  -rg / --resolution-guess: initial guess for the resolution [lambda/delta lambda]"
   stop
@@ -66,7 +66,7 @@ if (narg .gt. 1) then
 endif
 
 do i=1,narg
-  if ((trim(options(i))=="-n") .and. (i+1) .le. Narg) then
+  if ((trim(options(i))=="-n" .or. trim(options(i))=="--normalise") .and. (i+1) .le. Narg) then
     read (options(i+1),*) normalisation
     normalise=.true.
   endif
@@ -257,14 +257,18 @@ fittedlines%peak = fittedlines%peak * normalisation
 print *,gettime(),": writing output files ",trim(spectrumfile),"_lines.tex and ",trim(spectrumfile),"_fit"
 
 open(100,file=trim(spectrumfile)//"_lines.tex")
+open(101,file=trim(spectrumfile)//"_lines")
 write(100,*) "Observed wavelength & Rest wavelength & Flux & Uncertainty & Ion & Multiplet & Lower term & Upper term & g$_1$ & g$_2$ \\"
 do i=1,totallines
   if (fittedlines(i)%blended .eq. 0 .and. fittedlines(i)%uncertainty .gt. 3.0) then
     write (100,"(F8.2,' & ',F8.2,' & ',F12.3,' & ',F12.3,A85)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty, fittedlines(i)%linedata
+    write (101,"(F8.2,2(F12.3))") fittedlines(i)%wavelength, gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty
   elseif (fittedlines(i)%blended .ne. 0 .and. fittedlines(fittedlines(i)%blended)%uncertainty .gt. 3.0) then
     write (100,"(F8.2,' & ',F8.2,' &            * &            *',A85)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,fittedlines(i)%linedata
+    write (101,"(F8.2,' * *')") fittedlines(i)%wavelength
   endif
 enddo
+close(101)
 close(100)
 
 ! write out fit

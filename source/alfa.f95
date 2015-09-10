@@ -104,7 +104,7 @@ redshifttolerance=0.003 ! maximum absolute change in 1+v/c allowed from initial 
 resolutiontolerance=resolutionguess/2.0 ! maximum absolute change in lambda/delta lambda allowed from initial guess
 linelistfile="linelists/strong_optical"
 print *,gettime(),": reading in line catalogue ",trim(linelistfile)
-call readlinelist(linelistfile, referencelinelist, nlines, fittedlines, realspec, minval(realspec%wavelength), maxval(realspec%wavelength))
+call readlinelist(linelistfile, referencelinelist, nlines, fittedlines, minval(realspec%wavelength), maxval(realspec%wavelength))
 
 if (nlines .eq. 0) then
   print *,gettime(),": Error: Line catalogue does not overlap with input spectrum"
@@ -130,7 +130,7 @@ linelistfile="linelists/deep_full"
 linearraypos=1
 !call readlinelist with full wavelength range to get total number of lines and an array to put them all in
 print *,gettime(),": reading in line catalogue ",trim(linelistfile)
-call readlinelist(linelistfile, referencelinelist, totallines, fittedlines, realspec, realspec(1)%wavelength, realspec(size(realspec))%wavelength)
+call readlinelist(linelistfile, referencelinelist, totallines, fittedlines, realspec(1)%wavelength, realspec(size(realspec))%wavelength)
 
 print *, gettime(), ": fitting full spectrum with ",totallines," lines"
 
@@ -164,7 +164,7 @@ do i=1,spectrumlength,400
   allocate(fittedchunk(endpos-startpos+1))
   spectrumchunk = realspec(startpos:endpos)
 
-  call readlinelist(linelistfile, referencelinelist, nlines, fittedlines_section, spectrumchunk, startwlen, endwlen)
+  call readlinelist(linelistfile, referencelinelist, nlines, fittedlines_section, startwlen, endwlen)
 
   if (nlines .gt. 0) then
     print "(' ',A,A,F7.1,A,F7.1,A,I3,A)",gettime(),": fitting from ",spectrumchunk(1)%wavelength," to ",spectrumchunk(size(spectrumchunk))%wavelength," with ",nlines," lines"
@@ -181,7 +181,7 @@ do i=1,spectrumlength,400
   !copy line fitting results from chunk to main array
 
   fittedlines(linearraypos:linearraypos+nlines-1)=fittedlines_section
-  fittedspectrum(startpos+copystartpos-1:startpos+copyendpos)=fittedchunk(copystartpos:copyendpos)
+  fittedspectrum(startpos+copystartpos-1:startpos+copyendpos-1)=fittedchunk(copystartpos:copyendpos)
   linearraypos=linearraypos+nlines
 
   deallocate(spectrumchunk)
@@ -189,7 +189,7 @@ do i=1,spectrumlength,400
 
 enddo
 
-!account for blends - for each line, determine if the subsequent line is separated by less than half the resolution
+!account for blends - for each line, determine if the subsequent line is separated by less than the resolution
 !if it is, then flag that line with the lineid of the first member of the blend
 
 print *
@@ -280,9 +280,11 @@ do i=1,totallines
   if (fittedlines(i)%blended .eq. 0 .and. fittedlines(i)%uncertainty .gt. 3.0) then
     write (100,"(F8.2,' & ',F8.2,' & ',F12.3,' & ',F12.3,A85)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty, fittedlines(i)%linedata
     write (101,"(F8.2,2(F12.3))") fittedlines(i)%wavelength, gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty
-  elseif (fittedlines(i)%blended .ne. 0 .and. fittedlines(fittedlines(i)%blended)%uncertainty .gt. 3.0) then
-    write (100,"(F8.2,' & ',F8.2,' &            * &            *',A85)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,fittedlines(i)%linedata
-    write (101,"(F8.2,' * *')") fittedlines(i)%wavelength
+  elseif (fittedlines(i)%blended .ne. 0) then
+    if (fittedlines(fittedlines(i)%blended)%uncertainty .gt. 3.0) then
+      write (100,"(F8.2,' & ',F8.2,' &            * &            *',A85)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,fittedlines(i)%linedata
+      write (101,"(F8.2,' * *')") fittedlines(i)%wavelength
+    endif
   endif
 enddo
 close(101)

@@ -8,12 +8,12 @@ use mod_fit
 use mod_uncertainties
 
 implicit none
-integer :: I, spectrumlength, nlines, linearraypos, totallines, startpos, endpos
+integer :: I, spectrumlength, nlines, linearraypos, totallines, startpos, endpos, copystartpos, copyendpos
 real :: startwlen, endwlen
 character (len=512) :: spectrumfile,linelistfile
 
 type(linelist), dimension(:), allocatable :: referencelinelist, fittedlines, fittedlines_section
-type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum, spectrumchunk
+type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum, spectrumchunk, fittedchunk
 type(spectrum), dimension(:), allocatable :: continuum
 
 CHARACTER(len=2048), DIMENSION(:), allocatable :: options
@@ -21,6 +21,7 @@ CHARACTER(len=2048) :: commandline
 integer :: narg
 
 real :: redshiftguess, resolutionguess, redshifttolerance, resolutiontolerance
+real :: redshiftguess_overall
 real :: blendpeak
 real :: normalisation
 real :: c
@@ -116,6 +117,7 @@ print *,gettime(),": estimating resolution and redshift using ",nlines," lines"
 call fit(realspec, referencelinelist, redshiftguess, resolutionguess, fittedspectrum, fittedlines, redshifttolerance, resolutiontolerance)
 
 print *,gettime(),": estimated redshift and resolution: ",c*(fittedlines(1)%redshift-1),fittedlines(1)%resolution
+redshiftguess_overall = fittedlines(1)%redshift ! when fitting chunks, use this redshift to get lines in the right range from the catalogue. if velocity from each chunk is used, then there's a chance that a line could be missed or double counted due to variations in the calculated velocity between chunks.
 
 ! then again in chunks with tighter tolerance
 
@@ -133,42 +135,57 @@ call readlinelist(linelistfile, referencelinelist, totallines, fittedlines, real
 print *, gettime(), ": fitting full spectrum with ",totallines," lines"
 
 !now go through spectrum in chunks of 420 units.  Each one overlaps by 10 units with the previous and succeeding chunk, to avoid the code attempting to fit part of a line profile
+!from the chunk of 420 units, only the middle 400 units is copied into the fit file, so that the overlap regions can't overwrite previously fitted lines with zeroes
+!at beginning and end, padding is only to the right and left respectively
+
 do i=1,spectrumlength,400
 
-  if (i-10 .le. 0) then
+  if (i .eq. 1) then
     startpos=1
-    startwlen=realspec(1)%wavelength
+    copystartpos=1
+    startwlen=realspec(1)%wavelength/redshiftguess_overall
   else
     startpos=i-10
-    startwlen=realspec(i)%wavelength
+    copystartpos=11
+    startwlen=realspec(i)%wavelength/redshiftguess_overall
   endif
 
-  if (i+410 .ge. spectrumlength) then
+  if (i+409 .gt. spectrumlength) then
     endpos=spectrumlength
-    endwlen=realspec(spectrumlength)%wavelength
+    copyendpos=spectrumlength-i+10
+    endwlen=realspec(spectrumlength)%wavelength/redshiftguess_overall
   else
-    endpos=i+410
-    endwlen=realspec(i+399)%wavelength
+    endpos=i+409
+    copyendpos=399+copystartpos
+    endwlen=realspec(i+399)%wavelength/redshiftguess_overall
   endif
 
-  allocate(spectrumchunk(endpos-startpos))
+  allocate(spectrumchunk(endpos-startpos+1))
+  allocate(fittedchunk(endpos-startpos+1))
   spectrumchunk = realspec(startpos:endpos)
+
   call readlinelist(linelistfile, referencelinelist, nlines, fittedlines_section, spectrumchunk, startwlen, endwlen)
 
   if (nlines .gt. 0) then
     print "(' ',A,A,F7.1,A,F7.1,A,I3,A)",gettime(),": fitting from ",spectrumchunk(1)%wavelength," to ",spectrumchunk(size(spectrumchunk))%wavelength," with ",nlines," lines"
 !    print *,"Best fitting model parameters:       Resolution    Redshift    RMS min      RMS max"
-    call fit(spectrumchunk, referencelinelist, redshiftguess, resolutionguess, fittedspectrum(startpos:endpos), fittedlines_section, redshifttolerance, resolutiontolerance)
+    call fit(spectrumchunk, referencelinelist, redshiftguess, resolutionguess, fittedchunk, fittedlines_section, redshifttolerance, resolutiontolerance)
   !use redshift and resolution from this chunk as initial values for next chunk
     redshiftguess=fittedlines_section(1)%redshift
     resolutionguess=fittedlines_section(1)%resolution
+  else
+    fittedchunk%wavelength = spectrumchunk%wavelength
+    fittedchunk%flux=0.d0
   endif
 
   !copy line fitting results from chunk to main array
 
-  deallocate(spectrumchunk)
   fittedlines(linearraypos:linearraypos+nlines-1)=fittedlines_section
+  fittedspectrum(startpos+copystartpos-1:startpos+copyendpos)=fittedchunk(copystartpos:copyendpos)
   linearraypos=linearraypos+nlines
+
+  deallocate(spectrumchunk)
+  deallocate(fittedchunk)
 
 enddo
 

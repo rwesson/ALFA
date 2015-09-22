@@ -19,14 +19,14 @@ allocate(residuals(size(realspec)))
 residuals=realspec%flux - fittedspectrum%flux
 
 ! in a moving 20 unit window, calculated the RMS of the residuals, excluding the
-! 5 largest (this avoids the uncertainty calculation being biased by unfitted
+! 2 largest (this avoids the uncertainty calculation being biased by unfitted
 ! lines or large residuals from the wings of lines)
 
 do i=10,size(realspec)-10
   spectrumchunk=abs(residuals(i-9:i+10))
   call qsort(spectrumchunk)
-  spectrumchunk(15:20)=0.D0
-  realspec(i)%uncertainty=((sum(spectrumchunk**2)/15.)**0.5)
+  spectrumchunk(19:20)=0.D0
+  realspec(i)%uncertainty=((sum(spectrumchunk**2)/18.)**0.5)
 enddo
 
 ! fill in the ends with the closest calculated values

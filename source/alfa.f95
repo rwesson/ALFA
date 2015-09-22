@@ -302,5 +302,6 @@ enddo
 close(100)
 
 print *,gettime(),": all done"
+print *
 
 end program alfa

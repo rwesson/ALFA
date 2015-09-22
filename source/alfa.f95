@@ -130,7 +130,7 @@ linelistfile="linelists/deep_full"
 linearraypos=1
 !call readlinelist with full wavelength range to get total number of lines and an array to put them all in
 print *,gettime(),": reading in line catalogue ",trim(linelistfile)
-call readlinelist(linelistfile, referencelinelist, totallines, fittedlines, realspec(1)%wavelength, realspec(size(realspec))%wavelength)
+call readlinelist(linelistfile, referencelinelist, totallines, fittedlines, realspec(1)%wavelength/redshiftguess_overall, realspec(size(realspec))%wavelength/redshiftguess_overall)
 
 print *, gettime(), ": fitting full spectrum with ",totallines," lines"
 

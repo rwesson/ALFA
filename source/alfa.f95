@@ -297,19 +297,19 @@ if (minval(abs(continuum%wavelength-3630.)) .lt. 3630./fittedlines(1)%resolution
 endif
 
 if (minval(abs(continuum%wavelength-3700.)) .lt. 3700./fittedlines(1)%resolution) then
-  write (100,"(F8.2,' &          & ',F12.3,' & ',F12.3,' Balmer jump-\\')") 3646.5, continuum(minloc(abs(continuum%wavelength-3700.)))%flux, realspec(minloc(abs(continuum%wavelength-3700.          )))%uncertainty
+  write (100,"(F8.2,' &          & ',F12.3,' & ',F12.3,' Balmer jump+\\')") 3646.5, continuum(minloc(abs(continuum%wavelength-3700.)))%flux, realspec(minloc(abs(continuum%wavelength-3700.          )))%uncertainty
   write (101,"(F8.2,F12.3,F12.3)") 3646.5, continuum(minloc(abs(continuum%wavelength-3700.)))%flux, realspec(minloc(abs(continuum%wavelength-3700.)))%uncertainty
 endif
 
 !paschen
 
 if (minval(abs(continuum%wavelength-8100.)) .lt. 8100./fittedlines(1)%resolution) then
-  write (100,"(F8.2,' &          & ',F12.3,' & ',F12.3,' Balmer jump-\\')") 3645.5, continuum(minloc(abs(continuum%wavelength-8100.)))%flux, realspec(minloc(abs(continuum%wavelength-8100.          )))%uncertainty
+  write (100,"(F8.2,' &          & ',F12.3,' & ',F12.3,' Paschen jump-\\')") 8100.0, continuum(minloc(abs(continuum%wavelength-8100.)))%flux, realspec(minloc(abs(continuum%wavelength-8100.          )))%uncertainty
   write (101,"(F8.2,F12.3,F12.3)") 8100.0, continuum(minloc(abs(continuum%wavelength-8100.)))%flux, realspec(minloc(abs(continuum%wavelength-8100.)))%uncertainty
 endif
 
 if (minval(abs(continuum%wavelength-8400.)) .lt. 8400./fittedlines(1)%resolution) then
-  write (100,"(F8.2,' &          & ',F12.3,' & ',F12.3,' Balmer jump-\\')") 8400.0, continuum(minloc(abs(continuum%wavelength-8400.)))%flux, realspec(minloc(abs(continuum%wavelength-8400.          )))%uncertainty
+  write (100,"(F8.2,' &          & ',F12.3,' & ',F12.3,' Paschen jump+\\')") 8400.0, continuum(minloc(abs(continuum%wavelength-8400.)))%flux, realspec(minloc(abs(continuum%wavelength-8400.          )))%uncertainty
   write (101,"(F8.2,F12.3,F12.3)") 8400.0, continuum(minloc(abs(continuum%wavelength-8400.)))%flux, realspec(minloc(abs(continuum%wavelength-8400.)))%uncertainty
 endif
 

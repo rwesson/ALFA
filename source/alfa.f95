@@ -237,6 +237,17 @@ enddo
 print *,gettime(),": estimating uncertainties"
 call get_uncertainties(fittedspectrum, realspec, fittedlines)
 
+! write out the fitted spectrum
+
+open(100,file=trim(spectrumfile)//"_fit")
+
+write (100,*) """wavelength""  ""fitted spectrum""  ""cont-subbed orig"" ""continuum""  ""residuals"""
+do i=1,spectrumlength
+  write(100,"(F8.2, 4(ES12.3))") fittedspectrum(i)%wavelength,fittedspectrum(i)%flux + continuum(i)%flux, realspec(i)%flux, continuum(i)%flux, realspec(i)%flux - fittedspectrum(i)%flux
+enddo
+
+close(100)
+
 ! normalise if H beta is present and user did not specify a normalisation
 
 if (.not. normalise) then
@@ -268,6 +279,8 @@ else
 endif
 
 fittedlines%peak = fittedlines%peak * normalisation
+continuum%flux = continuum%flux * normalisation !for continuum jumps to be scaled
+realspec%uncertainty = realspec%uncertainty * normalisation !for continuum jumps to be scaled
 
 ! now write out the line list.
 
@@ -314,17 +327,6 @@ if (minval(abs(continuum%wavelength-8400.)) .lt. 8400./fittedlines(1)%resolution
 endif
 
 close(101)
-close(100)
-
-! write out fit
-
-open(100,file=trim(spectrumfile)//"_fit")
-
-write (100,*) """wavelength""  ""fitted spectrum""  ""cont-subbed orig"" ""continuum""  ""residuals"""
-do i=1,spectrumlength
-  write(100,"(F8.2, 4(ES12.3))") fittedspectrum(i)%wavelength,fittedspectrum(i)%flux + continuum(i)%flux, realspec(i)%flux, continuum(i)%flux, realspec(i)%flux - fittedspectrum(i)%flux
-enddo
-
 close(100)
 
 print *,gettime(),": all done"

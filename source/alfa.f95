@@ -101,7 +101,7 @@ call fit_continuum(realspec,spectrumlength, continuum)
 ! first get guesses for the redshift and resolution
 
 redshifttolerance=0.003 ! maximum absolute change in 1+v/c allowed from initial guess.  0.003 = 900 km/s
-resolutiontolerance=resolutionguess/2.0 ! maximum absolute change in lambda/delta lambda allowed from initial guess
+resolutiontolerance=resolutionguess ! maximum absolute change in lambda/delta lambda allowed from initial guess
 linelistfile="linelists/strong_optical"
 print *,gettime(),": reading in line catalogue ",trim(linelistfile)
 call readlinelist(linelistfile, referencelinelist, nlines, fittedlines, minval(realspec%wavelength), maxval(realspec%wavelength))
@@ -296,7 +296,7 @@ do i=1,totallines
   elseif (fittedlines(i)%blended .ne. 0) then
     if (fittedlines(fittedlines(i)%blended)%uncertainty .gt. 3.0) then
       write (100,"(F8.2,' & ',F8.2,' &            * &            *',A85)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,fittedlines(i)%linedata
-      write (101,"(F8.2,' * *')") fittedlines(i)%wavelength
+      write (101,"(F8.2,'           *           *')") fittedlines(i)%wavelength
     endif
   endif
 enddo

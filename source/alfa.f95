@@ -111,8 +111,8 @@ if (nlines .eq. 0) then
   stop
 endif
 
-print "(X,A,A,F8.1,A,F7.1)",gettime(),": initial guesses for redshift and resolution: ",c*(redshiftguess-1),"km/s, R=",resolutionguess
-print *,gettime(),": estimating resolution and redshift using ",nlines," lines"
+print "(X,A,A,F8.1,A,F7.1)",gettime(),": initial guesses for velocity and resolution: ",c*(redshiftguess-1),"km/s, R=",resolutionguess
+print *,gettime(),": estimating resolution and velocity using ",nlines," lines"
 
 call fit(realspec, referencelinelist, redshiftguess, resolutionguess, fittedspectrum, fittedlines, redshifttolerance, resolutiontolerance)
 

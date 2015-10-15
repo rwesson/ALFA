@@ -14,14 +14,13 @@ type(spectrum), dimension(:,:), allocatable :: synthspec
 type(spectrum), dimension(:) :: inputspectrum, fittedspectrum
 integer :: popsize, i, spectrumlength, lineid, loc1, loc2, nlines, gencount, generations, popnumber
 real, dimension(:), allocatable :: rms
-real :: random, pressure, convergence, oldrms
+real :: random, pressure
 real :: resolutionguess, redshiftguess, redshifttolerance, resolutiontolerance
 
 !initialisation
 
   popsize=50
   pressure=0.1 !pressure * popsize needs to be an integer
-  convergence=0.0 !new rms / old rms
   generations=500
 
   nlines=size(referencelinelist%wavelength)
@@ -52,18 +51,9 @@ real :: resolutionguess, redshiftguess, redshifttolerance, resolutiontolerance
     population(popnumber,:)%linedata=referencelinelist%linedata
   enddo
 
-! iterate until rms changes by less than 1 percent
+! evolve
 
-  gencount=1
-
-  do while (gencount .le. generations)
-  !do while (convergence .lt. 0.99999)
-
-    if (gencount.eq.1) then
-     oldrms=1.e30
-    else
-      oldrms=minval(rms,1)
-    endif
+  do gencount=1,generations
 
 !reset stuff to zero before doing calculations
 
@@ -134,12 +124,6 @@ real :: resolutionguess, redshiftguess, redshifttolerance, resolutiontolerance
 !    if (mod(gencount,100) .eq.0 .or. gencount.eq.1) then
 !      print "(X,A,A,i5,A,4(X,F12.3))",gettime()," : ",gencount, " generations  ", population(minloc(rms,1),1)%resolution, 3.e5*(population(minloc(rms,1),1)%redshift-1), minval(rms,1), tmpvar
 !    endif
-
-    gencount=gencount+1
-    convergence=minval(rms,1)/oldrms
-    if (convergence .gt. 1.0) then
-      convergence = 1./convergence
-    endif
 
   enddo
 

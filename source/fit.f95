@@ -16,7 +16,6 @@ integer :: popsize, i, spectrumlength, lineid, loc1, loc2, nlines, gencount, gen
 real, dimension(:), allocatable :: rms
 real :: random, pressure, convergence, oldrms
 real :: resolutionguess, redshiftguess, redshifttolerance, resolutiontolerance
-real :: tmpvar !XXX
 
 !initialisation
 
@@ -98,7 +97,7 @@ real :: tmpvar !XXX
     !member with the lowest RMS into the breed array, replace the RMS with
     !something very high so that it doesn't get copied twice, repeat until
     !a fraction equal to the pressure factor have been selected
-tmpvar = maxval(rms,1) !XXX
+
     do i=1,int(popsize*pressure)
       breed(i,:) = population(minloc(rms,1),:)
       rms(minloc(rms,1))=1.e10

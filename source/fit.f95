@@ -3,7 +3,7 @@ use mod_routines
 use mod_types
 
 contains
-subroutine fit(inputspectrum, referencelinelist, redshiftguess, resolutionguess, fittedspectrum, fittedlines, redshifttolerance, resolutiontolerance)
+subroutine fit(inputspectrum, referencelinelist, redshiftguess, resolutionguess, fittedlines, redshifttolerance, resolutiontolerance)
 
 implicit none
 
@@ -11,7 +11,7 @@ type(linelist), dimension(:), allocatable :: referencelinelist, fittedlines
 type(linelist), dimension(:,:), allocatable :: population
 type(linelist), dimension(:,:), allocatable ::  breed
 type(spectrum), dimension(:,:), allocatable :: synthspec
-type(spectrum), dimension(:) :: inputspectrum, fittedspectrum
+type(spectrum), dimension(:) :: inputspectrum
 integer :: popsize, i, spectrumlength, lineid, loc1, loc2, nlines, gencount, generations, popnumber
 real, dimension(:), allocatable :: rms
 real :: random, pressure
@@ -129,7 +129,6 @@ real :: resolutionguess, redshiftguess, redshifttolerance, resolutiontolerance
 
 !copy fit results into arrays to return
 
-  fittedspectrum = synthspec(:,minloc(rms,1))
   fittedlines = population(minloc(rms,1),:)
 
 !deallocate arrays

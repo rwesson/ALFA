@@ -114,7 +114,7 @@ endif
 print "(X,A,A,F8.1,A,F7.1)",gettime(),": initial guesses for velocity and resolution: ",c*(redshiftguess-1),"km/s, R=",resolutionguess
 print *,gettime(),": estimating resolution and velocity using ",nlines," lines"
 
-call fit(realspec, referencelinelist, redshiftguess, resolutionguess, fittedspectrum, fittedlines, redshifttolerance, resolutiontolerance)
+call fit(realspec, referencelinelist, redshiftguess, resolutionguess, fittedlines, redshifttolerance, resolutiontolerance)
 
 print *,gettime(),": estimated redshift and resolution: ",c*(fittedlines(1)%redshift-1),fittedlines(1)%resolution
 redshiftguess_overall = fittedlines(1)%redshift ! when fitting chunks, use this redshift to get lines in the right range from the catalogue. if velocity from each chunk is used, then there's a chance that a line could be missed or double counted due to variations in the calculated velocity between chunks.
@@ -142,26 +142,21 @@ do i=1,spectrumlength,400
 
   if (i .eq. 1) then
     startpos=1
-    copystartpos=1
     startwlen=realspec(1)%wavelength/redshiftguess_overall
   else
     startpos=i-10
-    copystartpos=11
     startwlen=realspec(i)%wavelength/redshiftguess_overall
   endif
 
   if (i+409 .gt. spectrumlength) then
     endpos=spectrumlength
-    copyendpos=spectrumlength-i+10
     endwlen=realspec(spectrumlength)%wavelength/redshiftguess_overall
   else
     endpos=i+409
-    copyendpos=399+copystartpos
-    endwlen=realspec(i+399)%wavelength/redshiftguess_overall
+    endwlen=realspec(i+400)%wavelength/redshiftguess_overall
   endif
 
   allocate(spectrumchunk(endpos-startpos+1))
-  allocate(fittedchunk(endpos-startpos+1))
   spectrumchunk = realspec(startpos:endpos)
 
   call readlinelist(linelistfile, referencelinelist, nlines, fittedlines_section, startwlen, endwlen)
@@ -169,24 +164,27 @@ do i=1,spectrumlength,400
   if (nlines .gt. 0) then
     print "(' ',A,A,F7.1,A,F7.1,A,I3,A)",gettime(),": fitting from ",spectrumchunk(1)%wavelength," to ",spectrumchunk(size(spectrumchunk))%wavelength," with ",nlines," lines"
 !    print *,"Best fitting model parameters:       Resolution    Redshift    RMS min      RMS max"
-    call fit(spectrumchunk, referencelinelist, redshiftguess, resolutionguess, fittedchunk, fittedlines_section, redshifttolerance, resolutiontolerance)
+    call fit(spectrumchunk, referencelinelist, redshiftguess, resolutionguess, fittedlines_section, redshifttolerance, resolutiontolerance)
   !use redshift and resolution from this chunk as initial values for next chunk
     redshiftguess=fittedlines_section(1)%redshift
     resolutionguess=fittedlines_section(1)%resolution
-  else
-    fittedchunk%wavelength = spectrumchunk%wavelength
-    fittedchunk%flux=0.d0
   endif
 
   !copy line fitting results from chunk to main array
-
   fittedlines(linearraypos:linearraypos+nlines-1)=fittedlines_section
-  fittedspectrum(startpos+copystartpos-1:startpos+copyendpos-1)=fittedchunk(copystartpos:copyendpos)
   linearraypos=linearraypos+nlines
 
   deallocate(spectrumchunk)
-  deallocate(fittedchunk)
 
+enddo
+
+!make the fitted spectrum
+
+do i=1,size(fittedlines)
+  where (abs(fittedlines(i)%redshift*fittedlines(i)%wavelength - fittedspectrum%wavelength) .lt. (5*fittedlines(i)%wavelength/fittedlines(i)%resolution))
+    fittedspectrum%flux = fittedspectrum%flux + &
+    &fittedlines(i)%peak*exp((-(fittedspectrum%wavelength-fittedlines(i)%redshift*fittedlines(i)%wavelength)**2)/(2*(fittedlines(i)%wavelength/fittedlines(i)%resolution)**2))
+  end where
 enddo
 
 !account for blends - for each line, determine if the subsequent line is separated by less than the resolution

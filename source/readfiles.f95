@@ -51,6 +51,9 @@ subroutine readspectrum(spectrumfile, realspec, spectrumlength, fittedspectrum)
   END DO
   CLOSE(199)
 
+  fittedspectrum%wavelength=realspec%wavelength
+  fittedspectrum%flux=0.d0
+
 end subroutine readspectrum
 
 subroutine readlinelist(linelistfile,referencelinelist,nlines,fittedlines, wavelength1, wavelength2)

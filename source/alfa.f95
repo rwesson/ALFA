@@ -23,7 +23,7 @@ integer :: narg
 real :: redshiftguess, resolutionguess, redshifttolerance, resolutiontolerance
 real :: redshiftguess_overall
 real :: blendpeak
-real :: normalisation
+real :: normalisation, hbetaflux
 real :: c
 
 logical :: normalise=.false. !false means spectrum normalised to whatever H beta is detected, true means spectrum normalised to user specified value
@@ -248,16 +248,22 @@ close(100)
 
 ! normalise if H beta is present and user did not specify a normalisation
 
+hbetaflux=0.d0
+
+do i=1,totallines
+  if (abs(fittedlines(i)%wavelength - 4861.33) .lt. 0.005) then
+    hbetaflux = gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))
+  endif
+enddo
+
 if (.not. normalise) then
 
   normalisation = 0.d0
 
-  do i=1,totallines
-    if (abs(fittedlines(i)%wavelength - 4861.33) .lt. 0.005) then
-      normalisation = 100./gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))
-      print "(' ',A,A,ES9.3,A)",gettime(),": H beta detected with flux ",gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))," - normalising to 100.0"
-    endif
-  enddo
+  if (hbetaflux .gt. 0.d0) then
+    normalisation = 100./hbetaflux
+    print "(' ',A,A,ES9.3,A)",gettime(),": H beta detected with flux ",hbetaflux," - normalising to 100.0"
+  endif
 
   if (normalisation .eq. 0.d0) then
     print *,gettime(),": no H beta detected, no normalisation applied"
@@ -323,6 +329,16 @@ if (minval(abs(continuum%wavelength-8400.)) .lt. 8400./fittedlines(1)%resolution
   write (100,"(F8.2,' &          & ',F12.3,' & ',F12.3,' & Paschen jump+\\')") 8400.0, continuum(minloc(abs(continuum%wavelength-8400.)))%flux, realspec(minloc(abs(continuum%wavelength-8400.          )))%uncertainty
   write (101,"(F8.2,F12.3,F12.3)") 8400.0, continuum(minloc(abs(continuum%wavelength-8400.)))%flux, realspec(minloc(abs(continuum%wavelength-8400.)))%uncertainty
 endif
+
+!write out measured Hbeta flux to latex table
+
+if (hbetaflux .gt. 0.d0) then
+  write (100,*) "\hline"
+  write (100,"(A,ES8.2)") "Measured flux of H$\beta$: ",hbetaflux
+  write (100,*) "\hline"
+endif
+
+!done, close files
 
 close(101)
 close(100)

@@ -103,26 +103,26 @@ call fit_continuum(realspec,spectrumlength, continuum)
 redshifttolerance=0.003 ! maximum absolute change in 1+v/c allowed from initial guess.  0.003 = 900 km/s
 resolutiontolerance=resolutionguess ! maximum absolute change in lambda/delta lambda allowed from initial guess
 linelistfile="linelists/strong_optical"
+
+print "(X,A,A,F8.1,A,F7.1)",gettime(),": initial guesses for velocity and resolution: ",c*(redshiftguess-1),"km/s, R=",resolutionguess
+
 print *,gettime(),": reading in line catalogue ",trim(linelistfile)
 call readlinelist(linelistfile, referencelinelist, nlines, fittedlines, minval(realspec%wavelength), maxval(realspec%wavelength))
 
 if (nlines .eq. 0) then
-  print *,gettime(),": Error: Line catalogue does not overlap with input spectrum"
-  stop
+  print *,gettime(),": Warning: no reference lines detected, using default guesses for velocity and resolution"
+  redshiftguess_overall=1.d0
+else
+  print *,gettime(),": estimating resolution and velocity using ",nlines," lines"
+  call fit(realspec, referencelinelist, redshiftguess, resolutionguess, fittedlines, redshifttolerance, resolutiontolerance)
+  print *,gettime(),": estimated redshift and resolution: ",c*(fittedlines(1)%redshift-1),fittedlines(1)%resolution
+  redshiftguess_overall = fittedlines(1)%redshift ! when fitting chunks, use this redshift to get lines in the right range from the catalogue. if velocity from each chunk is used, then there's a chance that a line could be missed or double counted due to variations in the calculated velocity between chunks.
+  redshiftguess=fittedlines(1)%redshift
+  resolutionguess=fittedlines(1)%resolution
 endif
-
-print "(X,A,A,F8.1,A,F7.1)",gettime(),": initial guesses for velocity and resolution: ",c*(redshiftguess-1),"km/s, R=",resolutionguess
-print *,gettime(),": estimating resolution and velocity using ",nlines," lines"
-
-call fit(realspec, referencelinelist, redshiftguess, resolutionguess, fittedlines, redshifttolerance, resolutiontolerance)
-
-print *,gettime(),": estimated redshift and resolution: ",c*(fittedlines(1)%redshift-1),fittedlines(1)%resolution
-redshiftguess_overall = fittedlines(1)%redshift ! when fitting chunks, use this redshift to get lines in the right range from the catalogue. if velocity from each chunk is used, then there's a chance that a line could be missed or double counted due to variations in the calculated velocity between chunks.
 
 ! then again in chunks with tighter tolerance
 
-redshiftguess=fittedlines(1)%redshift
-resolutionguess=fittedlines(1)%resolution
 redshifttolerance=0.0002 ! 60 km/s
 resolutiontolerance=500.
 linelistfile="linelists/deep_full"
@@ -294,6 +294,7 @@ open(100,file=trim(spectrumfile)//"_lines.tex")
 open(101,file=trim(spectrumfile)//"_lines")
 write(100,*) "Observed wavelength & Rest wavelength & Flux & Uncertainty & Ion & Multiplet & Lower term & Upper term & g$_1$ & g$_2$ \\"
 do i=1,totallines
+print *,fittedlines(i)%wavelength,fittedlines(i)%redshift
   if (fittedlines(i)%blended .eq. 0 .and. fittedlines(i)%uncertainty .gt. 3.0) then
     write (100,"(F8.2,' & ',F8.2,' & ',F12.3,' & ',F12.3,A85)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty, fittedlines(i)%linedata
     write (101,"(F8.2,2(F12.3))") fittedlines(i)%wavelength, gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty

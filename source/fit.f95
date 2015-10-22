@@ -121,10 +121,6 @@ real :: resolutionguess, redshiftguess, redshifttolerance, resolutiontolerance
       enddo
     enddo
 
-!    if (mod(gencount,100) .eq.0 .or. gencount.eq.1) then
-!      print "(X,A,A,i5,A,4(X,F12.3))",gettime()," : ",gencount, " generations  ", population(minloc(rms,1),1)%resolution, 3.e5*(population(minloc(rms,1),1)%redshift-1), minval(rms,1), tmpvar
-!    endif
-
   enddo
 
 !copy fit results into arrays to return

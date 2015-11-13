@@ -127,7 +127,7 @@ endif
 
 ! then again in chunks with tighter tolerance
 
-redshifttolerance=0.0001 ! 30 km/s
+redshifttolerance=0.0002 ! 60 km/s
 resolutiontolerance=500.
 linelistfile="linelists/deep_full"
 

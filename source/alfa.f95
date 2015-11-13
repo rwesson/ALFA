@@ -31,7 +31,6 @@ logical :: normalise=.false. !false means spectrum normalised to whatever H beta
 c=299792.458 !km/s
 !default values in absence of user specificed guess
 redshiftguess=0.0 !km/s
-resolutionguess=15000.
 
 ! start
 
@@ -92,6 +91,11 @@ call get_command_argument(1,spectrumfile)
 print *,gettime(),": reading in spectrum ",trim(spectrumfile)
 call readspectrum(spectrumfile, realspec, spectrumlength, fittedspectrum)
 
+! estimate resolution assuming nyquist sampling
+
+resolutionguess=realspec(2)%wavelength/(realspec(3)%wavelength-realspec(1)%wavelength)
+print *,gettime(),": estimated spectrograph resolution assuming Nyquist sampling: ",resolutionguess
+
 ! then subtract the continuum
 
 print *,gettime(),": fitting continuum"
@@ -123,7 +127,7 @@ endif
 
 ! then again in chunks with tighter tolerance
 
-redshifttolerance=0.0002 ! 60 km/s
+redshifttolerance=0.0001 ! 30 km/s
 resolutiontolerance=500.
 linelistfile="linelists/deep_full"
 
@@ -134,8 +138,8 @@ call readlinelist(linelistfile, referencelinelist, totallines, fittedlines, real
 
 print *, gettime(), ": fitting full spectrum with ",totallines," lines"
 
-!now go through spectrum in chunks of 420 units.  Each one overlaps by 10 units with the previous and succeeding chunk, to avoid the code attempting to fit part of a line profile
-!from the chunk of 420 units, only the middle 400 units is copied into the fit file, so that the overlap regions can't overwrite previously fitted lines with zeroes
+!now go through spectrum in chunks of 440 units.  Each one overlaps by 20 units with the previous and succeeding chunk, to avoid the code attempting to fit part of a line profile
+!from the chunk of 440 units, only the middle 400 units is copied into the fit file, so that the overlap regions can't overwrite previously fitted lines with zeroes
 !at beginning and end, padding is only to the right and left respectively
 
 do i=1,spectrumlength,400
@@ -144,15 +148,15 @@ do i=1,spectrumlength,400
     startpos=1
     startwlen=realspec(1)%wavelength/redshiftguess_overall
   else
-    startpos=i-10
+    startpos=i-20
     startwlen=realspec(i)%wavelength/redshiftguess_overall
   endif
 
-  if (i+409 .gt. spectrumlength) then
+  if (i+419 .gt. spectrumlength) then
     endpos=spectrumlength
     endwlen=realspec(spectrumlength)%wavelength/redshiftguess_overall
   else
-    endpos=i+409
+    endpos=i+419
     endwlen=realspec(i+400)%wavelength/redshiftguess_overall
   endif
 
@@ -294,7 +298,6 @@ open(100,file=trim(spectrumfile)//"_lines.tex")
 open(101,file=trim(spectrumfile)//"_lines")
 write(100,*) "Observed wavelength & Rest wavelength & Flux & Uncertainty & Ion & Multiplet & Lower term & Upper term & g$_1$ & g$_2$ \\"
 do i=1,totallines
-print *,fittedlines(i)%wavelength,fittedlines(i)%redshift
   if (fittedlines(i)%blended .eq. 0 .and. fittedlines(i)%uncertainty .gt. 3.0) then
     write (100,"(F8.2,' & ',F8.2,' & ',F12.3,' & ',F12.3,A85)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty, fittedlines(i)%linedata
     write (101,"(F8.2,2(F12.3))") fittedlines(i)%wavelength, gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty

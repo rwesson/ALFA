@@ -79,9 +79,18 @@ real :: resolutionguess, redshiftguess, redshifttolerance, resolutiontolerance
 
     enddo
 
-    !if that was the last generation then exit before mutating
+    !if that was the last generation then exit
 
-    if (gencount .eq. generations) exit
+    if (gencount .eq. generations) then
+      !copy fit results into arrays to return
+      fittedlines = population(minloc(rms,1),:)
+      !deallocate arrays
+      deallocate(synthspec)
+      deallocate(rms)
+      deallocate(breed)
+      deallocate(population)
+      exit
+    endif
 
     !next, cream off the well performing models - put the population
     !member with the lowest RMS into the breed array, replace the RMS with
@@ -122,17 +131,6 @@ real :: resolutionguess, redshiftguess, redshifttolerance, resolutiontolerance
     enddo
 
   enddo
-
-!copy fit results into arrays to return
-
-  fittedlines = population(minloc(rms,1),:)
-
-!deallocate arrays
-
-  deallocate(synthspec)
-  deallocate(rms)
-  deallocate(breed)
-  deallocate(population)
 
 end subroutine fit
 end module mod_fit

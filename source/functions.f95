@@ -43,6 +43,7 @@ SUBROUTINE init_random_seed()
 END SUBROUTINE
 
 real function mutation()
+!generate a random number with a 90% chance of being 1., 10% chance of being between 0 and 2
   implicit none
   real :: random
 
@@ -50,9 +51,9 @@ real function mutation()
 
   call random_number(random)
   if (random .le. 0.05) then
-    mutation=random/0.05
+    mutation=20.*random
   elseif (random .ge. 0.95) then
-    mutation=2+((random-1)/0.05)
+    mutation=2+(20.*(random-1))
   endif
 
   return

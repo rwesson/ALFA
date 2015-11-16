@@ -20,7 +20,8 @@ CHARACTER(len=2048), DIMENSION(:), allocatable :: options
 CHARACTER(len=2048) :: commandline
 integer :: narg
 
-real :: redshiftguess, resolutionguess, redshifttolerance, resolutiontolerance
+real :: redshiftguess, resolutionguess
+real :: vtol1, vtol2, rtol1, rtol2
 real :: redshiftguess_overall
 real :: blendpeak
 real :: normalisation, hbetaflux
@@ -32,7 +33,10 @@ logical :: resolution_estimated=.false. !true means user specified a value, fals
 c=299792.458 !km/s
 !default values in absence of user specificed guess
 redshiftguess=0.0 !km/s
-
+rtol1=0.d0 !variation allowed in resolution on first pass.  determined later, either from user input, or to be equal to resolution guess.
+rtol2=500. !second pass
+vtol1=0.003 !variation allowed in velocity (expressed as redshift) on first pass. 0.003 = 900 km/s
+vtol2=0.0002 !second pass. 0.0002 = 60 km/s
 ! start
 
 print *,"ALFA, the Automated Line Fitting Algorithm"
@@ -71,12 +75,24 @@ do i=1,narg
     read (options(i+1),*) normalisation
     normalise=.true.
   endif
-  if ((trim(options(i))=="-vg" .or. trim(options(i))=="--velocity-guess:") .and. (i+1) .le. Narg) then
+  if ((trim(options(i))=="-vg" .or. trim(options(i))=="--velocity-guess") .and. (i+1) .le. Narg) then
     read (options(i+1),*) redshiftguess
   endif
   if ((trim(options(i))=="-rg" .or. trim(options(i))=="--resolution-guess") .and. (i+1) .le. Narg) then
     read (options(i+1),*) resolutionguess
     resolution_estimated=.true.
+  endif
+  if ((trim(options(i))=="-vtol1" .or. trim(options(i))=="--velocity-tolerance-1") .and. (i+1) .le. Narg) then
+    read (options(i+1),*) vtol1
+  endif
+  if ((trim(options(i))=="-vtol2" .or. trim(options(i))=="--velocity-tolerance-2") .and. (i+1) .le. Narg) then
+    read (options(i+1),*) vtol2
+  endif
+  if ((trim(options(i))=="-rtol1" .or. trim(options(i))=="--resolution-tolerance-1") .and. (i+1) .le. Narg) then
+    read (options(i+1),*) rtol1
+  endif
+  if ((trim(options(i))=="-rtol2" .or. trim(options(i))=="--resolution-tolerance-2") .and. (i+1) .le. Narg) then
+    read (options(i+1),*) rtol2
   endif
 enddo
 
@@ -109,8 +125,10 @@ else
   print *,gettime(),": estimated spectrograph resolution from user input: ",resolutionguess
 endif
 
-redshifttolerance=0.003 ! maximum absolute change in 1+v/c allowed from initial guess.  0.003 = 900 km/s
-resolutiontolerance=resolutionguess ! maximum absolute change in lambda/delta lambda allowed from initial guess
+if (rtol1 .eq. 0.d0) then
+  rtol1=resolutionguess ! user didn't specify a value, default behaviour is to allow resolution to vary between 0 and 2x the initial guess on the first pass
+endif
+
 linelistfile="linelists/strong_optical"
 
 print "(X,A,A,F8.1,A,F7.1)",gettime(),": initial guesses for velocity and resolution: ",c*(redshiftguess-1),"km/s, R=",resolutionguess
@@ -123,7 +141,7 @@ if (nlines .eq. 0) then
   redshiftguess_overall=1.d0
 else
   print *,gettime(),": estimating resolution and velocity using ",nlines," lines"
-  call fit(realspec, referencelinelist, redshiftguess, resolutionguess, fittedlines, redshifttolerance, resolutiontolerance)
+  call fit(realspec, referencelinelist, redshiftguess, resolutionguess, fittedlines, vtol1, rtol1)
   print *,gettime(),": estimated redshift and resolution: ",c*(fittedlines(1)%redshift-1),fittedlines(1)%resolution
   redshiftguess_overall = fittedlines(1)%redshift ! when fitting chunks, use this redshift to get lines in the right range from the catalogue. if velocity from each chunk is used, then there's a chance that a line could be missed or double counted due to variations in the calculated velocity between chunks.
   redshiftguess=fittedlines(1)%redshift
@@ -132,8 +150,6 @@ endif
 
 ! then again in chunks with tighter tolerance
 
-redshifttolerance=0.0002 ! 60 km/s
-resolutiontolerance=500.
 linelistfile="linelists/deep_full"
 
 linearraypos=1
@@ -173,7 +189,7 @@ do i=1,spectrumlength,400
   if (nlines .gt. 0) then
     print "(' ',A,A,F7.1,A,F7.1,A,I3,A)",gettime(),": fitting from ",spectrumchunk(1)%wavelength," to ",spectrumchunk(size(spectrumchunk))%wavelength," with ",nlines," lines"
 !    print *,"Best fitting model parameters:       Resolution    Redshift    RMS min      RMS max"
-    call fit(spectrumchunk, referencelinelist, redshiftguess, resolutionguess, fittedlines_section, redshifttolerance, resolutiontolerance)
+    call fit(spectrumchunk, referencelinelist, redshiftguess, resolutionguess, fittedlines_section, vtol2, rtol2)
   !use redshift and resolution from this chunk as initial values for next chunk
     redshiftguess=fittedlines_section(1)%redshift
     resolutionguess=fittedlines_section(1)%resolution

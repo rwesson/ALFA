@@ -59,6 +59,10 @@ if (narg .eq. 0) then
   print *,"  -n / --normalise [value]: normalise to Hb=100 assuming that F(Hb)=value"
   print *,"  -vg / --velocity-guess: initial guess for the velocity of the object [km/s]"
   print *,"  -rg / --resolution-guess: initial guess for the resolution [lambda/delta lambda]"
+  print *,"  -vtol1 / --velocity-tolerance-1: variation allowed in velocity in first pass (default: 900km/s)"
+  print *,"  -vtol2 / --velocity-tolerance-2: variation allowed in velocity in second pass (default: 60km/s)"
+  print *,"  -rtol1 / --resolution-tolerance-1: variation allowed in resolution in first pass (default: equal to resolution guess)"
+  print *,"  -rtol2 / --resolution-tolerance-2: variation allowed in resolution in second pass (default: 500.)"
   stop
 endif
 
@@ -84,9 +88,11 @@ do i=1,narg
   endif
   if ((trim(options(i))=="-vtol1" .or. trim(options(i))=="--velocity-tolerance-1") .and. (i+1) .le. Narg) then
     read (options(i+1),*) vtol1
+    vtol1 = vtol1/c
   endif
   if ((trim(options(i))=="-vtol2" .or. trim(options(i))=="--velocity-tolerance-2") .and. (i+1) .le. Narg) then
     read (options(i+1),*) vtol2
+    vtol2 = vtol2/c
   endif
   if ((trim(options(i))=="-rtol1" .or. trim(options(i))=="--resolution-tolerance-1") .and. (i+1) .le. Narg) then
     read (options(i+1),*) rtol1

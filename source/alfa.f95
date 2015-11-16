@@ -27,6 +27,7 @@ real :: normalisation, hbetaflux
 real :: c
 
 logical :: normalise=.false. !false means spectrum normalised to whatever H beta is detected, true means spectrum normalised to user specified value
+logical :: resolution_estimated=.false. !true means user specified a value, false means estimate from sampling
 
 c=299792.458 !km/s
 !default values in absence of user specificed guess
@@ -75,6 +76,7 @@ do i=1,narg
   endif
   if ((trim(options(i))=="-rg" .or. trim(options(i))=="--resolution-guess") .and. (i+1) .le. Narg) then
     read (options(i+1),*) resolutionguess
+    resolution_estimated=.true.
   endif
 enddo
 
@@ -91,11 +93,6 @@ call get_command_argument(1,spectrumfile)
 print *,gettime(),": reading in spectrum ",trim(spectrumfile)
 call readspectrum(spectrumfile, realspec, spectrumlength, fittedspectrum)
 
-! estimate resolution assuming nyquist sampling
-
-resolutionguess=realspec(2)%wavelength/(realspec(3)%wavelength-realspec(1)%wavelength)
-print *,gettime(),": estimated spectrograph resolution assuming Nyquist sampling: ",resolutionguess
-
 ! then subtract the continuum
 
 print *,gettime(),": fitting continuum"
@@ -103,6 +100,14 @@ call fit_continuum(realspec,spectrumlength, continuum)
 
 ! now do the fitting
 ! first get guesses for the redshift and resolution
+
+if (.not. resolution_estimated) then
+  ! estimate resolution assuming nyquist sampling
+  resolutionguess=2*realspec(2)%wavelength/(realspec(3)%wavelength-realspec(1)%wavelength)
+  print *,gettime(),": estimated spectrograph resolution assuming Nyquist sampling: ",resolutionguess
+else
+  print *,gettime(),": estimated spectrograph resolution from user input: ",resolutionguess
+endif
 
 redshifttolerance=0.003 ! maximum absolute change in 1+v/c allowed from initial guess.  0.003 = 900 km/s
 resolutiontolerance=resolutionguess ! maximum absolute change in lambda/delta lambda allowed from initial guess

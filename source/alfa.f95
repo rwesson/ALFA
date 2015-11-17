@@ -253,7 +253,10 @@ do i=1,spectrumlength,400
   !copy line fitting results from chunk to main array
   fittedlines(linearraypos:linearraypos+nlines-1)=fittedlines_section
   linearraypos=linearraypos+nlines
-
+  if (maxval(fittedlines_section%wavelength*fittedlines_section%redshift) .gt. maxval(spectrumchunk%wavelength) .or. minval(fittedlines_section%wavelength*fittedlines_section%redshift) .lt. minval(spectrumchunk%wavelength)) then
+    print *,"              Warning: some lines ended up outside the fitting region."
+    print *,"              Try reducing the value of vtol2, which is currently set to ",c*vtol2
+  endif
   deallocate(spectrumchunk)
 
 enddo

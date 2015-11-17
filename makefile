@@ -72,7 +72,7 @@ all: alfa
 %.o: %.f95
 	$(FC) $(FFLAGS) $< -c -o $@
 
-alfa: source/functions.o source/types.o source/readfiles.o source/quicksort.o source/continuum.o source/fit.o source/uncertainties.o source/alfa.o
+alfa: source/types.o source/functions.o source/readfiles.o source/quicksort.o source/continuum.o source/fit.o source/uncertainties.o source/alfa.o
 	$(LD) $(LDFLAGS) $(FFLAGS) -o $@ $^
 
 

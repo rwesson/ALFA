@@ -10,10 +10,10 @@ use mod_uncertainties
 implicit none
 integer :: I, spectrumlength, nlines, linearraypos, totallines, startpos, endpos, copystartpos, copyendpos
 real :: startwlen, endwlen
-character (len=512) :: spectrumfile,linelistfile
+character (len=512) :: spectrumfile,linelistfile,skylinelistfile
 
-type(linelist), dimension(:), allocatable :: referencelinelist, fittedlines, fittedlines_section
-type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum, spectrumchunk, fittedchunk
+type(linelist), dimension(:), allocatable :: referencelinelist, fittedlines, fittedlines_section, skylines, skylines_section
+type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum, spectrumchunk, fittedchunk, skyspectrum
 type(spectrum), dimension(:), allocatable :: continuum
 
 CHARACTER(len=2048), DIMENSION(:), allocatable :: options
@@ -29,6 +29,7 @@ real :: c
 
 logical :: normalise=.false. !false means spectrum normalised to whatever H beta is detected, true means spectrum normalised to user specified value
 logical :: resolution_estimated=.false. !true means user specified a value, false means estimate from sampling
+logical :: subtractsky=.false. !attempt to fit night sky emission lines
 
 c=299792.458 !km/s
 !default values in absence of user specificed guess
@@ -37,6 +38,10 @@ rtol1=0.d0 !variation allowed in resolution on first pass.  determined later, ei
 rtol2=500. !second pass
 vtol1=0.003 !variation allowed in velocity (expressed as redshift) on first pass. 0.003 = 900 km/s
 vtol2=0.0002 !second pass. 0.0002 = 60 km/s
+
+linelistfile="linelists/strong_optical"
+skylinelistfile="linelists/skylines"
+
 ! start
 
 print *,"ALFA, the Automated Line Fitting Algorithm"
@@ -63,6 +68,7 @@ if (narg .eq. 0) then
   print *,"  -vtol2 / --velocity-tolerance-2: variation allowed in velocity in second pass (default: 60km/s)"
   print *,"  -rtol1 / --resolution-tolerance-1: variation allowed in resolution in first pass (default: equal to resolution guess)"
   print *,"  -rtol2 / --resolution-tolerance-2: variation allowed in resolution in second pass (default: 500.)"
+  print *,"  -ss / --subtract-sky: attempt to remove night sky emission lines"
   stop
 endif
 
@@ -100,6 +106,9 @@ do i=1,narg
   if ((trim(options(i))=="-rtol2" .or. trim(options(i))=="--resolution-tolerance-2") .and. (i+1) .le. Narg) then
     read (options(i+1),*) rtol2
   endif
+  if ((trim(options(i))=="-ss" .or. trim(options(i))=="--subtract-sky")) then
+    subtractsky=.true.
+  endif
 enddo
 
 ! convert from velocity to redshift
@@ -135,9 +144,50 @@ if (rtol1 .eq. 0.d0) then
   rtol1=resolutionguess ! user didn't specify a value, default behaviour is to allow resolution to vary between 0 and 2x the initial guess on the first pass
 endif
 
-linelistfile="linelists/strong_optical"
-
 print "(X,A,A,F8.1,A,F7.1)",gettime(),": initial guesses for velocity and resolution: ",c*(redshiftguess-1),"km/s, R=",resolutionguess
+
+! first, subtract sky spectrum if requested. do in chunks of 400 units. no overlap necessary because velocity is zero
+
+allocate(skyspectrum(spectrumlength))
+skyspectrum%wavelength=realspec%wavelength
+skyspectrum%flux=0.d0
+
+if (subtractsky) then
+  print *,gettime(),": fitting sky emission"
+
+  !get an array for all the sky lines in the range
+  call readlinelist(skylinelistfile, referencelinelist, nlines, skylines, realspec(1)%wavelength, realspec(size(realspec))%wavelength)
+
+  linearraypos=1
+
+  !go though in chunks of 400 units
+  do i=1,spectrumlength,400
+    if (i+400 .gt. spectrumlength) then
+      endpos=spectrumlength
+    else
+      endpos=i+399
+    endif
+
+    allocate(spectrumchunk(endpos-i+1))
+    spectrumchunk = realspec(i:endpos)
+
+    !read in sky lines in chunk
+    call readlinelist(skylinelistfile, referencelinelist, nlines, skylines_section, realspec(i)%wavelength, realspec(i+399)%wavelength)
+    if (nlines .gt. 0) then
+      call fit(spectrumchunk, referencelinelist, 1., resolutionguess, skylines_section, 0., rtol2)
+      skylines(linearraypos:linearraypos+nlines-1)=skylines_section!(1:nlines)
+      linearraypos=linearraypos+nlines
+    endif
+    deallocate(spectrumchunk)
+  enddo
+! make full sky spectrum and subtract at end
+
+  call makespectrum(skylines,skyspectrum)
+  realspec%flux = realspec%flux - skyspectrum%flux
+
+endif
+
+! read in line catalogue
 
 print *,gettime(),": reading in line catalogue ",trim(linelistfile)
 call readlinelist(linelistfile, referencelinelist, nlines, fittedlines, minval(realspec%wavelength), maxval(realspec%wavelength))
@@ -157,16 +207,16 @@ endif
 ! then again in chunks with tighter tolerance
 
 linelistfile="linelists/deep_full"
-
 linearraypos=1
+
 !call readlinelist with full wavelength range to get total number of lines and an array to put them all in
+
 print *,gettime(),": reading in line catalogue ",trim(linelistfile)
 call readlinelist(linelistfile, referencelinelist, totallines, fittedlines, realspec(1)%wavelength/redshiftguess_overall, realspec(size(realspec))%wavelength/redshiftguess_overall)
 
 print *, gettime(), ": fitting full spectrum with ",totallines," lines"
 
 !now go through spectrum in chunks of 440 units.  Each one overlaps by 20 units with the previous and succeeding chunk, to avoid the code attempting to fit part of a line profile
-!from the chunk of 440 units, only the middle 400 units is copied into the fit file, so that the overlap regions can't overwrite previously fitted lines with zeroes
 !at beginning and end, padding is only to the right and left respectively
 
 do i=1,spectrumlength,400
@@ -194,7 +244,6 @@ do i=1,spectrumlength,400
 
   if (nlines .gt. 0) then
     print "(' ',A,A,F7.1,A,F7.1,A,I3,A)",gettime(),": fitting from ",spectrumchunk(1)%wavelength," to ",spectrumchunk(size(spectrumchunk))%wavelength," with ",nlines," lines"
-!    print *,"Best fitting model parameters:       Resolution    Redshift    RMS min      RMS max"
     call fit(spectrumchunk, referencelinelist, redshiftguess, resolutionguess, fittedlines_section, vtol2, rtol2)
   !use redshift and resolution from this chunk as initial values for next chunk
     redshiftguess=fittedlines_section(1)%redshift
@@ -211,12 +260,7 @@ enddo
 
 !make the fitted spectrum
 
-do i=1,size(fittedlines)
-  where (abs(fittedlines(i)%redshift*fittedlines(i)%wavelength - fittedspectrum%wavelength) .lt. (5*fittedlines(i)%wavelength/fittedlines(i)%resolution))
-    fittedspectrum%flux = fittedspectrum%flux + &
-    &fittedlines(i)%peak*exp((-(fittedspectrum%wavelength-fittedlines(i)%redshift*fittedlines(i)%wavelength)**2)/(2*(fittedlines(i)%wavelength/fittedlines(i)%resolution)**2))
-  end where
-enddo
+call makespectrum(fittedlines, fittedspectrum)
 
 !account for blends - for each line, determine if the subsequent line is separated by less than the resolution
 !if it is, then flag that line with the lineid of the first member of the blend
@@ -270,9 +314,9 @@ call get_uncertainties(fittedspectrum, realspec, fittedlines)
 
 open(100,file=trim(spectrumfile)//"_fit")
 
-write (100,*) """wavelength""  ""fitted spectrum""  ""cont-subbed orig"" ""continuum""  ""residuals"""
+write (100,*) """wavelength""  ""fitted spectrum""  ""cont-subbed orig"" ""continuum""  ""sky lines""  ""residuals"""
 do i=1,spectrumlength
-  write(100,"(F8.2, 4(ES12.3))") fittedspectrum(i)%wavelength,fittedspectrum(i)%flux + continuum(i)%flux, realspec(i)%flux, continuum(i)%flux, realspec(i)%flux - fittedspectrum(i)%flux
+  write(100,"(F8.2, 5(ES12.3))") fittedspectrum(i)%wavelength,fittedspectrum(i)%flux + continuum(i)%flux + skyspectrum(i)%flux, realspec(i)%flux, continuum(i)%flux, skyspectrum(i)%flux, realspec(i)%flux - fittedspectrum(i)%flux
 enddo
 
 close(100)

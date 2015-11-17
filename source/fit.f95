@@ -62,20 +62,13 @@ real :: resolutionguess, redshiftguess, redshifttolerance, resolutiontolerance
 
     do popnumber=1,popsize
 
-  !calculate synthetic spectra - reset to 0 before synthesizing
-  !line fluxes are calculated within 5 sigma of mean
+!calculate synthetic spectra
 
-      do lineid=1,nlines
-        where (abs(population(popnumber,lineid)%redshift*population(popnumber,lineid)%wavelength - synthspec(:,popnumber)%wavelength) .lt. (5*population(popnumber,lineid)%wavelength/population(popnumber,lineid)%resolution))
-          synthspec(:,popnumber)%flux = synthspec(:,popnumber)%flux + &
-          &population(popnumber,lineid)%peak*exp((-(synthspec(:,popnumber)%wavelength-population(popnumber,lineid)%redshift*population(popnumber,lineid)%wavelength)**2)/(2*(population(popnumber,lineid)%wavelength/population(popnumber,lineid)%resolution)**2))
+    call makespectrum(population(popnumber,:),synthspec(:,popnumber))
 
-        end where
-      enddo
+!now calculate RMS for the "models"
 
-    !now calculate RMS for the "models"
-
-      rms(popnumber)=sum((synthspec(:,popnumber)%flux-inputspectrum(:)%flux)**2)/spectrumlength
+    rms(popnumber)=sum((synthspec(:,popnumber)%flux-inputspectrum(:)%flux)**2)/spectrumlength
 
     enddo
 

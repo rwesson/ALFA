@@ -59,4 +59,23 @@ real function mutation()
   return
 
 end function mutation
+
+subroutine makespectrum(lines,spec)
+!synthesizes a spectrum from fitted parameters
+!calculate fluxes within 5 sigma of the mean
+  use mod_types
+  implicit none
+  integer :: i
+  type(spectrum), dimension(:) :: spec
+  type(linelist), dimension(:), intent(in) :: lines
+
+  do i=1,size(lines)
+    where (abs(lines(i)%redshift*lines(i)%wavelength - spec%wavelength) .lt. (5*lines(i)%wavelength/lines(i)%resolution))
+      spec%flux = spec%flux + &
+      &lines(i)%peak*exp((-(spec%wavelength-lines(i)%redshift*lines(i)%wavelength)**2)/(2*(lines(i)%wavelength/lines(i)%resolution)**2))
+    end where
+  enddo
+
+end subroutine makespectrum
+
 end module mod_routines

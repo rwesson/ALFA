@@ -13,19 +13,18 @@ real :: startwlen, endwlen
 character (len=512) :: spectrumfile,linelistfile,skylinelistfile
 
 type(linelist), dimension(:), allocatable :: referencelinelist, fittedlines, fittedlines_section, skylines, skylines_section
-type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum, spectrumchunk, fittedchunk, skyspectrum
-type(spectrum), dimension(:), allocatable :: continuum
+type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum, spectrumchunk, fittedchunk, skyspectrum, continuum, stronglines
 
 CHARACTER(len=2048), DIMENSION(:), allocatable :: options
 CHARACTER(len=2048) :: commandline
 integer :: narg
 
-real :: redshiftguess, resolutionguess
+real :: redshiftguess, resolutionguess, redshiftguess_overall
 real :: vtol1, vtol2, rtol1, rtol2
-real :: redshiftguess_overall
 real :: blendpeak
 real :: normalisation, hbetaflux
 real :: c
+integer :: linelocation
 
 logical :: normalise=.false. !false means spectrum normalised to whatever H beta is detected, true means spectrum normalised to user specified value
 logical :: resolution_estimated=.false. !true means user specified a value, false means estimate from sampling
@@ -197,11 +196,29 @@ if (nlines .eq. 0) then
   redshiftguess_overall=1.d0
 else
   print *,gettime(),": estimating resolution and velocity using ",nlines," lines"
-  call fit(realspec, referencelinelist, redshiftguess, resolutionguess, fittedlines, vtol1, rtol1)
+  !create an array containing just the regions around lines of interest
+  !otherwise far more data is being processed than necessary
+  !for each line, take 50 data points nearest to wavelength
+  !should be way more than enough and still far more efficient than fitting the whole spectrum
+  !todo: calculate the number of points from vtol1
+
+  allocate(stronglines(50*nlines))
+  do i=1,nlines
+    linelocation=minloc(abs(referencelinelist(i)%wavelength*redshiftguess-realspec%wavelength),1)
+    stronglines(50*(i-1)+1:50*i) = realspec(linelocation-24:linelocation+25)
+  enddo
+
+  !now fit the strong lines
+
+  call fit(stronglines, referencelinelist, redshiftguess, resolutionguess, fittedlines, vtol1, rtol1)
+
   print *,gettime(),": estimated redshift and resolution: ",c*(fittedlines(1)%redshift-1),fittedlines(1)%resolution
   redshiftguess_overall = fittedlines(1)%redshift ! when fitting chunks, use this redshift to get lines in the right range from the catalogue. if velocity from each chunk is used, then there's a chance that a line could be missed or double counted due to variations in the calculated velocity between chunks.
   redshiftguess=fittedlines(1)%redshift
   resolutionguess=fittedlines(1)%resolution
+
+  deallocate(stronglines)
+
 endif
 
 ! then again in chunks with tighter tolerance
@@ -245,7 +262,7 @@ do i=1,spectrumlength,400
   if (nlines .gt. 0) then
     print "(' ',A,A,F7.1,A,F7.1,A,I3,A)",gettime(),": fitting from ",spectrumchunk(1)%wavelength," to ",spectrumchunk(size(spectrumchunk))%wavelength," with ",nlines," lines"
     call fit(spectrumchunk, referencelinelist, redshiftguess, resolutionguess, fittedlines_section, vtol2, rtol2)
-  !use redshift and resolution from this chunk as initial values for next chunk
+    !use redshift and resolution from this chunk as initial values for next chunk
     redshiftguess=fittedlines_section(1)%redshift
     resolutionguess=fittedlines_section(1)%resolution
   endif

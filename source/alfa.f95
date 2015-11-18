@@ -24,7 +24,7 @@ real :: vtol1, vtol2, rtol1, rtol2
 real :: blendpeak
 real :: normalisation, hbetaflux
 real :: c
-integer :: linelocation
+integer :: linelocation, overlap
 
 logical :: normalise=.false. !false means spectrum normalised to whatever H beta is detected, true means spectrum normalised to user specified value
 logical :: resolution_estimated=.false. !true means user specified a value, false means estimate from sampling
@@ -238,19 +238,21 @@ print *, gettime(), ": fitting full spectrum with ",totallines," lines"
 
 do i=1,spectrumlength,400
 
+  overlap=nint(2*vtol2/(1-realspec(i)%wavelength/realspec(i+1)%wavelength))
+
   if (i .eq. 1) then
     startpos=1
     startwlen=realspec(1)%wavelength/redshiftguess_overall
   else
-    startpos=i-20
+    startpos=i-overlap
     startwlen=realspec(i)%wavelength/redshiftguess_overall
   endif
 
-  if (i+419 .gt. spectrumlength) then
+  if (i+400+overlap-1 .gt. spectrumlength) then
     endpos=spectrumlength
     endwlen=realspec(spectrumlength)%wavelength/redshiftguess_overall
   else
-    endpos=i+419
+    endpos=i+400+overlap-1
     endwlen=realspec(i+400)%wavelength/redshiftguess_overall
   endif
 
@@ -265,17 +267,16 @@ do i=1,spectrumlength,400
     !use redshift and resolution from this chunk as initial values for next chunk
     redshiftguess=fittedlines_section(1)%redshift
     resolutionguess=fittedlines_section(1)%resolution
-  endif
-
-  !copy line fitting results from chunk to main array
-  fittedlines(linearraypos:linearraypos+nlines-1)=fittedlines_section
-  linearraypos=linearraypos+nlines
-  if (maxval(fittedlines_section%wavelength*fittedlines_section%redshift) .gt. maxval(spectrumchunk%wavelength) .or. minval(fittedlines_section%wavelength*fittedlines_section%redshift) .lt. minval(spectrumchunk%wavelength)) then
-    print *,"              Warning: some lines ended up outside the fitting region."
-    print *,"              Try reducing the value of vtol2, which is currently set to ",c*vtol2
+    !copy results back
+    fittedlines(linearraypos:linearraypos+nlines-1)=fittedlines_section
+    linearraypos=linearraypos+nlines
+    !report any errors
+    if (maxval(fittedlines_section%wavelength*fittedlines_section%redshift) .gt. maxval(spectrumchunk%wavelength) .or. minval(fittedlines_section%wavelength*fittedlines_section%redshift) .lt. minval(spectrumchunk%wavelength)) then
+      print *,"              Warning: some lines ended up outside the fitting region."
+      print *,"              Try reducing the value of vtol2, which is currently set to ",c*vtol2
+    endif
   endif
   deallocate(spectrumchunk)
-
 enddo
 
 !make the fitted spectrum

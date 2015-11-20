@@ -185,14 +185,22 @@ use mod_uncertainties
 
   if (status .eq. 0) then
     print *,gettime(), ": successfully read cube into memory"
+    print *,gettime(), ": will fit ",naxes(1)*naxes(2)," pixels"
+    print *,gettime(), ": details of fitting will be written to the file 'cubeanalysis.log'"
+    print *
   else
     print *,gettime(), ": couldn't read cube into memory"
     stop
   endif
 
+  open(4425,file="cubeanalysis.log")
+
 ! process cube
   do cube_i=1,naxes(1)
     do cube_j=1,naxes(2)
+
+      print *,gettime(), ": fitting pixel ",cube_i,cube_j
+      write (4425,*) gettime(), ": fitting pixel ",cube_i,cube_j
       write (spectrumfile,"(A5,I3.3,A1,I3.3,A4)") "spec_",cube_i,"_",cube_j,".dat"
       allocate(realspec(naxes(3)))
       spectrumlength=naxes(3)
@@ -200,6 +208,14 @@ use mod_uncertainties
       do cube_k=1,naxes(3)
         realspec(cube_k)%wavelength=wavelength+(cube_k-1)*dispersion
       enddo
+
+!check for valid data
+!ultra crude and tailored for NGC 7009 at the moment
+
+      if (maxval(realspec%flux) .lt. 20000.) then
+        write (4425,*) gettime(), ": no good data. skipping."
+        cycle
+      endif
 
       allocate (fittedspectrum(spectrumlength))
       fittedspectrum%wavelength=realspec%wavelength
@@ -209,7 +225,7 @@ use mod_uncertainties
 !----start of code taken from alfa.f95
 !subtract the continuum
 
-print *,gettime(),": fitting continuum"
+write(4425,*) gettime(),": fitting continuum"
 call fit_continuum(realspec,spectrumlength, continuum)
 
 ! now do the fitting
@@ -218,16 +234,16 @@ call fit_continuum(realspec,spectrumlength, continuum)
 if (.not. resolution_estimated) then
   ! estimate resolution assuming nyquist sampling
   resolutionguess=2*realspec(2)%wavelength/(realspec(3)%wavelength-realspec(1)%wavelength)
-  print *,gettime(),": estimated spectrograph resolution assuming Nyquist sampling: ",resolutionguess
+  write(4425,*) gettime(),": estimated spectrograph resolution assuming Nyquist sampling: ",resolutionguess
 else
-  print *,gettime(),": estimated spectrograph resolution from user input: ",resolutionguess
+  write(4425,*) gettime(),": estimated spectrograph resolution from user input: ",resolutionguess
 endif
 
 if (rtol1 .eq. 0.d0) then
   rtol1=0.9*resolutionguess ! user didn't specify a value, default behaviour is to allow resolution to vary between 0 and 2x the initial guess on the first pass
 endif
 
-print "(X,A,A,F8.1,A,F7.1)",gettime(),": initial guesses for velocity and resolution: ",c*(redshiftguess-1),"km/s, R=",resolutionguess
+write(4425,"(X,A,A,F8.1,A,F7.1)") gettime(),": initial guesses for velocity and resolution: ",c*(redshiftguess-1),"km/s, R=",resolutionguess
 
 ! first, subtract sky spectrum if requested. do in chunks of 400 units. no overlap necessary because velocity is zero
 
@@ -236,7 +252,7 @@ skyspectrum%wavelength=realspec%wavelength
 skyspectrum%flux=0.d0
 
 if (subtractsky) then
-  print *,gettime(),": fitting sky emission"
+  write(4425,*) gettime(),": fitting sky emission"
 
   !get an array for all the sky lines in the range
   call readlinelist(skylinelistfile, referencelinelist, nlines, skylines, realspec(1)%wavelength, realspec(size(realspec))%wavelength)
@@ -271,14 +287,14 @@ endif
 
 ! read in line catalogue
 
-print *,gettime(),": reading in line catalogue ",trim(stronglinelistfile)
+write(4425,*) gettime(),": reading in line catalogue ",trim(stronglinelistfile)
 call readlinelist(stronglinelistfile, referencelinelist, nlines, fittedlines, minval(realspec%wavelength), maxval(realspec%wavelength))
 
 if (nlines .eq. 0) then
-  print *,gettime(),": Warning: no reference lines detected, using default guesses for velocity and resolution"
+  write(4425,*) gettime(),": Warning: no reference lines detected, using default guesses for velocity and resolution"
   redshiftguess_overall=1.d0
 else
-  print *,gettime(),": estimating resolution and velocity using ",nlines," lines"
+  write(4425,*) gettime(),": estimating resolution and velocity using ",nlines," lines"
   !create an array containing just the regions around lines of interest
   !otherwise far more data is being processed than necessary
   !for each line, take 50 data points nearest to wavelength
@@ -295,7 +311,7 @@ else
 
   call fit(stronglines, referencelinelist, redshiftguess, resolutionguess, fittedlines, vtol1, rtol1)
 
-  print *,gettime(),": estimated redshift and resolution: ",c*(fittedlines(1)%redshift-1),fittedlines(1)%resolution
+  write(4425,*) gettime(),": estimated redshift and resolution: ",c*(fittedlines(1)%redshift-1),fittedlines(1)%resolution
   redshiftguess_overall = fittedlines(1)%redshift ! when fitting chunks, use this redshift to get lines in the right range from the catalogue. if velocity from each chunk is used, then there's a chance that a line could be missed or double counted due to variations in the calculated velocity between chunks.
   redshiftguess=fittedlines(1)%redshift
   resolutionguess=fittedlines(1)%resolution
@@ -310,10 +326,10 @@ linearraypos=1
 
 !call readlinelist with full wavelength range to get total number of lines and an array to put them all in
 
-print *,gettime(),": reading in line catalogue ",trim(deeplinelistfile)
+write(4425,*) gettime(),": reading in line catalogue ",trim(deeplinelistfile)
 call readlinelist(deeplinelistfile, referencelinelist, totallines, fittedlines, realspec(1)%wavelength/redshiftguess_overall, realspec(size(realspec))%wavelength/redshiftguess_overall)
 
-print *, gettime(), ": fitting full spectrum with ",totallines," lines"
+write(4425,*)  gettime(), ": fitting full spectrum with ",totallines," lines"
 
 !now go through spectrum in chunks of 440 units.  Each one overlaps by 20 units with the previous and succeeding chunk, to avoid the code attempting to fit part of a line profile
 !at beginning and end, padding is only to the right and left respectively
@@ -344,7 +360,7 @@ do i=1,spectrumlength,400
   call readlinelist(deeplinelistfile, referencelinelist, nlines, fittedlines_section, startwlen, endwlen)
 
   if (nlines .gt. 0) then
-    print "(' ',A,A,F7.1,A,F7.1,A,I3,A)",gettime(),": fitting from ",spectrumchunk(1)%wavelength," to ",spectrumchunk(size(spectrumchunk))%wavelength," with ",nlines," lines"
+    write(4425,"(' ',A,A,F7.1,A,F7.1,A,I3,A)") gettime(),": fitting from ",spectrumchunk(1)%wavelength," to ",spectrumchunk(size(spectrumchunk))%wavelength," with ",nlines," lines"
     call fit(spectrumchunk, referencelinelist, redshiftguess, resolutionguess, fittedlines_section, vtol2, rtol2)
     !use redshift and resolution from this chunk as initial values for next chunk
     redshiftguess=fittedlines_section(1)%redshift
@@ -354,8 +370,8 @@ do i=1,spectrumlength,400
     linearraypos=linearraypos+nlines
     !report any errors
     if (maxval(fittedlines_section%wavelength*fittedlines_section%redshift) .gt. maxval(spectrumchunk%wavelength) .or. minval(fittedlines_section%wavelength*fittedlines_section%redshift) .lt. minval(spectrumchunk%wavelength)) then
-      print *,"              Warning: some lines ended up outside the fitting region."
-      print *,"              Try reducing the value of vtol2, which is currently set to ",c*vtol2
+      write(4425,*) "              Warning: some lines ended up outside the fitting region."
+      write(4425,*) "              Try reducing the value of vtol2, which is currently set to ",c*vtol2
     endif
   endif
   deallocate(spectrumchunk)
@@ -368,8 +384,7 @@ call makespectrum(fittedlines, fittedspectrum)
 !account for blends - for each line, determine if the subsequent line is separated by less than the resolution
 !if it is, then flag that line with the lineid of the first member of the blend
 
-print *
-print *,gettime(),": flagging blends"
+write(4425,*) gettime(),": flagging blends"
 
 fittedlines%blended = 0
 
@@ -410,7 +425,7 @@ enddo
 
 ! calculate the uncertainties
 
-print *,gettime(),": estimating uncertainties"
+write(4425,*) gettime(),": estimating uncertainties"
 
 call get_uncertainties(fittedspectrum, realspec, fittedlines)
 
@@ -440,21 +455,21 @@ if (.not. normalise) then
 
   if (hbetaflux .gt. 0.d0) then
     normalisation = 100./hbetaflux
-    print "(' ',A,A,ES9.3,A)",gettime(),": H beta detected with flux ",hbetaflux," - normalising to 100.0"
+    write(4425,"(' ',A,A,ES9.3,A)") gettime(),": H beta detected with flux ",hbetaflux," - normalising to 100.0"
   endif
 
   if (normalisation .eq. 0.d0) then
-    print *,gettime(),": no H beta detected, no normalisation applied"
+    write(4425,*) gettime(),": no H beta detected, no normalisation applied"
     normalisation = 1.d0
   endif
 
 else
 
   if (normalisation .eq. 0.0) then
-    print *,gettime(),": no normalisation applied, measured fluxes will be reported"
+    write(4425,*) gettime(),": no normalisation applied, measured fluxes will be reported"
     normalisation = 1.d0
   else
-    print *,gettime(),": normalising to H beta = 100.0 assuming flux of ",normalisation
+    write(4425,*) gettime(),": normalising to H beta = 100.0 assuming flux of ",normalisation
     normalisation = 100./normalisation
   endif
 
@@ -465,7 +480,7 @@ realspec%uncertainty = realspec%uncertainty * normalisation !for continuum jumps
 
 ! now write out the line list.
 
-print *,gettime(),": writing output files ",trim(spectrumfile),"_lines.tex and ",trim(spectrumfile),"_fit"
+write(4425,*) gettime(),": writing output files ",trim(spectrumfile),"_lines.tex and ",trim(spectrumfile),"_fit"
 
 open(100,file=trim(spectrumfile)//"_lines.tex")
 open(101,file=trim(spectrumfile)//"_lines")
@@ -519,8 +534,9 @@ endif
 close(101)
 close(100)
 
-print *,gettime(),": all done"
-print *
+write(4425,*) gettime(),": all done"
+write(4425,*)
+
 !--end of code taken from alfa.f95
 !deallocate arrays ready for the next pixel
       deallocate(realspec)
@@ -531,6 +547,7 @@ print *
   enddo
 
   deallocate(cubedata)
+  close(4425)
 
 !  The FITS file must always be closed before exiting the program. 
 !  Any unit numbers allocated with FTGIOU must be freed with FTFIOU.

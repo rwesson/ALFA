@@ -199,8 +199,6 @@ use mod_uncertainties
   do cube_i=1,naxes(1)
     do cube_j=1,naxes(2)
 
-      print *,gettime(), ": fitting pixel ",cube_i,cube_j
-      write (4425,*) gettime(), ": fitting pixel ",cube_i,cube_j
       write (spectrumfile,"(A5,I3.3,A1,I3.3,A4)") "spec_",cube_i,"_",cube_j,".dat"
       allocate(realspec(naxes(3)))
       spectrumlength=naxes(3)
@@ -213,9 +211,13 @@ use mod_uncertainties
 !ultra crude and tailored for NGC 7009 at the moment
 
       if (maxval(realspec%flux) .lt. 20000.) then
-        write (4425,*) gettime(), ": no good data. skipping."
+        print *,gettime(), ": fitting pixel ",cube_i,cube_j
+        write (4425,*) gettime(), ": skipping pixel ",cube_i,cube_j
         deallocate(realspec)
         cycle
+      else
+        print *,gettime(), ": fitting pixel ",cube_i,cube_j
+        write (4425,*) gettime(), ": fitting pixel ",cube_i,cube_j
       endif
 
       allocate (fittedspectrum(spectrumlength))

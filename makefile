@@ -29,6 +29,7 @@
 FC=gfortran
 LD=gfortran
 FFLAGS=-ffree-line-length-0 -Jsource/
+CUBEFLAGS=-L/software/cfitsio/ -lcfitsio -lm
 
 ifeq ($(FC),gfortran)
   ifeq ($(CO),debug)
@@ -75,6 +76,8 @@ all: alfa
 alfa: source/types.o source/functions.o source/readfiles.o source/quicksort.o source/continuum.o source/fit.o source/uncertainties.o source/alfa.o
 	$(LD) $(LDFLAGS) $(FFLAGS) -o $@ $^
 
+alfacube: source/types.o source/functions.o source/readfiles.o source/quicksort.o source/continuum.o source/fit.o source/uncertainties.o source/alfa_cube.o
+	$(LD) $(LDFLAGS) $(FFLAGS) -o $@ $^ ${CUBEFLAGS}
 
 clean:
-	rm -f alfa source/*.o source/*.mod
+	rm -f alfa alfacube source/*.o source/*.mod

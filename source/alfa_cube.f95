@@ -214,6 +214,7 @@ use mod_uncertainties
 
       if (maxval(realspec%flux) .lt. 20000.) then
         write (4425,*) gettime(), ": no good data. skipping."
+        deallocate(realspec)
         cycle
       endif
 

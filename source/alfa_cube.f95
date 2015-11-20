@@ -211,7 +211,7 @@ use mod_uncertainties
 !ultra crude and tailored for NGC 7009 at the moment
 
       if (maxval(realspec%flux) .lt. 20000.) then
-        print *,gettime(), ": fitting pixel ",cube_i,cube_j
+        print *,gettime(), ": skipping pixel ",cube_i,cube_j
         write (4425,*) gettime(), ": skipping pixel ",cube_i,cube_j
         deallocate(realspec)
         cycle

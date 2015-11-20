@@ -171,7 +171,7 @@ use mod_uncertainties
 
   if (nfound .eq. 3) then
     allocate(cubedata(naxes(1),naxes(2),naxes(3)), stat=alloc_err)
-    if (alloc_err .eq. 0) print *,gettime(), ": memory allocated"
+    if (alloc_err .eq. 0) print *,gettime(), ": reading data cube into memory"
   endif
 
 ! find wavelength dispersion

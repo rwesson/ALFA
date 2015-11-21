@@ -210,7 +210,9 @@ use mod_uncertainties
 !check for valid data
 !ultra crude and tailored for NGC 7009 at the moment
 
-      if (maxval(realspec%flux) .lt. 20000.) then
+      inquire(file=trim(spectrumfile)//"_lines", exist=file_exists)
+
+      if (maxval(realspec%flux) .lt. 20000. .or. file_exists) then
         print *,gettime(), ": skipping pixel ",cube_i,cube_j
         write (4425,*) gettime(), ": skipping pixel ",cube_i,cube_j
         deallocate(realspec)

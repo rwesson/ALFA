@@ -58,6 +58,7 @@ use mod_uncertainties
   rtol2=500. !second pass
   vtol1=0.003 !variation allowed in velocity (expressed as redshift) on first pass. 0.003 = 900 km/s
   vtol2=0.0002 !second pass. 0.0002 = 60 km/s
+  cube_i=1
 
   stronglinelistfile="linelists/strong_optical"
   deeplinelistfile="linelists/deep_full"
@@ -130,6 +131,9 @@ use mod_uncertainties
     if ((trim(options(i))=="-ss" .or. trim(options(i))=="--subtract-sky")) then
       subtractsky=.true.
     endif
+    if ((trim(options(i))=="-col" .and. (i+1) .le. Narg)) then
+      read (options(i+1),*) cube_i
+    endif
   enddo
 
   ! convert from velocity to redshift
@@ -196,7 +200,7 @@ use mod_uncertainties
   open(4425,file="cubeanalysis.log")
 
 ! process cube
-  do cube_i=1,naxes(1)
+!  do cube_i=1,naxes(1)
     do cube_j=1,naxes(2)
 
       write (spectrumfile,"(A5,I3.3,A1,I3.3,A4)") "spec_",cube_i,"_",cube_j,".dat"
@@ -549,7 +553,7 @@ write(4425,*)
       deallocate(continuum)
       if (allocated(skyspectrum)) deallocate(skyspectrum)
     enddo
-  enddo
+!  enddo
 
   deallocate(cubedata)
   close(4425)

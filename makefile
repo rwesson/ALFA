@@ -28,7 +28,7 @@
 
 FC=gfortran
 LD=gfortran
-FFLAGS=-ffree-line-length-0 -Jsource/
+FFLAGS=-ffree-line-length-0 -Jsource/ -fopenmp
 CUBEFLAGS=-L/software/cfitsio/ -lcfitsio -lm
 
 ifeq ($(FC),gfortran)

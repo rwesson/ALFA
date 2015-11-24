@@ -98,41 +98,41 @@ use mod_uncertainties
     do i=1,Narg
       call get_command_argument(i,options(i))
     enddo
-  endif
 
-  do i=1,narg
-    if ((trim(options(i))=="-n" .or. trim(options(i))=="--normalise") .and. (i+1) .le. Narg) then
-      read (options(i+1),*) normalisation
-      normalise=.true.
-    endif
-    if ((trim(options(i))=="-vg" .or. trim(options(i))=="--velocity-guess") .and. (i+1) .le. Narg) then
-      read (options(i+1),*) redshiftguess
-    endif
-    if ((trim(options(i))=="-rg" .or. trim(options(i))=="--resolution-guess") .and. (i+1) .le. Narg) then
-      read (options(i+1),*) resolutionguess
-      resolution_estimated=.true.
-    endif
-    if ((trim(options(i))=="-vtol1" .or. trim(options(i))=="--velocity-tolerance-1") .and. (i+1) .le. Narg) then
-      read (options(i+1),*) vtol1
-      vtol1 = vtol1/c
-    endif
-    if ((trim(options(i))=="-vtol2" .or. trim(options(i))=="--velocity-tolerance-2") .and. (i+1) .le. Narg) then
-      read (options(i+1),*) vtol2
-      vtol2 = vtol2/c
-    endif
-    if ((trim(options(i))=="-rtol1" .or. trim(options(i))=="--resolution-tolerance-1") .and. (i+1) .le. Narg) then
-      read (options(i+1),*) rtol1
-    endif
-    if ((trim(options(i))=="-rtol2" .or. trim(options(i))=="--resolution-tolerance-2") .and. (i+1) .le. Narg) then
-      read (options(i+1),*) rtol2
-    endif
-    if ((trim(options(i))=="-ss" .or. trim(options(i))=="--subtract-sky")) then
-      subtractsky=.true.
-    endif
-    if ((trim(options(i))=="-col" .and. (i+1) .le. Narg)) then
-      read (options(i+1),*) col
-    endif
-  enddo
+    do i=1,narg
+      if ((trim(options(i))=="-n" .or. trim(options(i))=="--normalise") .and. (i+1) .le. Narg) then
+        read (options(i+1),*) normalisation
+        normalise=.true.
+      endif
+      if ((trim(options(i))=="-vg" .or. trim(options(i))=="--velocity-guess") .and. (i+1) .le. Narg) then
+        read (options(i+1),*) redshiftguess
+      endif
+      if ((trim(options(i))=="-rg" .or. trim(options(i))=="--resolution-guess") .and. (i+1) .le. Narg) then
+        read (options(i+1),*) resolutionguess
+        resolution_estimated=.true.
+      endif
+      if ((trim(options(i))=="-vtol1" .or. trim(options(i))=="--velocity-tolerance-1") .and. (i+1) .le. Narg) then
+        read (options(i+1),*) vtol1
+        vtol1 = vtol1/c
+      endif
+      if ((trim(options(i))=="-vtol2" .or. trim(options(i))=="--velocity-tolerance-2") .and. (i+1) .le. Narg) then
+        read (options(i+1),*) vtol2
+        vtol2 = vtol2/c
+      endif
+      if ((trim(options(i))=="-rtol1" .or. trim(options(i))=="--resolution-tolerance-1") .and. (i+1) .le. Narg) then
+        read (options(i+1),*) rtol1
+      endif
+      if ((trim(options(i))=="-rtol2" .or. trim(options(i))=="--resolution-tolerance-2") .and. (i+1) .le. Narg) then
+        read (options(i+1),*) rtol2
+      endif
+      if ((trim(options(i))=="-ss" .or. trim(options(i))=="--subtract-sky")) then
+        subtractsky=.true.
+      endif
+      if ((trim(options(i))=="-col" .and. (i+1) .le. Narg)) then
+        read (options(i+1),*) col
+      endif
+    enddo
+  endif
 
   ! convert from velocity to redshift
 

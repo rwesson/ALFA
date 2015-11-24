@@ -15,7 +15,7 @@ use mod_uncertainties
 !cfitsio variables
 
   integer :: status,unit,readwrite,blocksize,naxes(3),nfound, hdutype
-  integer :: group,firstpix,cube_i,cube_j,cube_k,col
+  integer :: group,firstpix,cube_i,cube_j,cube_k,col=1
   real :: nullval
 
   real, dimension(:,:,:), allocatable :: cubedata
@@ -48,6 +48,10 @@ use mod_uncertainties
   logical :: normalise=.false. !false means spectrum normalised to whatever H beta is detected, true means spectrum normalised to user specified value
   logical :: resolution_estimated=.false. !true means user specified a value, false means estimate from sampling
   logical :: subtractsky=.false. !attempt to fit night sky emission lines
+
+! openmp variables
+
+  integer :: nthreads, tid, nprocessors, omp_get_num_threads, omp_get_thread_num, omp_get_num_procs
 
   c=299792.458 !km/s
   !default values in absence of user specificed guess
@@ -198,7 +202,26 @@ use mod_uncertainties
   open(4425,file="cubeanalysis.log")
 
 ! process cube
-  do cube_i=col, col+9
+! each pixel is completely independent so it's embarrassingly parallel
+
+!$OMP PARALLEL default(private) shared(cubedata)
+
+! first report number of processors being used
+
+      nprocessors = omp_get_num_procs()
+      TID = OMP_GET_THREAD_NUM()
+      IF (TID .EQ. 0) THEN
+        NTHREADS = OMP_GET_NUM_THREADS()
+        print *, "Number of processors available = ", nprocessors
+        PRINT *, 'Number of threads =', NTHREADS
+      END IF
+      PRINT *, 'Thread',TID,' starting...'
+
+  nthreads = omp_get_num_threads()
+  print *,gettime(), ": will use ",nthreads," processors"
+
+  do cube_i=col, min(naxes(1),col+9)
+!$OMP DO
     do cube_j=1,naxes(2)
 
       write (spectrumfile,"(A5,I3.3,A1,I3.3,A4)") "spec_",cube_i,"_",cube_j,".dat"
@@ -220,7 +243,7 @@ use mod_uncertainties
         deallocate(realspec)
         cycle
       else
-        print *,gettime(), ": fitting pixel ",cube_i,cube_j
+        print *,gettime(), ": fitting pixel ",cube_i,cube_j," on thread ",tid
         write (4425,*) gettime(), ": fitting pixel ",cube_i,cube_j
       endif
 
@@ -437,15 +460,16 @@ write(4425,*) gettime(),": estimating uncertainties"
 call get_uncertainties(fittedspectrum, realspec, fittedlines)
 
 ! write out the fitted spectrum
+! use thread number to avoid clashing in parallel mode
+tid=OMP_GET_THREAD_NUM()
+open(100+tid,file=trim(spectrumfile)//"_fit")
 
-open(100,file=trim(spectrumfile)//"_fit")
-
-write (100,*) """wavelength""  ""fitted spectrum""  ""cont-subbed orig"" ""continuum""  ""sky lines""  ""residuals"""
+write (100+tid,*) """wavelength""  ""fitted spectrum""  ""cont-subbed orig"" ""continuum""  ""sky lines""  ""residuals"""
 do i=1,spectrumlength
-  write(100,"(F8.2, 5(ES12.3))") fittedspectrum(i)%wavelength,fittedspectrum(i)%flux + continuum(i)%flux + skyspectrum(i)%flux, realspec(i)%flux, continuum(i)%flux, skyspectrum(i)%flux, realspec(i)%flux - fittedspectrum(i)%flux
+  write(100+tid,"(F8.2, 5(ES12.3))") fittedspectrum(i)%wavelength,fittedspectrum(i)%flux + continuum(i)%flux + skyspectrum(i)%flux, realspec(i)%flux, continuum(i)%flux, skyspectrum(i)%flux, realspec(i)%flux - fittedspectrum(i)%flux
 enddo
 
-close(100)
+close(100+tid)
 
 ! normalise if H beta is present and user did not specify a normalisation
 
@@ -489,17 +513,17 @@ realspec%uncertainty = realspec%uncertainty * normalisation !for continuum jumps
 
 write(4425,*) gettime(),": writing output files ",trim(spectrumfile),"_lines.tex and ",trim(spectrumfile),"_fit"
 
-open(100,file=trim(spectrumfile)//"_lines.tex")
-open(101,file=trim(spectrumfile)//"_lines")
-write(100,*) "Observed wavelength & Rest wavelength & Flux & Uncertainty & Ion & Multiplet & Lower term & Upper term & g$_1$ & g$_2$ \\"
+open(100+tid,file=trim(spectrumfile)//"_lines.tex")
+open(200+tid,file=trim(spectrumfile)//"_lines")
+write(100+tid,*) "Observed wavelength & Rest wavelength & Flux & Uncertainty & Ion & Multiplet & Lower term & Upper term & g$_1$ & g$_2$ \\"
 do i=1,totallines
   if (fittedlines(i)%blended .eq. 0 .and. fittedlines(i)%uncertainty .gt. 3.0) then
-    write (100,"(F8.2,' & ',F8.2,' & ',F12.3,' & ',F12.3,A85)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty, fittedlines(i)%linedata
-    write (101,"(F8.2,2(F12.3))") fittedlines(i)%wavelength, gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty
+    write (100+tid,"(F8.2,' & ',F8.2,' & ',F12.3,' & ',F12.3,A85)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty, fittedlines(i)%linedata
+    write (200+tid,"(F8.2,2(F12.3))") fittedlines(i)%wavelength, gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty
   elseif (fittedlines(i)%blended .ne. 0) then
     if (fittedlines(fittedlines(i)%blended)%uncertainty .gt. 3.0) then
-      write (100,"(F8.2,' & ',F8.2,' &            * &            *',A85)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,fittedlines(i)%linedata
-      write (101,"(F8.2,'           *           *')") fittedlines(i)%wavelength
+      write (100+tid,"(F8.2,' & ',F8.2,' &            * &            *',A85)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,fittedlines(i)%linedata
+      write (200+tid,"(F8.2,'           *           *')") fittedlines(i)%wavelength
     endif
   endif
 enddo
@@ -507,39 +531,39 @@ enddo
 
 !Balmer
 if (minval(abs(continuum%wavelength-3630.)) .lt. 3630./fittedlines(1)%resolution) then
-  write (100,"(F8.2,' &          & ',F12.3,' & ',F12.3,' & Balmer jump-\\')") 3645.5, continuum(minloc(abs(continuum%wavelength-3630.)))%flux, realspec(minloc(abs(continuum%wavelength-3630.)))%uncertainty
-  write (101,"(F8.2,F12.3,F12.3)") 3645.5, continuum(minloc(abs(continuum%wavelength-3630.)))%flux, realspec(minloc(abs(continuum%wavelength-3630.)))%uncertainty
+  write (100+tid,"(F8.2,' &          & ',F12.3,' & ',F12.3,' & Balmer jump-\\')") 3645.5, continuum(minloc(abs(continuum%wavelength-3630.)))%flux, realspec(minloc(abs(continuum%wavelength-3630.)))%uncertainty
+  write (200+tid,"(F8.2,F12.3,F12.3)") 3645.5, continuum(minloc(abs(continuum%wavelength-3630.)))%flux, realspec(minloc(abs(continuum%wavelength-3630.)))%uncertainty
 endif
 
 if (minval(abs(continuum%wavelength-3700.)) .lt. 3700./fittedlines(1)%resolution) then
-  write (100,"(F8.2,' &          & ',F12.3,' & ',F12.3,' & Balmer jump+\\')") 3646.5, continuum(minloc(abs(continuum%wavelength-3700.)))%flux, realspec(minloc(abs(continuum%wavelength-3700.          )))%uncertainty
-  write (101,"(F8.2,F12.3,F12.3)") 3646.5, continuum(minloc(abs(continuum%wavelength-3700.)))%flux, realspec(minloc(abs(continuum%wavelength-3700.)))%uncertainty
+  write (100+tid,"(F8.2,' &          & ',F12.3,' & ',F12.3,' & Balmer jump+\\')") 3646.5, continuum(minloc(abs(continuum%wavelength-3700.)))%flux, realspec(minloc(abs(continuum%wavelength-3700.          )))%uncertainty
+  write (200+tid,"(F8.2,F12.3,F12.3)") 3646.5, continuum(minloc(abs(continuum%wavelength-3700.)))%flux, realspec(minloc(abs(continuum%wavelength-3700.)))%uncertainty
 endif
 
 !paschen
 
 if (minval(abs(continuum%wavelength-8100.)) .lt. 8100./fittedlines(1)%resolution) then
-  write (100,"(F8.2,' &          & ',F12.3,' & ',F12.3,' & Paschen jump-\\')") 8100.0, continuum(minloc(abs(continuum%wavelength-8100.)))%flux, realspec(minloc(abs(continuum%wavelength-8100.          )))%uncertainty
-  write (101,"(F8.2,F12.3,F12.3)") 8100.0, continuum(minloc(abs(continuum%wavelength-8100.)))%flux, realspec(minloc(abs(continuum%wavelength-8100.)))%uncertainty
+  write (100+tid,"(F8.2,' &          & ',F12.3,' & ',F12.3,' & Paschen jump-\\')") 8100.0, continuum(minloc(abs(continuum%wavelength-8100.)))%flux, realspec(minloc(abs(continuum%wavelength-8100.          )))%uncertainty
+  write (200+tid,"(F8.2,F12.3,F12.3)") 8100.0, continuum(minloc(abs(continuum%wavelength-8100.)))%flux, realspec(minloc(abs(continuum%wavelength-8100.)))%uncertainty
 endif
 
 if (minval(abs(continuum%wavelength-8400.)) .lt. 8400./fittedlines(1)%resolution) then
-  write (100,"(F8.2,' &          & ',F12.3,' & ',F12.3,' & Paschen jump+\\')") 8400.0, continuum(minloc(abs(continuum%wavelength-8400.)))%flux, realspec(minloc(abs(continuum%wavelength-8400.          )))%uncertainty
-  write (101,"(F8.2,F12.3,F12.3)") 8400.0, continuum(minloc(abs(continuum%wavelength-8400.)))%flux, realspec(minloc(abs(continuum%wavelength-8400.)))%uncertainty
+  write (100+tid,"(F8.2,' &          & ',F12.3,' & ',F12.3,' & Paschen jump+\\')") 8400.0, continuum(minloc(abs(continuum%wavelength-8400.)))%flux, realspec(minloc(abs(continuum%wavelength-8400.          )))%uncertainty
+  write (200+tid,"(F8.2,F12.3,F12.3)") 8400.0, continuum(minloc(abs(continuum%wavelength-8400.)))%flux, realspec(minloc(abs(continuum%wavelength-8400.)))%uncertainty
 endif
 
 !write out measured Hbeta flux to latex table
 
 if (hbetaflux .gt. 0.d0) then
-  write (100,*) "\hline"
-  write (100,"(A,ES8.2)") "Measured flux of H$\beta$: ",hbetaflux
-  write (100,*) "\hline"
+  write (100+tid,*) "\hline"
+  write (100+tid,"(A,ES8.2)") "Measured flux of H$\beta$: ",hbetaflux
+  write (100+tid,*) "\hline"
 endif
 
 !done, close files
 
-close(101)
-close(100)
+close(200+tid)
+close(100+tid)
 
 write(4425,*) gettime(),": all done"
 write(4425,*)
@@ -551,7 +575,11 @@ write(4425,*)
       deallocate(continuum)
       if (allocated(skyspectrum)) deallocate(skyspectrum)
     enddo
+!$OMP END DO
   enddo
+
+!end of parallel loop
+!$OMP END PARALLEL
 
   deallocate(cubedata)
   close(4425)

@@ -15,26 +15,24 @@ use mod_uncertainties
 !cfitsio variables
 
   integer :: status,unit,readwrite,blocksize,naxes(3),nfound, hdutype
-  integer :: group,firstpix,cube_i,cube_j,cube_k
+  integer :: group,firstpix,cube_i,cube_j,cube_k,col
   real :: nullval
 
   real, dimension(:,:,:), allocatable :: cubedata
 
   logical :: anynull,file_exists
-  character :: filename*80
   integer :: alloc_err
-  character(len=80) :: outname
 
   real :: wavelength, dispersion
 
 ! alfa variables
 
-  integer :: I, spectrumlength, nlines, linearraypos, totallines, startpos, endpos, copystartpos, copyendpos
+  integer :: I, spectrumlength, nlines, linearraypos, totallines, startpos, endpos
   real :: startwlen, endwlen
   character (len=512) :: spectrumfile,stronglinelistfile,deeplinelistfile,skylinelistfile
 
   type(linelist), dimension(:), allocatable :: referencelinelist, fittedlines, fittedlines_section, skylines, skylines_section
-  type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum, spectrumchunk, fittedchunk, skyspectrum, continuum, stronglines
+  type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum, spectrumchunk, skyspectrum, continuum, stronglines
 
   CHARACTER(len=2048), DIMENSION(:), allocatable :: options
   CHARACTER(len=2048) :: commandline
@@ -132,7 +130,7 @@ use mod_uncertainties
       subtractsky=.true.
     endif
     if ((trim(options(i))=="-col" .and. (i+1) .le. Narg)) then
-      read (options(i+1),*) cube_i
+      read (options(i+1),*) col
     endif
   enddo
 
@@ -200,7 +198,7 @@ use mod_uncertainties
   open(4425,file="cubeanalysis.log")
 
 ! process cube
-!  do cube_i=1,naxes(1)
+  do cube_i=col, col+9
     do cube_j=1,naxes(2)
 
       write (spectrumfile,"(A5,I3.3,A1,I3.3,A4)") "spec_",cube_i,"_",cube_j,".dat"
@@ -553,7 +551,7 @@ write(4425,*)
       deallocate(continuum)
       if (allocated(skyspectrum)) deallocate(skyspectrum)
     enddo
-!  enddo
+  enddo
 
   deallocate(cubedata)
   close(4425)

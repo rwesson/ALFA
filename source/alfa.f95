@@ -8,12 +8,12 @@ use mod_fit
 use mod_uncertainties
 
 implicit none
-integer :: I, spectrumlength, nlines, linearraypos, totallines, startpos, endpos, copystartpos, copyendpos
+integer :: I, spectrumlength, nlines, linearraypos, totallines, startpos, endpos
 real :: startwlen, endwlen
 character (len=512) :: spectrumfile,stronglinelistfile,deeplinelistfile,skylinelistfile
 
 type(linelist), dimension(:), allocatable :: referencelinelist, fittedlines, fittedlines_section, skylines, skylines_section
-type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum, spectrumchunk, fittedchunk, skyspectrum, continuum, stronglines
+type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum, spectrumchunk, skyspectrum, continuum, stronglines
 
 CHARACTER(len=2048), DIMENSION(:), allocatable :: options
 CHARACTER(len=2048) :: commandline

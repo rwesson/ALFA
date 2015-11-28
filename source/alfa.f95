@@ -164,7 +164,7 @@ if (subtractsky) then
   print *,gettime(),": fitting sky emission"
 
   !get an array for all the sky lines in the range
-  call selectlines(skylines_catalogue, minval(realspec%wavelength),maxval(realspec%wavelength), skylines, nlines)
+  call selectlines(skylines_catalogue,realspec(1)%wavelength, realspec(size(realspec))%wavelength, skylines, nlines)
 
   linearraypos=1
 

@@ -3,11 +3,11 @@ use mod_routines
 use mod_types
 
 contains
-subroutine fit(inputspectrum, referencelinelist, redshiftguess, resolutionguess, fittedlines, redshifttolerance, resolutiontolerance)
+subroutine fit(inputspectrum, redshiftguess, resolutionguess, fittedlines, redshifttolerance, resolutiontolerance)
 
 implicit none
 
-type(linelist), dimension(:), allocatable :: referencelinelist, fittedlines
+type(linelist), dimension(:), allocatable :: fittedlines
 type(linelist), dimension(:,:), allocatable :: population
 type(linelist), dimension(:,:), allocatable ::  breed
 type(spectrum), dimension(:,:), allocatable :: synthspec
@@ -23,7 +23,7 @@ real :: resolutionguess, redshiftguess, redshifttolerance, resolutiontolerance
   pressure=0.1 !pressure * popsize needs to be an integer
   generations=500
 
-  nlines=size(referencelinelist%wavelength)
+  nlines=size(fittedlines%wavelength)
   spectrumlength=size(inputspectrum%wavelength)
 
   call init_random_seed()
@@ -44,11 +44,11 @@ real :: resolutionguess, redshiftguess, redshifttolerance, resolutiontolerance
   enddo
 
   do popnumber=1,popsize
-    population(popnumber,:)%wavelength = referencelinelist%wavelength
-    population(popnumber,:)%peak=referencelinelist%peak
+    population(popnumber,:)%wavelength = fittedlines%wavelength
+    population(popnumber,:)%peak=fittedlines%peak
     population(popnumber,:)%resolution=resolutionguess
     population(popnumber,:)%redshift=redshiftguess
-    population(popnumber,:)%linedata=referencelinelist%linedata
+    population(popnumber,:)%linedata=fittedlines%linedata
   enddo
 
 ! evolve

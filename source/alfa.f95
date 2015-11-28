@@ -12,7 +12,8 @@ integer :: I, spectrumlength, nlines, linearraypos, totallines, startpos, endpos
 real :: startwlen, endwlen
 character (len=512) :: spectrumfile,stronglinelistfile,deeplinelistfile,skylinelistfile
 
-type(linelist), dimension(:), allocatable :: referencelinelist, fittedlines, fittedlines_section, skylines, skylines_section
+type(linelist), dimension(:), allocatable :: skylines_catalogue, stronglines_catalogue, deeplines_catalogue
+type(linelist), dimension(:), allocatable :: fittedlines, fittedlines_section, skylines, skylines_section
 type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum, spectrumchunk, skyspectrum, continuum, stronglines
 
 CHARACTER(len=2048), DIMENSION(:), allocatable :: options
@@ -124,6 +125,13 @@ call get_command_argument(1,spectrumfile)
 print *,gettime(),": reading in spectrum ",trim(spectrumfile)
 call readspectrum(spectrumfile, realspec, spectrumlength, fittedspectrum)
 
+!read in catalogues
+
+print *,gettime(),": reading in line catalogues ",trim(skylinelistfile),", ",trim(stronglinelistfile),", ",trim(deeplinelistfile)
+call readlinelist(skylinelistfile, skylines_catalogue, nlines,minval(realspec%wavelength),maxval(realspec%wavelength))
+call readlinelist(stronglinelistfile, stronglines_catalogue, nlines,minval(realspec%wavelength),maxval(realspec%wavelength))
+call readlinelist(deeplinelistfile, deeplines_catalogue, nlines,minval(realspec%wavelength),maxval(realspec%wavelength))
+
 ! then subtract the continuum
 
 print *,gettime(),": fitting continuum"
@@ -156,7 +164,7 @@ if (subtractsky) then
   print *,gettime(),": fitting sky emission"
 
   !get an array for all the sky lines in the range
-  call readlinelist(skylinelistfile, referencelinelist, nlines, skylines, realspec(1)%wavelength, realspec(size(realspec))%wavelength)
+  call selectlines(skylines_catalogue, minval(realspec%wavelength),maxval(realspec%wavelength), skylines, nlines)
 
   linearraypos=1
 
@@ -172,9 +180,9 @@ if (subtractsky) then
     spectrumchunk = realspec(i:endpos)
 
     !read in sky lines in chunk
-    call readlinelist(skylinelistfile, referencelinelist, nlines, skylines_section, realspec(i)%wavelength, realspec(i+399)%wavelength)
+    call selectlines(skylines_catalogue, realspec(i)%wavelength, realspec(i+399)%wavelength, skylines_section, nlines)
     if (nlines .gt. 0) then
-      call fit(spectrumchunk, referencelinelist, 1., resolutionguess, skylines_section, 0., rtol2)
+      call fit(spectrumchunk, 1., resolutionguess, skylines_section, 0., rtol2)
       skylines(linearraypos:linearraypos+nlines-1)=skylines_section!(1:nlines)
       linearraypos=linearraypos+nlines
     endif
@@ -187,10 +195,9 @@ if (subtractsky) then
 
 endif
 
-! read in line catalogue
+! select the lines from the catalogue
 
-print *,gettime(),": reading in line catalogue ",trim(stronglinelistfile)
-call readlinelist(stronglinelistfile, referencelinelist, nlines, fittedlines, minval(realspec%wavelength), maxval(realspec%wavelength))
+call selectlines(stronglines_catalogue, minval(realspec%wavelength), maxval(realspec%wavelength), fittedlines, nlines)
 
 if (nlines .eq. 0) then
   print *,gettime(),": Warning: no reference lines detected, using default guesses for velocity and resolution"
@@ -205,13 +212,13 @@ else
 
   allocate(stronglines(50*nlines))
   do i=1,nlines
-    linelocation=minloc(abs(referencelinelist(i)%wavelength*redshiftguess-realspec%wavelength),1)
+    linelocation=minloc(abs(stronglines_catalogue(i)%wavelength*redshiftguess-realspec%wavelength),1)
     stronglines(50*(i-1)+1:50*i) = realspec(linelocation-24:linelocation+25)
   enddo
 
   !now fit the strong lines
 
-  call fit(stronglines, referencelinelist, redshiftguess, resolutionguess, fittedlines, vtol1, rtol1)
+  call fit(stronglines, redshiftguess, resolutionguess, fittedlines, vtol1, rtol1)
 
   print *,gettime(),": estimated redshift and resolution: ",c*(fittedlines(1)%redshift-1),fittedlines(1)%resolution
   redshiftguess_overall = fittedlines(1)%redshift ! when fitting chunks, use this redshift to get lines in the right range from the catalogue. if velocity from each chunk is used, then there's a chance that a line could be missed or double counted due to variations in the calculated velocity between chunks.
@@ -226,10 +233,9 @@ endif
 
 linearraypos=1
 
-!call readlinelist with full wavelength range to get total number of lines and an array to put them all in
+!get total number of lines and an array to put them all in
 
-print *,gettime(),": reading in line catalogue ",trim(deeplinelistfile)
-call readlinelist(deeplinelistfile, referencelinelist, totallines, fittedlines, realspec(1)%wavelength/redshiftguess_overall, realspec(size(realspec))%wavelength/redshiftguess_overall)
+call selectlines(deeplines_catalogue, realspec(1)%wavelength/redshiftguess_overall, realspec(size(realspec))%wavelength/redshiftguess_overall, fittedlines, totallines)
 
 print *, gettime(), ": fitting full spectrum with ",totallines," lines"
 
@@ -259,11 +265,11 @@ do i=1,spectrumlength,400
   allocate(spectrumchunk(endpos-startpos+1))
   spectrumchunk = realspec(startpos:endpos)
 
-  call readlinelist(deeplinelistfile, referencelinelist, nlines, fittedlines_section, startwlen, endwlen)
+  call selectlines(deeplines_catalogue, startwlen, endwlen, fittedlines_section, nlines)
 
   if (nlines .gt. 0) then
     print "(' ',A,A,F7.1,A,F7.1,A,I3,A)",gettime(),": fitting from ",spectrumchunk(1)%wavelength," to ",spectrumchunk(size(spectrumchunk))%wavelength," with ",nlines," lines"
-    call fit(spectrumchunk, referencelinelist, redshiftguess, resolutionguess, fittedlines_section, vtol2, rtol2)
+    call fit(spectrumchunk, redshiftguess, resolutionguess, fittedlines_section, vtol2, rtol2)
     !use redshift and resolution from this chunk as initial values for next chunk
     redshiftguess=fittedlines_section(1)%redshift
     resolutionguess=fittedlines_section(1)%resolution

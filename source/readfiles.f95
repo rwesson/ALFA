@@ -56,13 +56,13 @@ subroutine readspectrum(spectrumfile, realspec, spectrumlength, fittedspectrum)
 
 end subroutine readspectrum
 
-subroutine readlinelist(linelistfile,referencelinelist,nlines,fittedlines, wavelength1, wavelength2)
+subroutine readlinelist(linelistfile,referencelinelist,nlines,wavelength1, wavelength2)
 !this subroutine reads in the line catalogue
 ! - linelistfile is the name of the line catalogue file
 ! - referencelinelist is the array into which the values are read
 ! - nlines is the number of lines successfully read into the array
-! - fittedlines is an array with the line wavelengths, created for subsequent use in the fit subroutine
-! - wavelength1 and wavelength2 are the shortest and longest wavelengths to be considered - lines outside them will not be read in from the catalogue.  realspec is unaffected.  This is so that lines being fitted are completely within the spectrum chunk
+! - wavelength1 and wavelength2 define the range of wavelenths to be read in
+
   implicit none
   character (len=512) :: linelistfile
   character (len=85) :: linedatainput
@@ -71,11 +71,10 @@ subroutine readlinelist(linelistfile,referencelinelist,nlines,fittedlines, wavel
   integer :: io, nlines
   logical :: file_exists
 
-  type(linelist), dimension(:), allocatable :: referencelinelist, fittedlines
+  type(linelist), dimension(:), allocatable :: referencelinelist
 
   ! deallocate if necessary
   if (allocated(referencelinelist)) deallocate(referencelinelist)
-  if (allocated(fittedlines)) deallocate(fittedlines)
 
   if (trim(linelistfile)=="") then
     print *,gettime(),": error: No line catalogue specified"
@@ -103,7 +102,6 @@ subroutine readlinelist(linelistfile,referencelinelist,nlines,fittedlines, wavel
 !then allocate and read
 
   allocate(referencelinelist(nlines))
-  allocate(fittedlines(nlines))
 
   REWIND (199)
   I=1
@@ -123,4 +121,26 @@ subroutine readlinelist(linelistfile,referencelinelist,nlines,fittedlines, wavel
   CLOSE(199)
 
 end subroutine readlinelist
+
+subroutine selectlines(referencelinelist,wavelength1,wavelength2,fittedlines,nlines)
+!creates the array fittedlines, which contains the lines from referencelinelist which lie between wavelength1 and wavelength2
+
+  implicit none
+  real :: wavelength1, wavelength2
+  integer :: startloc,nlines
+
+  type(linelist), dimension(:), allocatable :: referencelinelist, fittedlines
+
+!deallocate if necessary
+  if (allocated(fittedlines)) deallocate(fittedlines)
+
+!then copy the relevant lines
+  nlines=count(referencelinelist%wavelength.gt.wavelength1 .and. referencelinelist%wavelength.le.wavelength2)
+  if (nlines .gt. 0) then
+    allocate(fittedlines(nlines))
+    startloc=minloc(referencelinelist%wavelength-wavelength1,1,referencelinelist%wavelength-wavelength1.gt.0)
+    fittedlines=referencelinelist(startloc:startloc+nlines-1)
+  endif
+
+end subroutine selectlines
 end module mod_readfiles

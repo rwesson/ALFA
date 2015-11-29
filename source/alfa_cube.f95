@@ -15,7 +15,7 @@ use mod_uncertainties
 !cfitsio variables
 
   integer :: status,unit,readwrite,blocksize,naxes(3),nfound, hdutype
-  integer :: group,firstpix,cube_i,cube_j,cube_k,col=1
+  integer :: group,firstpix,cube_i,cube_j,cube_k
   real :: nullval
 
   real, dimension(:,:,:), allocatable :: cubedata
@@ -133,9 +133,6 @@ use mod_uncertainties
       if ((trim(options(i))=="-ss" .or. trim(options(i))=="--subtract-sky")) then
         subtractsky=.true.
       endif
-      if ((trim(options(i))=="-col" .and. (i+1) .le. Narg)) then
-        read (options(i+1),*) col
-      endif
     enddo
   endif
 
@@ -191,11 +188,7 @@ use mod_uncertainties
   call ftg3de(unit,group,nullval,naxes(1),naxes(2),naxes(1),naxes(2),naxes(3),cubedata,anynull,status)
 
   if (status .eq. 0) then
-    print *,gettime(), ": successfully read cube into memory"
-    print *,gettime(), ": ",naxes(1)*naxes(2)," pixels"
-    print *,gettime(), ": wavelength coverage: ",wavelength,wavelength+(naxes(3)-1)*dispersion
-    print *,gettime(), ": details of fitting will be written to the file 'cubeanalysis.log'"
-    print *
+    print "(X,A,A,I5,A)",gettime(), ": successfully read ",naxes(1)*naxes(2)," pixels into memory"
   else
     print *,gettime(), ": couldn't read cube into memory"
     stop
@@ -215,18 +208,19 @@ use mod_uncertainties
   nprocessors = omp_get_num_procs()
   if (nprocessors .eq. 1) then
     print *,gettime(),": running in serial mode"
+    print *
   else
     print "(X,A,A,I2,A)", gettime(), ": running in parallel mode with ",nprocessors," processors"
+    print *
   endif
 
-  do cube_i=col, min(naxes(1),col+9)
-
-!$OMP PARALLEL private(spectrumfile,realspec,fittedspectrum,spectrumlength,continuum,nlines,spectrumchunk,linearraypos,overlap,startpos,startwlen,endpos,endwlen,skylines,skylines_section,stronglines,fittedlines,fittedlines_section,blendpeak,hbetaflux,totallines,skyspectrum,redshiftguess_overall,cube_j) firstprivate(redshiftguess,resolutionguess) shared(skylines_catalogue,stronglines_catalogue,deeplines_catalogue, naxes)
-
-tid=OMP_GET_THREAD_NUM()
+!$OMP PARALLEL private(spectrumfile,realspec,fittedspectrum,spectrumlength,continuum,nlines,spectrumchunk,linearraypos,overlap,startpos,startwlen,endpos,endwlen,skylines,skylines_section,stronglines,fittedlines,fittedlines_section,blendpeak,hbetaflux,totallines,skyspectrum,redshiftguess_overall,cube_i,cube_j) firstprivate(redshiftguess,resolutionguess) shared(skylines_catalogue,stronglines_catalogue,deeplines_catalogue, naxes)
 
 !$OMP DO
+  do cube_i=1,naxes(1)
     do cube_j=1,naxes(2)
+
+      tid=OMP_GET_THREAD_NUM()
 
       write (spectrumfile,"(A5,I3.3,A1,I3.3,A4)") "spec_",cube_i,"_",cube_j,".dat"
       allocate(realspec(naxes(3)))
@@ -242,11 +236,9 @@ tid=OMP_GET_THREAD_NUM()
       inquire(file=trim(spectrumfile)//"_lines", exist=file_exists)
 
       if (maxval(realspec%flux) .lt. 20000. .or. file_exists) then
-        print *,gettime(), ": skipping pixel ",cube_i,cube_j," on thread ",tid
+        print "(X,A,A,I2,A,I3.3,A,I3.3)",gettime(), "(thread ",tid,") : skipped pixel  ",cube_i,",",cube_j
         deallocate(realspec)
         cycle
-      else
-        print *,gettime(), ": fitting pixel ",cube_i,cube_j," on thread ",tid
       endif
 
       allocate (fittedspectrum(spectrumlength))
@@ -557,14 +549,13 @@ close(100+tid)
       deallocate(continuum)
       if (allocated(skyspectrum)) deallocate(skyspectrum)
 
-      print *,gettime(), ": finished pixel ",cube_i,cube_j," on thread ",tid
+      print "(X,A,A,I2,A,I3.3,A,I3.3)",gettime(), "(thread ",tid,") : finished pixel ",cube_i,",",cube_j
 
     enddo
+  enddo
 
 !$OMP END DO
 !$OMP END PARALLEL
-
-  enddo
 
   deallocate(cubedata)
 

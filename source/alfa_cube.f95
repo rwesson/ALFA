@@ -557,8 +557,6 @@ close(100+tid)
 !$OMP END DO
 !$OMP END PARALLEL
 
-  enddo
-
   deallocate(cubedata)
 
 !  The FITS file must always be closed before exiting the program. 

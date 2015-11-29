@@ -188,7 +188,7 @@ use mod_uncertainties
   call ftg3de(unit,group,nullval,naxes(1),naxes(2),naxes(1),naxes(2),naxes(3),cubedata,anynull,status)
 
   if (status .eq. 0) then
-    print "(X,A,A,I5,A)",gettime(), ": successfully read ",naxes(1)*naxes(2)," pixels into memory"
+    print "(X,A,A,I7,A)",gettime(), ": successfully read ",naxes(1)*naxes(2)," pixels into memory"
   else
     print *,gettime(), ": couldn't read cube into memory"
     stop

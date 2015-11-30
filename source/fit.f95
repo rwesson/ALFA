@@ -13,7 +13,7 @@ type(linelist), dimension(:,:), allocatable ::  breed
 type(spectrum), dimension(:,:), allocatable :: synthspec
 type(spectrum), dimension(:) :: inputspectrum
 integer :: popsize, i, spectrumlength, lineid, loc1, loc2, nlines, gencount, generations, popnumber
-real, dimension(:), allocatable :: rms
+real, dimension(:), allocatable :: sumsquares
 real :: random, pressure
 real :: resolutionguess, redshiftguess, redshifttolerance, resolutiontolerance
 
@@ -31,7 +31,7 @@ real :: resolutionguess, redshiftguess, redshifttolerance, resolutiontolerance
 !allocate arrays
 
   allocate(synthspec(spectrumlength,popsize))
-  allocate(rms(popsize))
+  allocate(sumsquares(popsize))
   allocate(breed(int(popsize*pressure),nlines))
   allocate(population(popsize,nlines))
 
@@ -58,7 +58,7 @@ real :: resolutionguess, redshiftguess, redshifttolerance, resolutiontolerance
 !reset stuff to zero before doing calculations
 
     synthspec%flux=0.D0
-    rms=0.D0
+    sumsquares=0.D0
 
     do popnumber=1,popsize
 
@@ -66,9 +66,9 @@ real :: resolutionguess, redshiftguess, redshifttolerance, resolutiontolerance
 
     call makespectrum(population(popnumber,:),synthspec(:,popnumber))
 
-!now calculate RMS for the "models"
+!now calculate sum of squares for the "models"
 
-    rms(popnumber)=sum((synthspec(:,popnumber)%flux-inputspectrum(:)%flux)**2)/spectrumlength
+    sumsquares(popnumber)=sum((synthspec(:,popnumber)%flux-inputspectrum(:)%flux)**2)
 
     enddo
 
@@ -76,23 +76,23 @@ real :: resolutionguess, redshiftguess, redshifttolerance, resolutiontolerance
 
     if (gencount .eq. generations) then
       !copy fit results into arrays to return
-      fittedlines = population(minloc(rms,1),:)
+      fittedlines = population(minloc(sumsquares,1),:)
       !deallocate arrays
       deallocate(synthspec)
-      deallocate(rms)
+      deallocate(sumsquares)
       deallocate(breed)
       deallocate(population)
       exit
     endif
 
     !next, cream off the well performing models - put the population
-    !member with the lowest RMS into the breed array, replace the RMS with
+    !member with the lowest sum of squares into the breed array, replace the sum of squares with
     !something very high so that it doesn't get copied twice, repeat until
     !a fraction equal to the pressure factor have been selected
 
     do i=1,int(popsize*pressure)
-      breed(i,:) = population(minloc(rms,1),:)
-      rms(minloc(rms,1))=1.e10
+      breed(i,:) = population(minloc(sumsquares,1),:)
+      sumsquares(minloc(sumsquares,1))=1.e10
     enddo
 
   !then, "breed" pairs

@@ -1,5 +1,3 @@
-write out balmer jump fluxes
-
 breed, mutate, fitness, select
 
 0. uncertainties:
@@ -17,3 +15,4 @@ breed, mutate, fitness, select
 4. use cfitsio to read in fits files
 5. allow choice of fitting with constant width or constant resolution
 6. use first differences to identify unfitted lines, take the top few differences which are not near fitted lines and report them
+7. sort out the issue of lines falling outside the chunk.

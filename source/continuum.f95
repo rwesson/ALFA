@@ -12,7 +12,7 @@ type(spectrum), dimension(:), allocatable :: continuum
 real, dimension(101) :: spectrumchunk
 integer :: i, spectrumlength
 
-! take the 25st percentile value of 101-element chunks of the spectrum
+! take the 25th percentile value of 101-element chunks of the spectrum
 
   allocate(continuum(spectrumlength))
 

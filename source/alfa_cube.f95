@@ -194,14 +194,6 @@ use mod_uncertainties
     stop
   endif
 
-
-!read in catalogues
-
-  print *,gettime(),": reading in line catalogues ",trim(skylinelistfile),", ",trim(stronglinelistfile),", ",trim(deeplinelistfile)
-  call readlinelist(skylinelistfile, skylines_catalogue, nlines,wavelength,wavelength+(naxes(3)-1)*dispersion)
-  call readlinelist(stronglinelistfile, stronglines_catalogue, nlines,wavelength,wavelength+(naxes(3)-1)*dispersion)
-  call readlinelist(deeplinelistfile, deeplines_catalogue, nlines,wavelength,wavelength+(naxes(3)-1)*dispersion)
-
 ! process cube
 ! each pixel is completely independent so it's embarrassingly parallel
 
@@ -213,6 +205,13 @@ use mod_uncertainties
     print "(X,A,A,I2,A)", gettime(), ": running in parallel mode with ",nprocessors," processors"
     print *
   endif
+
+!read in catalogues
+
+  print *,gettime(),": reading in line catalogues ",trim(skylinelistfile),", ",trim(stronglinelistfile),", ",trim(deeplinelistfile)
+  call readlinelist(skylinelistfile, skylines_catalogue, nlines,wavelength,wavelength+(naxes(3)-1)*dispersion)
+  call readlinelist(stronglinelistfile, stronglines_catalogue, nlines,wavelength,wavelength+(naxes(3)-1)*dispersion)
+  call readlinelist(deeplinelistfile, deeplines_catalogue, nlines,wavelength,wavelength+(naxes(3)-1)*dispersion)
 
 !$OMP PARALLEL private(spectrumfile,realspec,fittedspectrum,spectrumlength,continuum,nlines,spectrumchunk,linearraypos,overlap,startpos,startwlen,endpos,endwlen,skylines,skylines_section,stronglines,fittedlines,fittedlines_section,blendpeak,hbetaflux,totallines,skyspectrum,redshiftguess_overall,cube_i,cube_j) firstprivate(redshiftguess,resolutionguess) shared(skylines_catalogue,stronglines_catalogue,deeplines_catalogue, naxes)
 

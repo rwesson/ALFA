@@ -89,17 +89,21 @@ real :: resolutionguess, redshiftguess, redshifttolerance, resolutiontolerance
     !member with the lowest sum of squares into the breed array, replace the sum of squares with
     !something very high so that it doesn't get copied twice, repeat until
     !a fraction equal to the pressure factor have been selected
+    !best fitting member of generation is put into slot 1 of population array, to be retained unaltered in the next generation
+
+    population(1,:)=population(minloc(sumsquares,1),:)
+    sumsquares(minloc(sumsquares,1))=1.e30
 
     do i=1,int(popsize*pressure)
       breed(i,:) = population(minloc(sumsquares,1),:)
-      sumsquares(minloc(sumsquares,1))=1.e10
+      sumsquares(minloc(sumsquares,1))=1.e20
     enddo
 
   !then, "breed" pairs
   !random approach will mean that some models have no offspring while others might have many.
   !Alternative approach could be to breed all adjacent pairs so that every model generates one offspring.
 
-    do i=1,popsize
+    do i=2,popsize
       call random_number(random)
       loc1=int(popsize*random*pressure)+1
       call random_number(random)
@@ -109,7 +113,7 @@ real :: resolutionguess, redshiftguess, redshifttolerance, resolutiontolerance
       population(i,:)%redshift=(breed(loc1,:)%redshift + breed(loc2,:)%redshift)/2.0
     enddo
     !then, mutate
-    do popnumber=1,popsize ! mutation of spectral resolution
+    do popnumber=2,popsize ! mutation of spectral resolution
       population(popnumber,:)%resolution = population(popnumber,:)%resolution * mutation()
       if (abs(population(popnumber,1)%resolution-resolutionguess) .gt. resolutiontolerance) then
         population(popnumber,:)%resolution = resolutionguess

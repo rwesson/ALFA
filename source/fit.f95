@@ -20,7 +20,7 @@ real :: resolutionguess, redshiftguess, redshifttolerance, resolutiontolerance
 !initialisation
 
   popsize=20
-  pressure=0.25 !pressure * popsize needs to be an integer
+  pressure=0.3 !pressure * popsize needs to be an integer
   generations=500
 
   nlines=size(fittedlines%wavelength)

@@ -19,7 +19,7 @@ real :: resolutionguess, redshiftguess, redshifttolerance, resolutiontolerance
 
 !initialisation
 
-  popsize=20
+  popsize=30
   pressure=0.3 !pressure * popsize needs to be an integer
   generations=500
 

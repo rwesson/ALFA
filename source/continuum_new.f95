@@ -1,8 +1,9 @@
 program cont
 use mod_quicksort
+
 implicit none
 
-character(len=50) :: filename
+character(len=50) :: filename, windowch
 character(len=1) :: z
 integer :: i, io, spectrumlength, begin, end, window
 type spectrum
@@ -12,20 +13,25 @@ type spectrum
   real(kind=dp) :: continuum
 end type
 type(spectrum), dimension(:), allocatable :: input
-type(spectrum), dimension(101) :: chunk
+type(spectrum), dimension(:), allocatable :: chunk
 real(kind=dp), dimension(:), allocatable :: temporary
-real(kind=dp) :: median
+real(kind=dp) :: meanflux, meandifference
 
 window=25
 
-!take first differences of each point to points either side
-!distribution of these should be mostly continuum with noise, with large values at lines
-!select the lowest ones, smooth somehow
+!continuum points have the lowest flux and represent low frequency information so will have low gradients to adjacent points.
+!so, first select lowest half of the fluxes
+!then select lowest half of differences to points either side.
 
 call get_command_argument(1,filename)
 if (filename .eq. "") then
   print *,"file?"
   read(5,*) filename
+endif
+
+if (iargc() .eq. 2) then
+  call get_command_argument(2,windowch)
+  read (windowch,"(I3)") window
 endif
 
 I = 0
@@ -38,7 +44,9 @@ END DO
 
 !then allocate and read
 
-allocate (input(spectrumlength))
+allocate(input(spectrumlength))
+allocate(chunk(2*window+1))
+allocate(temporary(2*window+1))
 
 REWIND (199)
 DO I=1,spectrumlength
@@ -53,7 +61,7 @@ do i=2,spectrumlength-1
   input(i)%difference = abs(input(i)%flux - input(i-1)%flux) + abs(input(i+1)%flux - input(i)%flux)
 end do
 
-!in 100 unit windows, take continuum as average of points with less than median 1st difference
+!in 100 unit windows, take continuum as average of points with less than mean 1st difference and less than mean flux.
 
 do i=1,spectrumlength
 
@@ -71,13 +79,10 @@ do i=1,spectrumlength
 
   chunk = input(begin:end)
 
-  allocate(temporary(end-begin+1))
-  temporary=chunk%difference
-  call qsort(temporary)
-  median=temporary(int(real(size(temporary)/2)))
+  meandifference=sum(chunk%difference)/size(chunk)
+  meanflux=sum(chunk%flux)/size(chunk)
 
-  deallocate(temporary)
-  where (chunk%difference .gt. median)
+  where (chunk%difference .gt. (meandifference/2.))
     chunk%continuum=0.d0
   elsewhere
     chunk%continuum=chunk%flux

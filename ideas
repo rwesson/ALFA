@@ -16,3 +16,8 @@ breed, mutate, fitness, select
 5. allow choice of fitting with constant width or constant resolution
 6. use first differences to identify unfitted lines, take the top few differences which are not near fitted lines and report them
 7. sort out the issue of lines falling outside the chunk.
+
+8. allow more parameters to be set on command line
+     continuum window, npoints
+     generations, pop size, pressure
+9. fix reading of 1D fits files

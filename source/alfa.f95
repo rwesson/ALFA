@@ -70,6 +70,9 @@ if (narg .eq. 0) then
   print *,"  -rtol1 / --resolution-tolerance-1: variation allowed in resolution in first pass (default: equal to resolution guess)"
   print *,"  -rtol2 / --resolution-tolerance-2: variation allowed in resolution in second pass (default: 500.)"
   print *,"  -ss / --subtract-sky: attempt to remove night sky emission lines"
+! to implement:
+!   continuum window and percentile
+!   no. of generations, population size, pressure
   stop
 endif
 

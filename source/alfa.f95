@@ -168,7 +168,6 @@ if (subtractsky) then
 
   !get an array for all the sky lines in the range
   call selectlines(skylines_catalogue,realspec(1)%wavelength, realspec(size(realspec))%wavelength, skylines, nlines)
-
   linearraypos=1
 
   !go though in chunks of 400 units
@@ -176,14 +175,14 @@ if (subtractsky) then
     if (i+400 .gt. spectrumlength) then
       endpos=spectrumlength
     else
-      endpos=i+399
+      endpos=i+400
     endif
 
     allocate(spectrumchunk(endpos-i+1))
     spectrumchunk = realspec(i:endpos)
 
     !read in sky lines in chunk
-    call selectlines(skylines_catalogue, realspec(i)%wavelength, realspec(i+399)%wavelength, skylines_section, nlines)
+    call selectlines(skylines_catalogue, realspec(i)%wavelength, realspec(endpos)%wavelength, skylines_section, nlines)
     if (nlines .gt. 0) then
       call fit(spectrumchunk, 1., resolutionguess, skylines_section, 0., rtol2)
       skylines(linearraypos:linearraypos+nlines-1)=skylines_section!(1:nlines)

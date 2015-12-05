@@ -68,7 +68,7 @@ endif
 
 new: clean all
 
-all: alfa
+all: alfa alfacube
 
 %.o: %.f95
 	$(FC) $(FFLAGS) $< -c -o $@

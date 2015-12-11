@@ -64,7 +64,7 @@ ifeq ($(FC),ifort)
   endif
 endif
 
-.PHONY: all clean
+.PHONY: all clean install
 
 new: clean all
 
@@ -81,3 +81,10 @@ alfacube: source/types.o source/functions.o source/readfiles.o source/quicksort.
 
 clean:
 	rm -f alfa alfacube source/*.o source/*.mod
+
+install:
+
+	test -e /etc/alfa || mkdir /etc/alfa
+	install -m 644 linelists/* /etc/alfa
+	install alfa /usr/bin
+	install alfacube /usr/bin

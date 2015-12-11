@@ -69,8 +69,8 @@ use mod_uncertainties
 
   ! start
 
-  print *,"ALFA, the Automated Line Fitting Algorithm"
-  print *,"------------------------------------------"
+  print *,"ALFACUBE, the Automated Line Fitting Algorithm for data cubes"
+  print *,"-------------------------------------------------------------"
 
   print *
   print *,gettime(),": starting code"
@@ -83,8 +83,8 @@ use mod_uncertainties
 
   narg = IARGC() !count input arguments
   if (narg .eq. 0) then
-    print *,"Usage: alfa [file] [options]"
-    print *,"  [file] is an ascii file with columns for wavelength and flux"
+    print *,"Usage: alfacube [file] [options]"
+    print *,"  [file] is a FITS file with three axes"
     print *,"  [options]:"
     print *,"  -n / --normalise [value]: normalise to Hb=100 assuming that F(Hb)=value"
     print *,"  -vg / --velocity-guess: initial guess for the velocity of the object [km/s]"

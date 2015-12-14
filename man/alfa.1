@@ -1,0 +1,39 @@
+.\" Manpage for neat.
+.TH man 8 "12 Dec 2015" "1.0" "alfa man page"
+.SH NAME
+alfa \- automated line fitting algorithm
+.SH SYNOPSIS
+alfa [\fIOPTION\fR] [\fIVALUE\fR]... [\fIFILE\fR]
+.SH DESCRIPTION
+alfa rapidly fits deep emission line spectra, using a genetic algorithm to optimise fitting parameters.
+.SH OPTIONS
+.TP
+.B \-n, \-\-normalise [VALUE]
+normalise to Hb=100 assuming that F(Hb)=\fIVALUE\fR.  If \fIVALUE\fR is zero, or if Hb is not detected, no normalisation is applied.
+.TP
+.B \-vg, \-\-velocity\-guess [VALUE]
+ initial guess for the velocity of the object [km/s]
+.TP
+.B \-rg, \-\-resolution\-guess [VALUE]
+ initial guess for the resolution [lambda/delta lambda]
+.TP
+.B \-vtol1, \-\-velocity\-tolerance\-1 [VALUE]
+ variation allowed in velocity in first pass (default: 900km/s)
+.TP
+.B \-vtol2, \-\-velocity\-tolerance\-2 [VALUE]
+ variation allowed in velocity in second pass (default: 60km/s)
+.TP
+.B \-rtol1, \-\-resolution\-tolerance\-1 [VALUE]
+ variation allowed in resolution in first pass (default: equal to resolution guess)
+.TP
+.B \-rtol2, \-\-resolution\-tolerance\-2 [VALUE]
+ variation allowed in resolution in second pass (default: 500.)
+.TP
+.B \-ss, \-\-subtract\-sky
+ fit and subtract night sky emission lines before fitting nebular emission lines
+.SH SEE ALSO
+neat
+.SH BUGS
+No known bugs.
+.SH AUTHOR
+Roger Wesson

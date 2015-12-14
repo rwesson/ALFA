@@ -61,20 +61,7 @@ narg = IARGC() !count input arguments
 if (narg .eq. 0) then
   print *,"Usage: alfa [file] [options]"
   print *,"  [file] is an ascii file with columns for wavelength and flux"
-  print *,"  [options]:"
-  print *,"  -n / --normalise [value]: normalise to Hb=100 assuming that F(Hb)=value"
-  print *,"  -vg / --velocity-guess: initial guess for the velocity of the object [km/s]"
-  print *,"  -rg / --resolution-guess: initial guess for the resolution [lambda/delta lambda]"
-  print *,"  -vtol1 / --velocity-tolerance-1: variation allowed in velocity in first pass (default: 900km/s)"
-  print *,"  -vtol2 / --velocity-tolerance-2: variation allowed in velocity in second pass (default: 60km/s)"
-  print *,"  -rtol1 / --resolution-tolerance-1: variation allowed in resolution in first pass (default: equal to resolution guess)"
-  print *,"  -rtol2 / --resolution-tolerance-2: variation allowed in resolution in second pass (default: 500.)"
-  print *,"  -ss / --subtract-sky: attempt to remove night sky emission lines"
-! to implement:
-!   continuum window and percentile
-!   no. of generations, population size, pressure
-!   output directory
-!   linelists
+  print *,"  see the man page or online documentation for details of the options"
   stop
 endif
 
@@ -114,6 +101,11 @@ if (narg .gt. 1) then
     if ((trim(options(i))=="-ss" .or. trim(options(i))=="--subtract-sky")) then
       subtractsky=.true.
     endif
+! to implement:
+!   continuum window and percentile
+!   no. of generations, population size, pressure
+!   output directory
+!   linelists
   enddo
 endif
 
@@ -123,7 +115,7 @@ redshiftguess=1.+(redshiftguess/c)
 
 print *,gettime(),": command line: ",trim(commandline)
 
-call get_command_argument(1,spectrumfile)
+call get_command_argument(narg,spectrumfile)
 
 ! read in spectrum to fit and line list
 

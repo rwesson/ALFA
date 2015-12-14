@@ -91,4 +91,4 @@ install:
 	install alfa ${PREFIX}/usr/bin
 	install alfacube ${PREFIX}/usr/bin
 	install -g 0 -o 0 -m 0644 man/alfa.1 ${MANDIR}
-	gzip ${MANDIR}/alfa.1
+	gzip -f ${MANDIR}/alfa.1

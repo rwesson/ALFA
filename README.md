@@ -12,3 +12,15 @@ ALFA can identify and fit hundreds of lines in emission line spectra in just a f
 5. The process repeats until a good fit is obtained.
 
 The code is currently optimised for optical spectra but the algorithm is entirely indifferent to the wavelength range and resolution of the spectra to be analysed.  The only requirement to get a good fit out is to create a meaningful reference line catalogue.
+
+Installation
+============
+
+To install ALFA, unpack the source files somewhere convenient, then type
+
+  make
+  sudo make install
+
+If you don't have the necessary permissions to execute the second command, then change the directory definitions in the make file, edit source/alfa.f95 and source/alfa_cube.f95 to change the values of skylinelistfile, stronglinelistfile and deeplinelistfile, and then type
+
+  make install

@@ -63,9 +63,9 @@ use mod_uncertainties
   vtol2=0.0002 !second pass. 0.0002 = 60 km/s
   cube_i=1
 
-  stronglinelistfile="linelists/strong_optical"
-  deeplinelistfile="linelists/deep_full"
-  skylinelistfile="linelists/skylines"
+  stronglinelistfile="/etc/alfa/strong_optical"
+  deeplinelistfile="/etc/alfa/deep_full"
+  skylinelistfile="/etc/alfa/skylines"
 
   ! start
 

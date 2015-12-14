@@ -39,9 +39,9 @@ rtol2=500. !second pass
 vtol1=0.003 !variation allowed in velocity (expressed as redshift) on first pass. 0.003 = 900 km/s
 vtol2=0.0002 !second pass. 0.0002 = 60 km/s
 
-stronglinelistfile="linelists/strong_optical"
-deeplinelistfile="linelists/deep_full"
-skylinelistfile="linelists/skylines"
+stronglinelistfile="/etc/alfa/strong_optical"
+deeplinelistfile="/etc/alfa/deep_full"
+skylinelistfile="/etc/alfa/skylines"
 
 ! start
 
@@ -73,6 +73,8 @@ if (narg .eq. 0) then
 ! to implement:
 !   continuum window and percentile
 !   no. of generations, population size, pressure
+!   output directory
+!   linelists
   stop
 endif
 
@@ -152,7 +154,7 @@ else
 endif
 
 if (rtol1 .eq. 0.d0) then
-  rtol1=resolutionguess ! user didn't specify a value, default behaviour is to allow resolution to vary between 0 and 2x the initial guess on the first pass
+  rtol1=0.9*resolutionguess ! user didn't specify a value, default behaviour is to allow resolution to vary between 0.1 and 1.9x the initial guess on the first pass
 endif
 
 print "(X,A,A,F8.1,A,F7.1)",gettime(),": initial guesses for velocity and resolution: ",c*(redshiftguess-1),"km/s, R=",resolutionguess

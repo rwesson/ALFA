@@ -186,7 +186,7 @@ use mod_uncertainties
 !check for valid data
 !ultra crude and tailored for NGC 7009 at the moment
 
-      inquire(file=trim(spectrumfile)//"_lines", exist=file_exists)
+      inquire(file=trim(outputdirectory)//trim(spectrumfile)//"_lines", exist=file_exists)
 
       if (maxval(realspec%flux) .lt. 20000. .or. file_exists) then
         print "(X,A,A,I2,A,I3.3,A,I3.3)",gettime(), "(thread ",tid,") : skipped pixel  ",cube_i,",",cube_j

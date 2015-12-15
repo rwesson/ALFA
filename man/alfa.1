@@ -1,11 +1,13 @@
 .\" Manpage for neat.
-.TH man 8 "12 Dec 2015" "1.0" "alfa man page"
+.TH alfa 1 "12 Dec 2015" "1.0" "alfa man page"
 .SH NAME
-alfa \- automated line fitting algorithm
+alfa, alfacube \- automated line fitting algorithm
 .SH SYNOPSIS
-alfa [\fIOPTION\fR] [\fIVALUE\fR]... [\fIFILE\fR]
+alfa / alfacube [\fIOPTION\fR] [\fIVALUE\fR]... [\fIFILE\fR]
 .SH DESCRIPTION
-alfa rapidly fits deep emission line spectra, using a genetic algorithm to optimise fitting parameters.
+\fBalfa\fR rapidly fits deep emission line spectra, using a genetic algorithm to optimise fitting parameters.  It has a number of configurable parameters, and while the default values should work well in many situations, a good fit to your observed spectrum may require some adjustments.
+
+\fBalfa\fR reads one dimensional spectra in either plain text or FITS format.  Plain text input should consist of two columns, giving wavelength and flux.  \fBalfcube\fR reads data cubes in FITS format.
 .SH OPTIONS
 .TP
 .B \-n, \-\-normalise [VALUE]
@@ -31,6 +33,21 @@ normalise to Hb=100 assuming that F(Hb)=\fIVALUE\fR.  If \fIVALUE\fR is zero, or
 .TP
 .B \-ss, \-\-subtract\-sky
  fit and subtract night sky emission lines before fitting nebular emission lines
+.TP
+.B \-o, \-\-output\-dir
+ the directory in which to put the output files (default: current working directory)
+.TP
+.B \-skycat, \-strongcat, \-deepcat
+ the files containing the line catalogues to be used for the removal of sky lines, the estimation of velocity and resolution, and the full line fitting.  The default catalogues are stored in /etc/alfa
+.TP
+.B \-g, \-\-generations
+ the number of generations used in the genetic algorithm (default: 500)
+.TP
+.B \-ps, \-\-populationsize
+ The size of the population used in the genetic algorithm (default: 30)
+.TP
+.B \-pr, \-\-pressure
+ The fraction of the population retained from each generation (default: 0.3)
 .SH SEE ALSO
 neat
 .SH BUGS

@@ -30,7 +30,7 @@ FC=gfortran
 LD=gfortran
 FFLAGS=-ffree-line-length-0 -Jsource/ -fopenmp
 CUBEFLAGS=-L/software/cfitsio/ -lcfitsio -lm
-MANDIR=/usr/share/man/man1/
+MANDIR=/usr/share/man/man1
 PREFIX=
 
 ifeq ($(FC),gfortran)
@@ -90,5 +90,6 @@ install:
 	install -m 644 linelists/* ${PREFIX}/etc/alfa
 	install alfa ${PREFIX}/usr/bin
 	install alfacube ${PREFIX}/usr/bin
-	install -g 0 -o 0 -m 0644 man/alfa.1 ${MANDIR}
+	install -g 0 -o 0 -m 644 man/alfa.1 ${MANDIR}
 	gzip -f ${MANDIR}/alfa.1
+	ln -s -f ${MANDIR}/alfa.1.gz ${MANDIR}/alfacube.1.gz

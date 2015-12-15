@@ -10,7 +10,7 @@ use mod_uncertainties
 implicit none
 integer :: I, spectrumlength, nlines, linearraypos, totallines, startpos, endpos
 real :: startwlen, endwlen
-character (len=512) :: spectrumfile,stronglinelistfile,deeplinelistfile,skylinelistfile
+character (len=512) :: spectrumfile,stronglinelistfile,deeplinelistfile,skylinelistfile,outputdirectory
 
 type(linelist), dimension(:), allocatable :: skylines_catalogue, stronglines_catalogue, deeplines_catalogue
 type(linelist), dimension(:), allocatable :: fittedlines, fittedlines_section, skylines, skylines_section
@@ -18,7 +18,7 @@ type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum, spectrumc
 
 CHARACTER(len=2048), DIMENSION(:), allocatable :: options
 CHARACTER(len=2048) :: commandline
-integer :: narg
+integer :: narg, nargused
 
 real :: redshiftguess, resolutionguess, redshiftguess_overall
 real :: vtol1, vtol2, rtol1, rtol2
@@ -30,6 +30,7 @@ integer :: linelocation, overlap
 logical :: normalise=.false. !false means spectrum normalised to whatever H beta is detected, true means spectrum normalised to user specified value
 logical :: resolution_estimated=.false. !true means user specified a value, false means estimate from sampling
 logical :: subtractsky=.false. !attempt to fit night sky emission lines
+logical :: file_exists
 
 c=299792.458 !km/s
 !default values in absence of user specificed guess
@@ -42,6 +43,8 @@ vtol2=0.0002 !second pass. 0.0002 = 60 km/s
 stronglinelistfile="/etc/alfa/strong_optical"
 deeplinelistfile="/etc/alfa/deep_full"
 skylinelistfile="/etc/alfa/skylines"
+
+outputdirectory="."
 
 ! start
 
@@ -58,64 +61,21 @@ call init_random_seed()
 ! read command line
 
 narg = IARGC() !count input arguments
+nargused = 0 !count options specified
 if (narg .eq. 0) then
-  print *,"Usage: alfa [file] [options]"
+  print *,"Usage: alfa [options] [file]"
   print *,"  [file] is an ascii file with columns for wavelength and flux"
   print *,"  see the man page or online documentation for details of the options"
   stop
 endif
 
-call get_command(commandline)
-ALLOCATE (options(Narg))
-if (narg .gt. 1) then
-  do i=1,Narg
-    call get_command_argument(i,options(i))
-  enddo
-
-  do i=1,narg
-    if ((trim(options(i))=="-n" .or. trim(options(i))=="--normalise") .and. (i+1) .le. Narg) then
-      read (options(i+1),*) normalisation
-      normalise=.true.
-    endif
-    if ((trim(options(i))=="-vg" .or. trim(options(i))=="--velocity-guess") .and. (i+1) .le. Narg) then
-      read (options(i+1),*) redshiftguess
-    endif
-    if ((trim(options(i))=="-rg" .or. trim(options(i))=="--resolution-guess") .and. (i+1) .le. Narg) then
-      read (options(i+1),*) resolutionguess
-      resolution_estimated=.true.
-    endif
-    if ((trim(options(i))=="-vtol1" .or. trim(options(i))=="--velocity-tolerance-1") .and. (i+1) .le. Narg) then
-      read (options(i+1),*) vtol1
-      vtol1 = vtol1/c
-    endif
-    if ((trim(options(i))=="-vtol2" .or. trim(options(i))=="--velocity-tolerance-2") .and. (i+1) .le. Narg) then
-      read (options(i+1),*) vtol2
-      vtol2 = vtol2/c
-    endif
-    if ((trim(options(i))=="-rtol1" .or. trim(options(i))=="--resolution-tolerance-1") .and. (i+1) .le. Narg) then
-      read (options(i+1),*) rtol1
-    endif
-    if ((trim(options(i))=="-rtol2" .or. trim(options(i))=="--resolution-tolerance-2") .and. (i+1) .le. Narg) then
-      read (options(i+1),*) rtol2
-    endif
-    if ((trim(options(i))=="-ss" .or. trim(options(i))=="--subtract-sky")) then
-      subtractsky=.true.
-    endif
-! to implement:
-!   continuum window and percentile
-!   no. of generations, population size, pressure
-!   output directory
-!   linelists
-  enddo
-endif
+include "commandline.f95"
 
 ! convert from velocity to redshift
 
 redshiftguess=1.+(redshiftguess/c)
 
 print *,gettime(),": command line: ",trim(commandline)
-
-call get_command_argument(narg,spectrumfile)
 
 ! read in spectrum to fit and line list
 
@@ -335,7 +295,7 @@ call get_uncertainties(fittedspectrum, realspec, fittedlines)
 
 ! write out the fitted spectrum
 
-open(100,file=trim(spectrumfile)//"_fit")
+open(100,file=trim(outputdirectory)//trim(spectrumfile)//"_fit")
 
 write (100,*) """wavelength""  ""fitted spectrum""  ""cont-subbed orig"" ""continuum""  ""sky lines""  ""residuals"""
 do i=1,spectrumlength
@@ -388,8 +348,8 @@ realspec%uncertainty = realspec%uncertainty * normalisation !for continuum jumps
 
 print *,gettime(),": writing output files ",trim(spectrumfile),"_lines.tex and ",trim(spectrumfile),"_fit"
 
-open(100,file=trim(spectrumfile)//"_lines.tex")
-open(101,file=trim(spectrumfile)//"_lines")
+open(100,file=trim(outputdirectory)//trim(spectrumfile)//"_lines.tex")
+open(101,file=trim(outputdirectory)//trim(spectrumfile)//"_lines")
 write(100,*) "Observed wavelength & Rest wavelength & Flux & Uncertainty & Ion & Multiplet & Lower term & Upper term & g$_1$ & g$_2$ \\"
 do i=1,totallines
   if (fittedlines(i)%blended .eq. 0 .and. fittedlines(i)%uncertainty .gt. 3.0) then

@@ -29,7 +29,7 @@ use mod_uncertainties
 
   integer :: I, spectrumlength, nlines, linearraypos, totallines, startpos, endpos
   real :: startwlen, endwlen
-  character (len=512) :: spectrumfile,stronglinelistfile,deeplinelistfile,skylinelistfile
+  character (len=512) :: spectrumfile,stronglinelistfile,deeplinelistfile,skylinelistfile,outputdirectory
 
   type(linelist), dimension(:), allocatable :: skylines_catalogue, stronglines_catalogue, deeplines_catalogue
   type(linelist), dimension(:), allocatable :: fittedlines, fittedlines_section, skylines, skylines_section
@@ -37,7 +37,7 @@ use mod_uncertainties
 
   CHARACTER(len=2048), DIMENSION(:), allocatable :: options
   CHARACTER(len=2048) :: commandline
-  integer :: narg
+  integer :: narg, nargused
 
   real :: redshiftguess, resolutionguess, redshiftguess_overall
   real :: vtol1, vtol2, rtol1, rtol2
@@ -83,58 +83,13 @@ use mod_uncertainties
 
   narg = IARGC() !count input arguments
   if (narg .eq. 0) then
-    print *,"Usage: alfacube [file] [options]"
-    print *,"  [file] is a FITS file with three axes"
-    print *,"  [options]:"
-    print *,"  -n / --normalise [value]: normalise to Hb=100 assuming that F(Hb)=value"
-    print *,"  -vg / --velocity-guess: initial guess for the velocity of the object [km/s]"
-    print *,"  -rg / --resolution-guess: initial guess for the resolution [lambda/delta lambda]"
-    print *,"  -vtol1 / --velocity-tolerance-1: variation allowed in velocity in first pass (default: 900km/s)"
-    print *,"  -vtol2 / --velocity-tolerance-2: variation allowed in velocity in second pass (default: 60km/s)"
-    print *,"  -rtol1 / --resolution-tolerance-1: variation allowed in resolution in first pass (default: equal to resolution guess)"
-    print *,"  -rtol2 / --resolution-tolerance-2: variation allowed in resolution in second pass (default: 500.)"
-    print *,"  -ss / --subtract-sky: attempt to remove night sky emission lines"
+    print *,"Usage: alfacube [options] [file]"
+    print *,"  [file] is a FITS file with three dimensions"
+    print *,"  see the man page or online documentation for details of the options"
     stop
   endif
 
-  call get_command(commandline)
-  ALLOCATE (options(Narg))
-  if (narg .gt. 1) then
-    do i=1,Narg
-      call get_command_argument(i,options(i))
-    enddo
-
-    do i=1,narg
-      if ((trim(options(i))=="-n" .or. trim(options(i))=="--normalise") .and. (i+1) .le. Narg) then
-        read (options(i+1),*) normalisation
-        normalise=.true.
-      endif
-      if ((trim(options(i))=="-vg" .or. trim(options(i))=="--velocity-guess") .and. (i+1) .le. Narg) then
-        read (options(i+1),*) redshiftguess
-      endif
-      if ((trim(options(i))=="-rg" .or. trim(options(i))=="--resolution-guess") .and. (i+1) .le. Narg) then
-        read (options(i+1),*) resolutionguess
-        resolution_estimated=.true.
-      endif
-      if ((trim(options(i))=="-vtol1" .or. trim(options(i))=="--velocity-tolerance-1") .and. (i+1) .le. Narg) then
-        read (options(i+1),*) vtol1
-        vtol1 = vtol1/c
-      endif
-      if ((trim(options(i))=="-vtol2" .or. trim(options(i))=="--velocity-tolerance-2") .and. (i+1) .le. Narg) then
-        read (options(i+1),*) vtol2
-        vtol2 = vtol2/c
-      endif
-      if ((trim(options(i))=="-rtol1" .or. trim(options(i))=="--resolution-tolerance-1") .and. (i+1) .le. Narg) then
-        read (options(i+1),*) rtol1
-      endif
-      if ((trim(options(i))=="-rtol2" .or. trim(options(i))=="--resolution-tolerance-2") .and. (i+1) .le. Narg) then
-        read (options(i+1),*) rtol2
-      endif
-      if ((trim(options(i))=="-ss" .or. trim(options(i))=="--subtract-sky")) then
-        subtractsky=.true.
-      endif
-    enddo
-  endif
+  include "commandline.f95"
 
   ! convert from velocity to redshift
 
@@ -142,7 +97,6 @@ use mod_uncertainties
 
   print *,gettime(),": command line: ",trim(commandline)
 
-  call get_command_argument(1,spectrumfile)
   status=0
   !  Get an unused Logical Unit Number to use to open the FITS file.
   call ftgiou(unit,status)
@@ -442,7 +396,7 @@ call get_uncertainties(fittedspectrum, realspec, fittedlines)
 ! write out the fitted spectrum
 ! use thread number to avoid clashing in parallel mode
 
-open(100+tid,file=trim(spectrumfile)//"_fit")
+open(100+tid,file=trim(outputdirectory)//trim(spectrumfile)//"_fit")
 
 write (100+tid,*) """wavelength""  ""fitted spectrum""  ""cont-subbed orig"" ""continuum""  ""sky lines""  ""residuals"""
 do i=1,spectrumlength
@@ -488,8 +442,8 @@ realspec%uncertainty = realspec%uncertainty * normalisation !for continuum jumps
 ! now write out the line list.
 
 
-open(100+tid,file=trim(spectrumfile)//"_lines.tex")
-open(200+tid,file=trim(spectrumfile)//"_lines")
+open(100+tid,file=trim(outputdirectory)//trim(spectrumfile)//"_lines.tex")
+open(200+tid,file=trim(outputdirectory)//trim(spectrumfile)//"_lines")
 write(100+tid,*) "Observed wavelength & Rest wavelength & Flux & Uncertainty & Ion & Multiplet & Lower term & Upper term & g$_1$ & g$_2$ \\"
 do i=1,totallines
   if (fittedlines(i)%blended .eq. 0 .and. fittedlines(i)%uncertainty .gt. 3.0) then

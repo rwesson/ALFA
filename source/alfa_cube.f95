@@ -67,6 +67,8 @@ use mod_uncertainties
   deeplinelistfile="/etc/alfa/deep_full"
   skylinelistfile="/etc/alfa/skylines"
 
+  outputdirectory="./"
+
   ! start
 
   print *,"ALFACUBE, the Automated Line Fitting Algorithm for data cubes"

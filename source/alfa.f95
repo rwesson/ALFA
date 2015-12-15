@@ -44,7 +44,7 @@ stronglinelistfile="/etc/alfa/strong_optical"
 deeplinelistfile="/etc/alfa/deep_full"
 skylinelistfile="/etc/alfa/skylines"
 
-outputdirectory="."
+outputdirectory="./"
 
 ! start
 

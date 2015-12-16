@@ -10,7 +10,7 @@ use mod_uncertainties
 implicit none
 integer :: I, spectrumlength, nlines, linearraypos, totallines, startpos, endpos
 real :: startwlen, endwlen
-character (len=512) :: spectrumfile,stronglinelistfile,deeplinelistfile,skylinelistfile,outputdirectory
+character (len=512) :: spectrumfile,stronglinelistfile,deeplinelistfile,skylinelistfile,outputdirectory,outputbasename
 
 type(linelist), dimension(:), allocatable :: skylines_catalogue, stronglines_catalogue, deeplines_catalogue
 type(linelist), dimension(:), allocatable :: fittedlines, fittedlines_section, skylines, skylines_section
@@ -81,6 +81,7 @@ print *,gettime(),": command line: ",trim(commandline)
 
 print *,gettime(),": reading in spectrum ",trim(spectrumfile)
 call readspectrum(spectrumfile, realspec, spectrumlength, fittedspectrum)
+outputbasename=spectrumfile(index(spectrumfile,"/",back=.true.)+1:len(trim(spectrumfile)))
 
 !read in catalogues
 
@@ -295,7 +296,7 @@ call get_uncertainties(fittedspectrum, realspec, fittedlines)
 
 ! write out the fitted spectrum
 
-open(100,file=trim(outputdirectory)//trim(spectrumfile)//"_fit")
+open(100,file=trim(outputdirectory)//trim(outputbasename)//"_fit")
 
 write (100,*) """wavelength""  ""fitted spectrum""  ""cont-subbed orig"" ""continuum""  ""sky lines""  ""residuals"""
 do i=1,spectrumlength
@@ -346,10 +347,10 @@ realspec%uncertainty = realspec%uncertainty * normalisation !for continuum jumps
 
 ! now write out the line list.
 
-print *,gettime(),": writing output files ",trim(spectrumfile),"_lines.tex and ",trim(spectrumfile),"_fit"
+print *,gettime(),": writing output files ",trim(outputdirectory),trim(outputbasename),"_lines.tex and ",trim(outputdirectory),trim(outputbasename),"_fit"
 
-open(100,file=trim(outputdirectory)//trim(spectrumfile)//"_lines.tex")
-open(101,file=trim(outputdirectory)//trim(spectrumfile)//"_lines")
+open(100,file=trim(outputdirectory)//trim(outputbasename)//"_lines.tex")
+open(101,file=trim(outputdirectory)//trim(outputbasename)//"_lines")
 write(100,*) "Observed wavelength & Rest wavelength & Flux & Uncertainty & Ion & Multiplet & Lower term & Upper term & g$_1$ & g$_2$ \\"
 do i=1,totallines
   if (fittedlines(i)%blended .eq. 0 .and. fittedlines(i)%uncertainty .gt. 3.0) then

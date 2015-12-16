@@ -46,7 +46,7 @@ do i=1,narg
     nargused = nargused + 1
   endif
   if ((trim(options(i))=="-o" .or. trim(options(i))=="--output-dir")) then
-    read (options(i+1),*) outputdirectory
+    read (options(i+1),"(A)") outputdirectory
     outputdirectory=trim(outputdirectory)//"/"
     inquire(file=trim(outputdirectory), exist=file_exists) ! trailing slash ensures it's looking for a directory
     if (.not. file_exists) then
@@ -55,11 +55,21 @@ do i=1,narg
     endif
     nargused = nargused + 2
   endif
-
+  if (trim(options(i))=="-skycat" .and. (i+1) .le. Narg) then
+    read (options(i+1),"(A)") skylinelistfile
+    nargused = nargused + 2
+  endif
+  if (trim(options(i))=="-strongcat" .and. (i+1) .le. Narg) then
+    read (options(i+1),"(A)") stronglinelistfile
+    nargused = nargused + 2
+  endif
+  if (trim(options(i))=="-deepcat" .and. (i+1) .le. Narg) then
+    read (options(i+1),"(A)") deeplinelistfile
+    nargused = nargused + 2
+  endif
 ! to implement:
 !   continuum window and percentile
 !   no. of generations, population size, pressure
-!   linelists
 enddo
 
 if (narg - nargused .eq. 0) then

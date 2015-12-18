@@ -31,7 +31,6 @@ PREFIX=
 ifeq ($(FC),gfortran)
   ifeq ($(CO),debug)
     FFLAGS += -fbounds-check -Wall -Wuninitialized #-ffpe-trap=zero,overflow,invalid,underflow,denormal
-
   else ifeq ($(CO),debug2)
     FFLAGS += -g -pg -fbounds-check -Wall -Wuninitialized #-ffpe-trap=zero,overflow,invalid,underflow,denormal
   else ifeq ($(CO),debug3)

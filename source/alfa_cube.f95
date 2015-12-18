@@ -45,6 +45,8 @@ use mod_uncertainties
   real :: normalisation, hbetaflux
   real :: c
   integer :: linelocation, overlap
+  integer :: generations, popsize
+  real :: pressure
 
   logical :: normalise=.false. !false means spectrum normalised to whatever H beta is detected, true means spectrum normalised to user specified value
   logical :: resolution_estimated=.false. !true means user specified a value, false means estimate from sampling
@@ -249,7 +251,7 @@ if (subtractsky) then
     !read in sky lines in chunk
     call selectlines(skylines_catalogue, realspec(i)%wavelength, realspec(endpos)%wavelength, skylines_section, nlines)
     if (nlines .gt. 0) then
-      call fit(spectrumchunk, 1., resolutionguess, skylines_section, 0., rtol2)
+      call fit(spectrumchunk, 1., resolutionguess, skylines_section, 0., rtol2, generations, popsize, pressure)
       skylines(linearraypos:linearraypos+nlines-1)=skylines_section!(1:nlines)
       linearraypos=linearraypos+nlines
     endif
@@ -283,7 +285,7 @@ else
 
   !now fit the strong lines
 
-  call fit(stronglines, redshiftguess, resolutionguess, fittedlines, vtol1, rtol1)
+  call fit(stronglines, redshiftguess, resolutionguess, fittedlines, vtol1, rtol1, generations, popsize, pressure)
 
   redshiftguess_overall = fittedlines(1)%redshift ! when fitting chunks, use this redshift to get lines in the right range from the catalogue. if velocity from each chunk is used, then there's a chance that a line could be missed or double counted due to variations in the calculated velocity between chunks.
   redshiftguess=fittedlines(1)%redshift
@@ -331,7 +333,7 @@ do i=1,spectrumlength,400
   call selectlines(deeplines_catalogue, startwlen, endwlen, fittedlines_section, nlines)
 
   if (nlines .gt. 0) then
-    call fit(spectrumchunk, redshiftguess, resolutionguess, fittedlines_section, vtol2, rtol2)
+    call fit(spectrumchunk, redshiftguess, resolutionguess, fittedlines_section, vtol2, rtol2, generations, popsize, pressure)
     !use redshift and resolution from this chunk as initial values for next chunk
     redshiftguess=fittedlines_section(1)%redshift
     resolutionguess=fittedlines_section(1)%resolution

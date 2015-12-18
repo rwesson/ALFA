@@ -41,11 +41,11 @@ do i=1,narg
     read (options(i+1),*) rtol2
     nargused = nargused + 2
   endif
-  if ((trim(options(i))=="-ss" .or. trim(options(i))=="--subtract-sky")) then
+  if (trim(options(i))=="-ss" .or. trim(options(i))=="--subtract-sky") then
     subtractsky=.true.
     nargused = nargused + 1
   endif
-  if ((trim(options(i))=="-o" .or. trim(options(i))=="--output-dir")) then
+  if ((trim(options(i))=="-o" .or. trim(options(i))=="--output-dir") .and. (i+1) .le. Narg) then
     read (options(i+1),"(A)") outputdirectory
     outputdirectory=trim(outputdirectory)//"/"
     inquire(file=trim(outputdirectory), exist=file_exists) ! trailing slash ensures it's looking for a directory
@@ -67,9 +67,20 @@ do i=1,narg
     read (options(i+1),"(A)") deeplinelistfile
     nargused = nargused + 2
   endif
+  if ((trim(options(i))=="-g" .or. trim(options(i))=="--generations") .and. (i+1) .le. Narg) then
+    read (options(i+1),*) generations
+    nargused = nargused + 2
+  endif
+  if ((trim(options(i))=="-ps" .or. trim(options(i))=="--populationsize") .and. (i+1) .le. Narg) then
+    read (options(i+1),*) popsize
+    nargused = nargused + 2
+  endif
+  if ((trim(options(i))=="-pr" .or. trim(options(i))=="--pressure") .and. (i+1) .le. Narg) then
+    read (options(i+1),*) pressure
+    nargused = nargused + 2
+  endif
 ! to implement:
 !   continuum window and percentile
-!   no. of generations, population size, pressure
 enddo
 
 if (narg - nargused .eq. 0) then

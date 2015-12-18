@@ -3,7 +3,7 @@ use mod_routines
 use mod_types
 
 contains
-subroutine fit(inputspectrum, redshiftguess, resolutionguess, fittedlines, redshifttolerance, resolutiontolerance)
+subroutine fit(inputspectrum, redshiftguess, resolutionguess, fittedlines, redshifttolerance, resolutiontolerance, generations, popsize, pressure)
 
 implicit none
 
@@ -18,10 +18,6 @@ real :: random, pressure
 real :: resolutionguess, redshiftguess, redshifttolerance, resolutiontolerance
 
 !initialisation
-
-  popsize=30
-  pressure=0.3 !pressure * popsize needs to be an integer
-  generations=500
 
   nlines=size(fittedlines%wavelength)
   spectrumlength=size(inputspectrum%wavelength)

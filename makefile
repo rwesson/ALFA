@@ -1,9 +1,9 @@
 #----------------------------------------------------------------
-# Revised Makefile (19/02/2014 PS)
+# Makefile based on the one written for NEAT by Peter Scicluna
 # How to call:
 # calling as normal
 #     > make
-# will trigger the default compiler options.
+# will trigger the default compiler options which include optimisation.
 #
 # You can now also call using
 #     > make CO=debug
@@ -11,19 +11,14 @@
 # at runtime, and bounds-checking.
 # This option is slow (about 2x slower than make all)
 #
-# For working code, call
-#     > make CO=fast
-# to enable optimisation. This is about 2x faster than normal
-# (using gfortran) but has little error trapping.
+#     > make CO=debug2, debug2, pedantic
+# offer further levels of checks in case of problems
 #
-# Finally,
 #     > make new
 # simply calls clean then all to force a re-build.
 #
-# I have also included similar options for ifort. Since I have
-# the compiler here, and it is potentially significantly faster,
-# it may be useful when it comes time to do science.
-#
+#     > (sudo) make install
+# places the files in the standard UNIX directories.
 #----------------------------------------------------------------
 
 FC=gfortran
@@ -36,17 +31,14 @@ PREFIX=
 ifeq ($(FC),gfortran)
   ifeq ($(CO),debug)
     FFLAGS += -fbounds-check -Wall -Wuninitialized #-ffpe-trap=zero,overflow,invalid,underflow,denormal
-  endif
-  ifeq ($(CO),debug2)
+
+  else ifeq ($(CO),debug2)
     FFLAGS += -g -pg -fbounds-check -Wall -Wuninitialized #-ffpe-trap=zero,overflow,invalid,underflow,denormal
-  endif
-  ifeq ($(CO),debug3)
+  else ifeq ($(CO),debug3)
     FFLAGS += -g -pg -fbounds-check -Wall -Wuninitialized -ffpe-trap=zero,overflow,invalid,underflow,denormal
-  endif
-  ifeq ($(CO),pedantic)
+  else ifeq ($(CO),pedantic)
     FFLAGS += -g -pg -fbounds-check -Wall -Wuninitialized -Werror -pedantic -ffpe-trap=zero,overflow,invalid,underflow,denormal
-  endif
-  ifeq ($(CO),fast)
+  else
     FFLAGS += -O3 -fno-backtrace
   endif
 endif
@@ -56,11 +48,9 @@ ifeq ($(FC),ifort)
   LD=ifort
   ifeq ($(CO),debug)
     FFLAGS = -pg -g -check bounds -check uninit -warn all -warn nodeclarations -WB -zero -traceback # -std
-  endif
-  ifeq ($(CO),pedantic)
+  else ifeq ($(CO),pedantic)
     FFLAGS = -pg -g -check bounds -check uninit -warn all -warn nodeclarations -WB -zero -traceback -std
-  endif
-  ifeq ($(CO),fast)
+  else
     FFLAGS = -axavx -msse3 -O3 -ip -ipo # for today's CPUs
 #    FFLAGS = -fast -tune pn4 # for older pentium 4
   endif

@@ -57,9 +57,9 @@ endif
 
 .PHONY: all clean install
 
-new: clean all
-
 all: alfa alfacube
+
+new: clean all
 
 %.o: %.f95
 	$(FC) $(FFLAGS) $< -c -o $@

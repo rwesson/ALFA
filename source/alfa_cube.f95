@@ -10,199 +10,204 @@ use mod_uncertainties
 !alfa wrapper for analysing data cubes
 !only tested on MUSE data so far
 !todo: better checks for different keywords, non-linear WCS, etc etc
-  implicit none
+implicit none
 
 !cfitsio variables
 
-  integer :: status,unit,readwrite,blocksize,naxes(3),nfound, hdutype
-  integer :: group,firstpix,cube_i,cube_j,cube_k
-  real :: nullval
+integer :: status,unit,readwrite,blocksize,naxes(3),nfound, hdutype
+integer :: group,firstpix,cube_i,cube_j,cube_k
+real :: nullval
 
-  real, dimension(:,:,:), allocatable :: cubedata
+real, dimension(:,:,:), allocatable :: cubedata
 
-  logical :: anynull,file_exists
-  integer :: alloc_err
+logical :: anynull,file_exists
+integer :: alloc_err
 
-  real :: wavelength, dispersion
+real :: wavelength, dispersion
 
 ! alfa variables
 
-  integer :: I, spectrumlength, nlines, linearraypos, totallines, startpos, endpos
-  real :: startwlen, endwlen
-  character (len=512) :: spectrumfile,stronglinelistfile,deeplinelistfile,skylinelistfile,outputdirectory
+integer :: I, spectrumlength, nlines, linearraypos, totallines, startpos, endpos
+real :: startwlen, endwlen
+character (len=512) :: spectrumfile,stronglinelistfile,deeplinelistfile,skylinelistfile,outputdirectory
 
-  type(linelist), dimension(:), allocatable :: skylines_catalogue, stronglines_catalogue, deeplines_catalogue
-  type(linelist), dimension(:), allocatable :: fittedlines, fittedlines_section, skylines, skylines_section
-  type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum, spectrumchunk, skyspectrum, continuum, stronglines
+type(linelist), dimension(:), allocatable :: skylines_catalogue, stronglines_catalogue, deeplines_catalogue
+type(linelist), dimension(:), allocatable :: fittedlines, fittedlines_section, skylines, skylines_section
+type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum, spectrumchunk, skyspectrum, continuum, stronglines
 
-  CHARACTER(len=2048), DIMENSION(:), allocatable :: options
-  CHARACTER(len=2048) :: commandline
-  integer :: narg, nargused
+CHARACTER(len=2048), DIMENSION(:), allocatable :: options
+CHARACTER(len=2048) :: commandline
+integer :: narg, nargused
 
-  real :: redshiftguess, resolutionguess, redshiftguess_overall
-  real :: vtol1, vtol2, rtol1, rtol2
-  real :: blendpeak
-  real :: normalisation, hbetaflux
-  real :: c
-  integer :: linelocation, overlap
-  integer :: generations, popsize
-  real :: pressure
+real :: redshiftguess, resolutionguess, redshiftguess_overall
+real :: vtol1, vtol2, rtol1, rtol2
+real :: blendpeak
+real :: normalisation, hbetaflux
+real :: c
+integer :: linelocation, overlap
+integer :: generations, popsize
+real :: pressure
 
-  logical :: normalise=.false. !false means spectrum normalised to whatever H beta is detected, true means spectrum normalised to user specified value
-  logical :: resolution_estimated=.false. !true means user specified a value, false means estimate from sampling
-  logical :: subtractsky=.false. !attempt to fit night sky emission lines
+logical :: normalise=.false. !false means spectrum normalised to whatever H beta is detected, true means spectrum normalised to user specified value
+logical :: resolution_estimated=.false. !true means user specified a value, false means estimate from sampling
+logical :: subtractsky=.false. !attempt to fit night sky emission lines
 
 ! openmp variables
 
-  integer :: tid, nprocessors, omp_get_thread_num, omp_get_num_procs
+integer :: tid, nprocessors, omp_get_thread_num, omp_get_num_procs
 
-  c=299792.458 !km/s
-  !default values in absence of user specificed guess
-  redshiftguess=0.0 !km/s
-  rtol1=0.d0 !variation allowed in resolution on first pass.  determined later, either from user input, or to be equal to resolution guess.
-  rtol2=500. !second pass
-  vtol1=0.003 !variation allowed in velocity (expressed as redshift) on first pass. 0.003 = 900 km/s
-  vtol2=0.0002 !second pass. 0.0002 = 60 km/s
-  cube_i=1
+c=299792.458 !km/s
+!default values in absence of user specificed guess
+redshiftguess=0.0 !km/s
+rtol1=0.d0 !variation allowed in resolution on first pass.  determined later, either from user input, or to be equal to resolution guess.
+rtol2=500. !second pass
+vtol1=0.003 !variation allowed in velocity (expressed as redshift) on first pass. 0.003 = 900 km/s
+vtol2=0.0002 !second pass. 0.0002 = 60 km/s
+cube_i=1
 
-  stronglinelistfile="/etc/alfa/strong_optical"
-  deeplinelistfile="/etc/alfa/deep_full"
-  skylinelistfile="/etc/alfa/skylines"
+stronglinelistfile="/etc/alfa/strong_optical"
+deeplinelistfile="/etc/alfa/deep_full"
+skylinelistfile="/etc/alfa/skylines"
 
-  outputdirectory="./"
+outputdirectory="./"
 
-  ! start
+popsize=30
+pressure=0.3 !pressure * popsize needs to be an integer
+generations=500
 
-  print *,"ALFACUBE, the Automated Line Fitting Algorithm for data cubes"
-  print *,"-------------------------------------------------------------"
+! start
 
-  print *
-  print *,gettime(),": starting code"
+print *,"ALFACUBE, the Automated Line Fitting Algorithm for data cubes"
+print *,"-------------------------------------------------------------"
 
-  ! random seed
+print *
+print *,gettime(),": starting code"
 
-  call init_random_seed()
+! random seed
 
-  ! read command line
+call init_random_seed()
 
-  narg = 0
-  nargused = 0
-  narg = IARGC() !count input arguments
-  if (narg .eq. 0) then
-    print *,"Usage: alfacube [options] [file]"
-    print *,"  [file] is a FITS file with three dimensions"
-    print *,"  see the man page or online documentation for details of the options"
-    stop
-  endif
+! read command line
 
-  include "commandline.f95"
+narg = 0
+nargused = 0 !to count options specified
+narg = IARGC() !count input arguments
 
-  ! convert from velocity to redshift
+if (narg .eq. 0) then
+  print *,"Usage: alfacube [options] [file]"
+  print *,"  [file] is a FITS file with three dimensions"
+  print *,"  see the man page or online documentation for details of the options"
+  stop
+endif
 
-  redshiftguess=1.+(redshiftguess/c)
+include "commandline.f95"
 
-  print *,gettime(),": command line: ",trim(commandline)
+! convert from velocity to redshift
 
-  status=0
-  !  Get an unused Logical Unit Number to use to open the FITS file.
-  call ftgiou(unit,status)
-  !  Open the FITS file
-  inquire(file=spectrumfile, exist=file_exists)
-  if (.not. file_exists) then
-    print *,gettime(),trim(spectrumfile)," does not exist"
-    stop
-  endif
+redshiftguess=1.+(redshiftguess/c)
 
-  readwrite=0
-  call ftopen(unit,spectrumfile,readwrite,blocksize,status)
+print *,gettime(),": command line: ",trim(commandline)
 
-  ! check we have 3 axes
-  nfound=0
+status=0
+!  Get an unused Logical Unit Number to use to open the FITS file.
+call ftgiou(unit,status)
+!  Open the FITS file
+inquire(file=spectrumfile, exist=file_exists)
+if (.not. file_exists) then
+  print *,gettime(),trim(spectrumfile)," does not exist"
+  stop
+endif
+
+readwrite=0
+call ftopen(unit,spectrumfile,readwrite,blocksize,status)
+
+! check we have 3 axes
+nfound=0
+call ftgknj(unit,'NAXIS',1,3,naxes,nfound,status)
+do while (nfound .eq. 0)
+  call ftmrhd(unit,1,hdutype,status)
   call ftgknj(unit,'NAXIS',1,3,naxes,nfound,status)
-  do while (nfound .eq. 0)
-    call ftmrhd(unit,1,hdutype,status)
-    call ftgknj(unit,'NAXIS',1,3,naxes,nfound,status)
-  end do
+end do
 
-  if (nfound .ne. 3) then
-    print *,gettime(),spectrumfile," is not a cube"
-    stop
-  endif
+if (nfound .ne. 3) then
+  print *,gettime(),spectrumfile," is not a cube"
+  stop
+endif
 
-  group=1
-  firstpix=1
-  nullval=-999
+group=1
+firstpix=1
+nullval=-999
 
-  if (nfound .eq. 3) then
-    allocate(cubedata(naxes(1),naxes(2),naxes(3)), stat=alloc_err)
-    if (alloc_err .eq. 0) print *,gettime(), ": reading data cube into memory"
-  endif
+if (nfound .eq. 3) then
+  allocate(cubedata(naxes(1),naxes(2),naxes(3)), stat=alloc_err)
+  if (alloc_err .eq. 0) print *,gettime(), ": reading data cube into memory"
+endif
 
 ! find wavelength dispersion
 
-  call ftgkye(unit,"CRVAL3",wavelength,"",status)
-  call ftgkye(unit,"CD3_3",dispersion,"",status)
+call ftgkye(unit,"CRVAL3",wavelength,"",status)
+call ftgkye(unit,"CD3_3",dispersion,"",status)
 
 ! read data cube into memory
 
-  call ftg3de(unit,group,nullval,naxes(1),naxes(2),naxes(1),naxes(2),naxes(3),cubedata,anynull,status)
+call ftg3de(unit,group,nullval,naxes(1),naxes(2),naxes(1),naxes(2),naxes(3),cubedata,anynull,status)
 
-  if (status .eq. 0) then
-    print "(X,A,A,I7,A)",gettime(), ": successfully read ",naxes(1)*naxes(2)," pixels into memory"
-  else
-    print *,gettime(), ": couldn't read cube into memory"
-    stop
-  endif
+if (status .eq. 0) then
+  print "(X,A,A,I7,A)",gettime(), ": successfully read ",naxes(1)*naxes(2)," pixels into memory"
+else
+  print *,gettime(), ": couldn't read cube into memory"
+  stop
+endif
 
 ! process cube
 ! each pixel is completely independent so it's embarrassingly parallel
 
-  nprocessors = omp_get_num_procs()
-  if (nprocessors .eq. 1) then
-    print *,gettime(),": running in serial mode"
-    print *
-  else
-    print "(X,A,A,I2,A)", gettime(), ": running in parallel mode with ",nprocessors," processors"
-    print *
-  endif
+nprocessors = omp_get_num_procs()
+if (nprocessors .eq. 1) then
+  print *,gettime(),": running in serial mode"
+  print *
+else
+  print "(X,A,A,I2,A)", gettime(), ": running in parallel mode with ",nprocessors," processors"
+  print *
+endif
 
 !read in catalogues
 
-  print *,gettime(),": reading in line catalogues ",trim(skylinelistfile),", ",trim(stronglinelistfile),", ",trim(deeplinelistfile)
-  call readlinelist(skylinelistfile, skylines_catalogue, nlines,wavelength,wavelength+(naxes(3)-1)*dispersion)
-  call readlinelist(stronglinelistfile, stronglines_catalogue, nlines,wavelength,wavelength+(naxes(3)-1)*dispersion)
-  call readlinelist(deeplinelistfile, deeplines_catalogue, nlines,wavelength,wavelength+(naxes(3)-1)*dispersion)
+print *,gettime(),": reading in line catalogues ",trim(skylinelistfile),", ",trim(stronglinelistfile),", ",trim(deeplinelistfile)
+call readlinelist(skylinelistfile, skylines_catalogue, nlines,wavelength,wavelength+(naxes(3)-1)*dispersion)
+call readlinelist(stronglinelistfile, stronglines_catalogue, nlines,wavelength,wavelength+(naxes(3)-1)*dispersion)
+call readlinelist(deeplinelistfile, deeplines_catalogue, nlines,wavelength,wavelength+(naxes(3)-1)*dispersion)
 
 !$OMP PARALLEL private(spectrumfile,realspec,fittedspectrum,spectrumlength,continuum,nlines,spectrumchunk,linearraypos,overlap,startpos,startwlen,endpos,endwlen,skylines,skylines_section,stronglines,fittedlines,fittedlines_section,blendpeak,hbetaflux,totallines,skyspectrum,redshiftguess_overall,cube_i,cube_j,tid) firstprivate(redshiftguess,resolutionguess) shared(skylines_catalogue,stronglines_catalogue,deeplines_catalogue, naxes)
 
 !$OMP DO schedule(dynamic)
-  do cube_i=1,naxes(1)
-    do cube_j=1,naxes(2)
+do cube_i=1,naxes(1)
+  do cube_j=1,naxes(2)
 
-      tid=OMP_GET_THREAD_NUM()
+    tid=OMP_GET_THREAD_NUM()
 
-      write (spectrumfile,"(A5,I3.3,A1,I3.3,A4)") "spec_",cube_i,"_",cube_j,".dat"
-      allocate(realspec(naxes(3)))
-      spectrumlength=naxes(3)
-      realspec%flux=cubedata(cube_i,cube_j,:)
-      do cube_k=1,naxes(3)
-        realspec(cube_k)%wavelength=wavelength+(cube_k-1)*dispersion
-      enddo
+    write (spectrumfile,"(A5,I3.3,A1,I3.3,A4)") "spec_",cube_i,"_",cube_j,".dat"
+    allocate(realspec(naxes(3)))
+    spectrumlength=naxes(3)
+    realspec%flux=cubedata(cube_i,cube_j,:)
+    do cube_k=1,naxes(3)
+      realspec(cube_k)%wavelength=wavelength+(cube_k-1)*dispersion
+    enddo
 
 !check for valid data
 !ultra crude and tailored for NGC 7009 at the moment
 
-      inquire(file=trim(outputdirectory)//trim(spectrumfile)//"_lines", exist=file_exists)
+    inquire(file=trim(outputdirectory)//trim(spectrumfile)//"_lines", exist=file_exists)
 
-      if (maxval(realspec%flux) .lt. 20000. .or. file_exists) then
-        print "(X,A,A,I2,A,I3.3,A,I3.3)",gettime(), "(thread ",tid,") : skipped pixel  ",cube_i,",",cube_j
-        deallocate(realspec)
-        cycle
-      endif
+    if (maxval(realspec%flux) .lt. 20000. .or. file_exists) then
+      print "(X,A,A,I2,A,I3.3,A,I3.3)",gettime(), "(thread ",tid,") : skipped pixel  ",cube_i,",",cube_j
+      deallocate(realspec)
+      cycle
+    endif
 
-      allocate (fittedspectrum(spectrumlength))
-      fittedspectrum%wavelength=realspec%wavelength
-      fittedspectrum%flux=0.d0
+    allocate (fittedspectrum(spectrumlength))
+    fittedspectrum%wavelength=realspec%wavelength
+    fittedspectrum%flux=0.d0
 
 !now do the fitting
 !----start of code taken from alfa.f95
@@ -220,7 +225,7 @@ else
 endif
 
 if (rtol1 .eq. 0.d0) then
-  rtol1=0.9*resolutionguess ! user didn't specify a value, default behaviour is to allow resolution to vary between 0 and 2x the initial guess on the first pass
+  rtol1=0.9*resolutionguess ! user didn't specify a value, default behaviour is to allow resolution to vary between 0.1 and 1.9x the initial guess on the first pass
 endif
 
 
@@ -230,13 +235,10 @@ allocate(skyspectrum(spectrumlength))
 skyspectrum%wavelength=realspec%wavelength
 skyspectrum%flux=0.d0
 
-! get a thread safe unit number for file reading
-
 if (subtractsky) then
 
   !get an array for all the sky lines in the range
   call selectlines(skylines_catalogue,realspec(1)%wavelength, realspec(size(realspec))%wavelength, skylines, nlines)
-
   linearraypos=1
 
   !go though in chunks of 400 units

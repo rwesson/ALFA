@@ -85,6 +85,8 @@ use mod_uncertainties
 
   ! read command line
 
+  narg = 0
+  nargused = 0
   narg = IARGC() !count input arguments
   if (narg .eq. 0) then
     print *,"Usage: alfacube [options] [file]"

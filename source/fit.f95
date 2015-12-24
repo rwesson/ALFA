@@ -114,7 +114,10 @@ real :: resolutionguess, redshiftguess, redshifttolerance, resolutiontolerance
       if (abs(population(popnumber,1)%resolution-resolutionguess) .gt. resolutiontolerance) then
         population(popnumber,:)%resolution = resolutionguess
       endif
-      population(popnumber,:)%redshift = population(popnumber,:)%redshift * ((9999.+mutation())/10000.)
+!mutation returns a value between 0 and 2.
+!useful values of redshift change are between -vtol/c and +vtol/c
+!(mutation-1)*vtol/c is the useful variation
+      population(popnumber,:)%redshift = population(popnumber,:)%redshift + ((mutation()-1.)*redshifttolerance)
       if (abs(population(popnumber,1)%redshift-redshiftguess) .gt. redshifttolerance) then
         population(popnumber,:)%redshift = redshiftguess
       endif

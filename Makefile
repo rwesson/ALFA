@@ -24,9 +24,8 @@
 FC=gfortran
 LD=gfortran
 FFLAGS=-ffree-line-length-0 -Jsource/ -fopenmp
-CUBEFLAGS=-L/software/cfitsio/ -lcfitsio -lm
-MANDIR=/usr/share/man/man1
-PREFIX=
+CUBEFLAGS=-L/usr/lib/x86_64-linux-gnu/ -lcfitsio -lm
+MANDIR=${DESTDIR}/usr/share/man/man1
 
 ifeq ($(FC),gfortran)
   ifeq ($(CO),debug)
@@ -74,11 +73,12 @@ clean:
 	rm -f alfa alfacube source/*.o source/*.mod
 
 install:
-
-	test -e ${PREFIX}/etc/alfa || mkdir ${PREFIX}/etc/alfa
-	install -m 644 linelists/* ${PREFIX}/etc/alfa
-	install alfa ${PREFIX}/usr/bin
-	install alfacube ${PREFIX}/usr/bin
+	test -e ${DESTDIR}/etc/alfa || mkdir -p ${DESTDIR}/etc/alfa
+	test -e ${DESTDIR}/usr/bin || mkdir -p ${DESTDIR}/usr/bin
+	test -e ${MANDIR} || mkdir -p ${MANDIR}
+	install -m 644 linelists/* ${DESTDIR}/etc/alfa
+	install alfa ${DESTDIR}/usr/bin
+	install alfacube ${DESTDIR}/usr/bin
 	install -g 0 -o 0 -m 644 man/alfa.1 ${MANDIR}
 	gzip -f ${MANDIR}/alfa.1
 	ln -s -f ${MANDIR}/alfa.1.gz ${MANDIR}/alfacube.1.gz

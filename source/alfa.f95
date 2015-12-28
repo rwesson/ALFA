@@ -42,9 +42,9 @@ rtol2=500. !second pass
 vtol1=0.003 !variation allowed in velocity (expressed as redshift) on first pass. 0.003 = 900 km/s
 vtol2=0.0002 !second pass. 0.0002 = 60 km/s
 
-stronglinelistfile="/etc/alfa/strong_optical"
-deeplinelistfile="/etc/alfa/deep_full"
-skylinelistfile="/etc/alfa/skylines"
+stronglinelistfile="/etc/alfa/strong.cat"
+deeplinelistfile="/etc/alfa/deep.cat"
+skylinelistfile="/etc/alfa/sky.cat"
 
 outputdirectory="./"
 

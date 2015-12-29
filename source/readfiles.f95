@@ -27,6 +27,12 @@ subroutine readspectrum(spectrumfile, realspec, spectrumlength, fittedspectrum)
   if (.not. file_exists) then
     print *,gettime(),": error: input spectrum ",trim(spectrumfile)," does not exist"
     stop
+  endif
+
+  if (index(spectrumfile,".fit").gt.0 .or. index(spectrumfile,".FIT").gt.0) then
+    print *,gettime(),": error: alfa can't read FITS files.  You probably want to use alfacube"
+    !todo: check dimensions, read in if 1D, exit only if more
+    stop
   else
     I = 0
     OPEN(199, file=spectrumfile, iostat=IO, status='old')

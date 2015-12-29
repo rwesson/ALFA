@@ -73,12 +73,17 @@ clean:
 	rm -f alfa alfacube source/*.o source/*.mod
 
 install:
-	test -e ${DESTDIR}/etc/alfa || mkdir -p ${DESTDIR}/etc/alfa
+	test -e ${DESTDIR}/usr/share/alfa || mkdir -p ${DESTDIR}/usr/share/alfa
 	test -e ${DESTDIR}/usr/bin || mkdir -p ${DESTDIR}/usr/bin
 	test -e ${MANDIR} || mkdir -p ${MANDIR}
-	install -m 644 linelists/* ${DESTDIR}/etc/alfa
+	install -m 644 linelists/* ${DESTDIR}/usr/share/alfa
 	install alfa ${DESTDIR}/usr/bin
 	install alfacube ${DESTDIR}/usr/bin
 	install -g 0 -o 0 -m 644 man/alfa.1 ${MANDIR}
 	gzip -f ${MANDIR}/alfa.1
 	ln -s -f ${MANDIR}/alfa.1.gz ${MANDIR}/alfacube.1.gz
+
+uninstall:
+	rm -rf ${DESTDIR}/usr/share/alfa
+	rm -f ${DESTDIR}/usr/bin/alfa
+	rm -f ${MANDIR}/alfa.1.gz ${MANDIR}/alfacube.1.gz

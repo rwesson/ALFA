@@ -85,5 +85,5 @@ install:
 
 uninstall:
 	rm -rf ${DESTDIR}/usr/share/alfa
-	rm -f ${DESTDIR}/usr/bin/alfa
+	rm -f ${DESTDIR}/usr/bin/alfa ${DESTDIR}/usr/bin/alfacube
 	rm -f ${MANDIR}/alfa.1.gz ${MANDIR}/alfacube.1.gz

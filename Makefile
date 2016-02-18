@@ -56,7 +56,7 @@ endif
 
 .PHONY: all clean install
 
-all: alfa alfacube
+all: alfa alfacube alfarss
 
 new: clean all
 
@@ -69,6 +69,9 @@ alfa: source/types.o source/functions.o source/readfiles.o source/quicksort.o so
 alfacube: source/types.o source/functions.o source/readfiles.o source/quicksort.o source/continuum.o source/fit.o source/uncertainties.o source/alfa_cube.o
 	$(LD) $(LDFLAGS) $(FFLAGS) -o $@ $^ ${CUBEFLAGS}
 
+alfarss: source/types.o source/functions.o source/readfiles.o source/quicksort.o source/continuum.o source/fit.o source/uncertainties.o source/alfa_rss.o
+	$(LD) $(LDFLAGS) $(FFLAGS) -o $@ $^ ${CUBEFLAGS}
+
 clean:
 	rm -f alfa alfacube source/*.o source/*.mod
 
@@ -79,11 +82,12 @@ install:
 	install -m 644 linelists/* ${DESTDIR}/usr/share/alfa
 	install alfa ${DESTDIR}/usr/bin
 	install alfacube ${DESTDIR}/usr/bin
+	install alfarss ${DESTDIR}/usr/bin
 	install -g 0 -o 0 -m 644 man/alfa.1 ${MANDIR}
 	gzip -f ${MANDIR}/alfa.1
 	ln -s -f ${MANDIR}/alfa.1.gz ${MANDIR}/alfacube.1.gz
 
 uninstall:
 	rm -rf ${DESTDIR}/usr/share/alfa
-	rm -f ${DESTDIR}/usr/bin/alfa ${DESTDIR}/usr/bin/alfacube
+	rm -f ${DESTDIR}/usr/bin/alfa ${DESTDIR}/usr/bin/alfacube ${DESTDIR}/usr/bin/alfarss
 	rm -f ${MANDIR}/alfa.1.gz ${MANDIR}/alfacube.1.gz

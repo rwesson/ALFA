@@ -93,4 +93,33 @@ else
   spectrumfile=trim(spectrumfile)
 endif
 
-deallocate(options) 
+deallocate(options)
+
+print *,gettime(),": ALFA is running with the following settings:"
+if (.not.normalise) then
+print *,"            normalisation:                    using measured value of Hb"
+else
+if (normalisation.eq.0.d0) then
+print *,"            normalisation:                    no normalisation"
+else
+print *,"            normalisation:                    to Hb=",normalisation
+endif
+endif
+print *,"            velocity guess:                   ",redshiftguess
+print *,"            resolution guess:                 ",resolutionguess
+print *,"            first pass velocity tolerance:    ",vtol1*c
+print *,"            second pass velocity tolerance:   ",vtol2*c
+print *,"            first pass resolution tolerance:  ",rtol1
+print *,"            second pass resolution tolerance: ",rtol2
+if (subtractsky) then
+print *,"            sky line fitting:                 enabled"
+print *,"            sky line catalogue:               ",trim(skylinelistfile)
+else
+print *,"            sky line fitting:                 disabled"
+endif
+print *,"            strong line catalogue:            ",trim(stronglinelistfile)
+print *,"            deep line catalogue:              ",trim(deeplinelistfile)
+print *,"            number of generations:            ",generations
+print *,"            population size:                  ",popsize
+print *,"            pressure factor:                  ",pressure
+print *,"            output directory:                 ",trim(outputdirectory)

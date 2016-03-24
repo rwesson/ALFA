@@ -171,10 +171,8 @@ endif
 nprocessors = omp_get_num_procs()
 if (nprocessors .eq. 1) then
   print *,gettime(),": running in serial mode"
-  print *
 else
   print "(X,A,A,I2,A)", gettime(), ": running in parallel mode with ",nprocessors," processors"
-  print *
 endif
 
 !read in catalogues
@@ -184,6 +182,9 @@ call readlinelist(skylinelistfile, skylines_catalogue, nlines,wavelength,wavelen
 call readlinelist(stronglinelistfile, stronglines_catalogue, nlines,wavelength,wavelength+(naxes(3)-1)*dispersion)
 call readlinelist(deeplinelistfile, deeplines_catalogue, nlines,wavelength,wavelength+(naxes(3)-1)*dispersion)
 
+!process cube
+
+print *,gettime(),": processing cube"
 !$OMP PARALLEL private(spectrumfile,realspec,fittedspectrum,spectrumlength,continuum,nlines,spectrumchunk,linearraypos,overlap,startpos,startwlen,endpos,endwlen,skylines,skylines_section,stronglines,fittedlines,fittedlines_section,blendpeak,hbetaflux,totallines,skyspectrum,redshiftguess_overall,cube_i,cube_j,tid) firstprivate(redshiftguess,resolutionguess) shared(skylines_catalogue,stronglines_catalogue,deeplines_catalogue, naxes)
 
 !$OMP DO schedule(dynamic)

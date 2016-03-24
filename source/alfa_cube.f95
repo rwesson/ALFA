@@ -23,12 +23,12 @@ real, dimension(:,:,:), allocatable :: cubedata
 logical :: anynull,file_exists
 integer :: alloc_err
 
-real :: wavelength, dispersion
+real :: wavelength, dispersion, cdelt3, cd3_3
 
 ! alfa variables
 
 integer :: I, spectrumlength, nlines, linearraypos, totallines, startpos, endpos
-real :: startwlen, endwlen
+real :: startwlen, endwlen, baddata
 character (len=512) :: spectrumfile,stronglinelistfile,deeplinelistfile,skylinelistfile,outputdirectory
 
 type(linelist), dimension(:), allocatable :: skylines_catalogue, stronglines_catalogue, deeplines_catalogue
@@ -144,10 +144,16 @@ if (nfound .eq. 3) then
 endif
 
 ! find wavelength dispersion
+! checks two keywords, and as cfitsio gives the variable a value of zero
+! if not found, take the maximum value of the two as the dispersion
 
 call ftgkye(unit,"CRVAL3",wavelength,"",status)
-call ftgkye(unit,"CD3_3",dispersion,"",status)
+call ftgkye(unit,"CDELT3",cdelt3,"",status) !CD3_3
+call ftgkye(unit,"CD3_3",cd3_3,"",status)
 
+dispersion=max(cd3_3,cdelt3)
+! reset status
+status=0
 ! read data cube into memory
 
 call ftg3de(unit,group,nullval,naxes(1),naxes(2),naxes(1),naxes(2),naxes(3),cubedata,anynull,status)
@@ -173,7 +179,7 @@ endif
 
 !read in catalogues
 
-print *,gettime(),": reading in line catalogues ",trim(skylinelistfile),", ",trim(stronglinelistfile),", ",trim(deeplinelistfile)
+print *,gettime(),": reading in line catalogues"
 call readlinelist(skylinelistfile, skylines_catalogue, nlines,wavelength,wavelength+(naxes(3)-1)*dispersion)
 call readlinelist(stronglinelistfile, stronglines_catalogue, nlines,wavelength,wavelength+(naxes(3)-1)*dispersion)
 call readlinelist(deeplinelistfile, deeplines_catalogue, nlines,wavelength,wavelength+(naxes(3)-1)*dispersion)
@@ -196,10 +202,11 @@ do cube_i=1,naxes(1)
 
 !check for valid data
 !ultra crude and tailored for NGC 7009 at the moment
-
+!    baddata=20000.
+    baddata=0.
     inquire(file=trim(outputdirectory)//trim(spectrumfile)//"_lines", exist=file_exists)
 
-    if (maxval(realspec%flux) .lt. 20000. .or. file_exists) then
+    if (maxval(realspec%flux) .lt. baddata .or. file_exists) then
       print "(X,A,A,I2,A,I3.3,A,I3.3)",gettime(), "(thread ",tid,") : skipped pixel  ",cube_i,",",cube_j
       deallocate(realspec)
       cycle

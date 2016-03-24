@@ -172,7 +172,7 @@ endif
 
 !read in catalogues
 
-print *,gettime(),": reading in line catalogues ",trim(skylinelistfile),", ",trim(stronglinelistfile),", ",trim(deeplinelistfile)
+print *,gettime(),": reading in line catalogues"
 call readlinelist(skylinelistfile, skylines_catalogue, nlines,wavelength,wavelength+(naxes(1)-1)*dispersion)
 call readlinelist(stronglinelistfile, stronglines_catalogue, nlines,wavelength,wavelength+(naxes(1)-1)*dispersion)
 call readlinelist(deeplinelistfile, deeplines_catalogue, nlines,wavelength,wavelength+(naxes(1)-1)*dispersion)

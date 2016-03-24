@@ -93,7 +93,7 @@ outputbasename=spectrumfile(index(spectrumfile,"/",back=.true.)+1:len(trim(spect
 
 !read in catalogues
 
-print *,gettime(),": reading in line catalogues ",trim(skylinelistfile),", ",trim(stronglinelistfile),", ",trim(deeplinelistfile)
+print *,gettime(),": reading in line catalogues"
 call readlinelist(skylinelistfile, skylines_catalogue, nlines,minval(realspec%wavelength),maxval(realspec%wavelength))
 call readlinelist(stronglinelistfile, stronglines_catalogue, nlines,minval(realspec%wavelength),maxval(realspec%wavelength))
 call readlinelist(deeplinelistfile, deeplines_catalogue, nlines,minval(realspec%wavelength),maxval(realspec%wavelength))

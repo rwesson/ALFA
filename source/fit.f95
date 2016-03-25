@@ -16,6 +16,7 @@ integer :: popsize, i, spectrumlength, lineid, loc1, loc2, nlines, gencount, gen
 real, dimension(:), allocatable :: sumsquares
 real :: random, pressure
 real :: resolutionguess, redshiftguess, redshifttolerance, resolutiontolerance
+real :: scalefactor
 
 !initialisation
 
@@ -23,6 +24,14 @@ real :: resolutionguess, redshiftguess, redshifttolerance, resolutiontolerance
   spectrumlength=size(inputspectrum%wavelength)
 
   call init_random_seed()
+
+  scalefactor=1.d0
+  if (maxval(inputspectrum%flux) .lt. 0.01) then
+    !hacky fix, something goes wrong with very small numbers like fluxes in units of erg/cm2/s/A
+    scalefactor = 1./maxval(inputspectrum%flux)
+  else
+  endif
+  inputspectrum%flux = inputspectrum%flux * scalefactor
 
 !allocate arrays
 
@@ -73,6 +82,8 @@ real :: resolutionguess, redshiftguess, redshifttolerance, resolutiontolerance
     if (gencount .eq. generations) then
       !copy fit results into arrays to return
       fittedlines = population(minloc(sumsquares,1),:)
+      !scale
+      fittedlines%peak = fittedlines%peak / scalefactor
       !deallocate arrays
       deallocate(synthspec)
       deallocate(sumsquares)

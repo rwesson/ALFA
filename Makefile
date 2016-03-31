@@ -25,8 +25,8 @@ FC=gfortran
 LD=gfortran
 FFLAGS=-ffree-line-length-0 -Jsource/ -fopenmp
 CUBEFLAGS=-L/usr/lib/x86_64-linux-gnu/ -lcfitsio -lm
-PREFIX=usr
-MANDIR=${DESTDIR}/${PREFIX}/share/man/man1
+PREFIX=/usr
+MANDIR=${DESTDIR}${PREFIX}/share/man/man1
 
 ifeq ($(FC),gfortran)
   ifeq ($(CO),debug)
@@ -77,18 +77,18 @@ clean:
 	rm -f alfa alfacube source/*.o source/*.mod
 
 install:
-	test -e ${DESTDIR}/${PREFIX}/share/alfa || mkdir -p ${DESTDIR}/${PREFIX}/share/alfa
-	test -e ${DESTDIR}/${PREFIX}/bin || mkdir -p ${DESTDIR}/${PREFIX}/bin
+	test -e ${DESTDIR}${PREFIX}/share/alfa || mkdir -p ${DESTDIR}${PREFIX}/share/alfa
+	test -e ${DESTDIR}${PREFIX}/bin || mkdir -p ${DESTDIR}${PREFIX}/bin
 	test -e ${MANDIR} || mkdir -p ${MANDIR}
-	install -m 644 linelists/* ${DESTDIR}/${PREFIX}/share/alfa
-	install alfa ${DESTDIR}/${PREFIX}/bin
-	install alfacube ${DESTDIR}/${PREFIX}/bin
-	install alfarss ${DESTDIR}/${PREFIX}/bin
+	install -m 644 linelists/* ${DESTDIR}${PREFIX}/share/alfa
+	install alfa ${DESTDIR}${PREFIX}/bin
+	install alfacube ${DESTDIR}${PREFIX}/bin
+	install alfarss ${DESTDIR}${PREFIX}/bin
 	install -g 0 -o 0 -m 644 man/alfa.1 ${MANDIR}
 	gzip -f ${MANDIR}/alfa.1
 	ln -s -f ${MANDIR}/alfa.1.gz ${MANDIR}/alfacube.1.gz
 
 uninstall:
-	rm -rf ${DESTDIR}/${PREFIX}/share/alfa
-	rm -f ${DESTDIR}/${PREFIX}/bin/alfa ${DESTDIR}/${PREFIX}/bin/alfacube ${DESTDIR}/${PREFIX}/bin/alfarss
+	rm -rf ${DESTDIR}${PREFIX}/share/alfa
+	rm -f ${DESTDIR}${PREFIX}/bin/alfa ${DESTDIR}${PREFIX}/bin/alfacube ${DESTDIR}${PREFIX}/bin/alfarss
 	rm -f ${MANDIR}/alfa.1.gz ${MANDIR}/alfacube.1.gz

@@ -29,6 +29,8 @@ real :: wavelength, dispersion
 integer :: I, spectrumlength, nlines, linearraypos, totallines, startpos, endpos
 real :: startwlen, endwlen
 character (len=512) :: spectrumfile,stronglinelistfile,deeplinelistfile,skylinelistfile,outputdirectory
+character(len=12) :: fluxformat !for writing out the line list
+character(len=128) :: datapath !for path to data files, from preprocessor
 
 type(linelist), dimension(:), allocatable :: skylines_catalogue, stronglines_catalogue, deeplines_catalogue
 type(linelist), dimension(:), allocatable :: fittedlines, fittedlines_section, skylines, skylines_section
@@ -64,9 +66,11 @@ vtol1=0.003 !variation allowed in velocity (expressed as redshift) on first pass
 vtol2=0.0002 !second pass. 0.0002 = 60 km/s
 rss_i=1
 
-stronglinelistfile="/usr/share/alfa/strong.cat"
-deeplinelistfile="/usr/share/alfa/deep.cat"
-skylinelistfile="/usr/share/alfa/sky.cat"
+datapath=PREFIX
+
+stronglinelistfile=trim(datapath)//"/share/alfa/strong.cat"
+deeplinelistfile=trim(datapath)//"/share/alfa/deep.cat"
+skylinelistfile=trim(datapath)//"/share/alfa/sky.cat"
 
 outputdirectory="./"
 
@@ -446,12 +450,17 @@ realspec%uncertainty = realspec%uncertainty * normalisation !for continuum jumps
 
 ! now write out the line list.
 
+if (maxval(fittedlines%peak) .lt. 0.1) then
+  fluxformat="ES12.3"
+else
+  fluxformat="F12.3"
+endif
 
 open(200+tid,file=trim(outputdirectory)//trim(spectrumfile)//"_lines")
 
 do i=1,totallines
   if (fittedlines(i)%blended .eq. 0 .and. fittedlines(i)%uncertainty .gt. 3.0) then
-    write (200+tid,"(2(F8.2),2(F12.3))") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength, gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty
+    write (200+tid,"(2(F8.2),2("//fluxformat//"))") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength, gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty
   elseif (fittedlines(i)%blended .ne. 0) then
     if (fittedlines(fittedlines(i)%blended)%uncertainty .gt. 3.0) then
       write (200+tid,"(F8.2,F8.2,'           *           *')") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength
@@ -462,21 +471,21 @@ enddo
 
 !Balmer
 if (minval(abs(continuum%wavelength-3630.)) .lt. 3630./fittedlines(1)%resolution) then
-  write (200+tid,"(F8.2,8X,F12.3,F12.3)") 3645.5, continuum(minloc(abs(continuum%wavelength-3630.)))%flux, realspec(minloc(abs(continuum%wavelength-3630.)))%uncertainty
+  write (200+tid,"(F8.2,8X,"//fluxformat//","//fluxformat//")") 3645.5, continuum(minloc(abs(continuum%wavelength-3630.)))%flux, realspec(minloc(abs(continuum%wavelength-3630.)))%uncertainty
 endif
 
 if (minval(abs(continuum%wavelength-3700.)) .lt. 3700./fittedlines(1)%resolution) then
-  write (200+tid,"(F8.2,8X,F12.3,F12.3)") 3646.5, continuum(minloc(abs(continuum%wavelength-3700.)))%flux, realspec(minloc(abs(continuum%wavelength-3700.)))%uncertainty
+  write (200+tid,"(F8.2,8X,"//fluxformat//","//fluxformat//")") 3646.5, continuum(minloc(abs(continuum%wavelength-3700.)))%flux, realspec(minloc(abs(continuum%wavelength-3700.)))%uncertainty
 endif
 
 !paschen
 
 if (minval(abs(continuum%wavelength-8100.)) .lt. 8100./fittedlines(1)%resolution) then
-  write (200+tid,"(F8.2,8X,F12.3,F12.3)") 8100.0, continuum(minloc(abs(continuum%wavelength-8100.)))%flux, realspec(minloc(abs(continuum%wavelength-8100.)))%uncertainty
+  write (200+tid,"(F8.2,8X,"//fluxformat//","//fluxformat//")") 8100.0, continuum(minloc(abs(continuum%wavelength-8100.)))%flux, realspec(minloc(abs(continuum%wavelength-8100.)))%uncertainty
 endif
 
 if (minval(abs(continuum%wavelength-8400.)) .lt. 8400./fittedlines(1)%resolution) then
-  write (200+tid,"(F8.2,8X,F12.3,F12.3)") 8400.0, continuum(minloc(abs(continuum%wavelength-8400.)))%flux, realspec(minloc(abs(continuum%wavelength-8400.)))%uncertainty
+  write (200+tid,"(F8.2,8X,"//fluxformat//","//fluxformat//")") 8400.0, continuum(minloc(abs(continuum%wavelength-8400.)))%flux, realspec(minloc(abs(continuum%wavelength-8400.)))%uncertainty
 endif
 
 !write out measured Hbeta flux to latex table

@@ -23,9 +23,9 @@
 
 FC=gfortran
 LD=gfortran
-FFLAGS=-ffree-line-length-0 -Jsource/ -fopenmp
-CUBEFLAGS=-L/usr/lib/x86_64-linux-gnu/ -lcfitsio -lm
 PREFIX=/usr
+FFLAGS=-ffree-line-length-0 -Jsource/ -fopenmp -cpp -DPREFIX=\"${PREFIX}\"
+CUBEFLAGS=-L/usr/lib/x86_64-linux-gnu/ -lcfitsio -lm
 MANDIR=${DESTDIR}${PREFIX}/share/man/man1
 
 ifeq ($(FC),gfortran)

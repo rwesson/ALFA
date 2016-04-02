@@ -35,6 +35,7 @@ logical :: subtractsky=.false. !attempt to fit night sky emission lines
 logical :: file_exists
 
 character(len=12) :: fluxformat !for writing out the line list
+character(len=128) :: datapath !for path to data files, from preprocessor
 
 c=299792.458 !km/s
 !default values in absence of user specificed guess
@@ -44,9 +45,11 @@ rtol2=500. !second pass
 vtol1=0.003 !variation allowed in velocity (expressed as redshift) on first pass. 0.003 = 900 km/s
 vtol2=0.0002 !second pass. 0.0002 = 60 km/s
 
-stronglinelistfile="/usr/share/alfa/strong.cat"
-deeplinelistfile="/usr/share/alfa/deep.cat"
-skylinelistfile="/usr/share/alfa/sky.cat"
+datapath=PREFIX
+
+stronglinelistfile=trim(datapath)//"/share/alfa/strong.cat"
+deeplinelistfile=trim(datapath)//"/share/alfa/deep.cat"
+skylinelistfile=trim(datapath)//"/share/alfa/sky.cat"
 
 outputdirectory="./"
 

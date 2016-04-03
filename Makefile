@@ -84,7 +84,7 @@ install:
 	install alfa ${DESTDIR}${PREFIX}/bin
 	install alfacube ${DESTDIR}${PREFIX}/bin
 	install alfarss ${DESTDIR}${PREFIX}/bin
-	install -g 0 -o 0 -m 644 man/alfa.1 ${MANDIR}
+	install -m 644 man/alfa.1 ${MANDIR}
 	gzip -f ${MANDIR}/alfa.1
 	ln -s -f ${MANDIR}/alfa.1.gz ${MANDIR}/alfacube.1.gz
 

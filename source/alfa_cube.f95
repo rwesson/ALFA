@@ -31,7 +31,6 @@ integer :: I, spectrumlength, nlines, linearraypos, totallines, startpos, endpos
 real :: startwlen, endwlen, baddata
 character (len=512) :: spectrumfile,stronglinelistfile,deeplinelistfile,skylinelistfile,outputdirectory
 character(len=12) :: fluxformat !for writing out the line list
-character(len=128) :: datapath !for path to data files, from preprocessor
 
 type(linelist), dimension(:), allocatable :: skylines_catalogue, stronglines_catalogue, deeplines_catalogue
 type(linelist), dimension(:), allocatable :: fittedlines, fittedlines_section, skylines, skylines_section
@@ -67,11 +66,9 @@ vtol1=0.003 !variation allowed in velocity (expressed as redshift) on first pass
 vtol2=0.0002 !second pass. 0.0002 = 60 km/s
 cube_i=1
 
-datapath=PREFIX
-
-stronglinelistfile=trim(datapath)//"/share/alfa/strong.cat"
-deeplinelistfile=trim(datapath)//"/share/alfa/deep.cat"
-skylinelistfile=trim(datapath)//"/share/alfa/sky.cat"
+stronglinelistfile=trim(PREFIX)//"/share/alfa/strong.cat"
+deeplinelistfile=trim(PREFIX)//"/share/alfa/deep.cat"
+skylinelistfile=trim(PREFIX)//"/share/alfa/sky.cat"
 
 outputdirectory="./"
 

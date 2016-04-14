@@ -87,6 +87,7 @@ install:
 	install -m 644 man/alfa.1 ${MANDIR}
 	gzip -f ${MANDIR}/alfa.1
 	ln -s -f ${MANDIR}/alfa.1.gz ${MANDIR}/alfacube.1.gz
+	ln -s -f ${MANDIR}/alfa.1.gz ${MANDIR}/alfarss.1.gz
 
 uninstall:
 	rm -rf ${DESTDIR}${PREFIX}/share/alfa

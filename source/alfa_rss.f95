@@ -488,7 +488,7 @@ endif
 !write out measured Hbeta flux to latex table
 
 if (hbetaflux .gt. 0.d0) then
-  write (200+tid,"(A,ES8.2)") "Measured flux of Hbeta: ",hbetaflux
+  write (200+tid,"(A,ES8.2)") "#Measured flux of Hbeta: ",hbetaflux
 endif
 
 !done, close files

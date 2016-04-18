@@ -21,6 +21,7 @@ To install ALFA, unpack the source files somewhere convenient, then type
     make
     sudo make install
 
-If you don't have the necessary permissions to execute the second command, then change the directory definitions in the make file, edit source/alfa.f95 and source/alfa_cube.f95 to change the values of skylinelistfile, stronglinelistfile and deeplinelistfile, and then type
+If you don't have the necessary permissions to execute the second command, then change the value of PREFIX in the make file to somewhere that you can write to, then type
 
+    make
     make install

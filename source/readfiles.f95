@@ -17,7 +17,7 @@ subroutine readspectrum(spectrumfile, realspec, spectrumlength, fittedspectrum)
 
   !cfitsio variables
 
-  integer :: status,unit,readwrite,blocksize,nfound
+  integer :: status,unit,readwrite,blocksize,nfound,hdutype
   integer, dimension(:), allocatable :: naxes
   integer :: group,firstpix
   real :: nullval
@@ -53,8 +53,13 @@ subroutine readspectrum(spectrumfile, realspec, spectrumlength, fittedspectrum)
     nfound=0
     call ftgidm(unit,nfound,status)
 
-    if (nfound .ne. 1) then
-      print *,gettime(),": error :",trim(spectrumfile)," is not a 1D FITS file"
+    do while (nfound .eq. 0) ! if no axes found in first extension, advance and check again
+      call ftmrhd(unit,1,hdutype,status)
+      call ftgidm(unit,nfound,status)
+    end do
+
+    if (nfound .eq. 0) then ! still no axes found
+      print *,gettime(),": error : no axes found in ",trim(spectrumfile)
       stop
     endif
 
@@ -72,6 +77,14 @@ subroutine readspectrum(spectrumfile, realspec, spectrumlength, fittedspectrum)
     if (nfound .eq. 1) then
       allocate(realspec(spectrumlength), stat=alloc_err)
       if (alloc_err .eq. 0) print *,gettime(), ": reading file into memory"
+    elseif (nfound .eq. 2) then
+      print *,gettime(),": 2D FITS file : please use alfarss"
+      print *,gettime(),": dimensions seem to be ",naxes(1)," x ",naxes(2)
+      stop
+    elseif (nfound .eq. 3) then
+      print *,gettime(),": 3D FITS file : please use alfacube"
+      print *,gettime(),": dimensions seem to be ",naxes(1)," x ",naxes(2)," x ",naxes(3)
+      stop
     endif
 
     ! find wavelength dispersion

@@ -409,7 +409,7 @@ endif
 
 if (hbetaflux .gt. 0.d0) then
   write (100,*) "\hline"
-  write (100,"(A,ES8.2)") "#Measured flux of H$\beta$: ",hbetaflux
+  write (100,"(A,ES8.2)") "Measured flux of H$\beta$: ",hbetaflux
   write (100,*) "\hline"
 endif
 

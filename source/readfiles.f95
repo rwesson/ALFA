@@ -15,6 +15,16 @@ subroutine readspectrum(spectrumfile, realspec, spectrumlength, fittedspectrum)
 
   type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum
 
+  !cfitsio variables
+
+  integer :: status,unit,readwrite,blocksize,nfound
+  integer, dimension(:), allocatable :: naxes
+  integer :: group,firstpix
+  real :: nullval
+  logical :: anynull
+  integer :: alloc_err
+  real :: wavelength, dispersion
+
   !read in spectrum to fit
 
   if (trim(spectrumfile)=="") then
@@ -30,10 +40,69 @@ subroutine readspectrum(spectrumfile, realspec, spectrumlength, fittedspectrum)
   endif
 
   if (index(spectrumfile,".fit").gt.0 .or. index(spectrumfile,".FIT").gt.0) then
-    print *,gettime(),": error: alfa can't read FITS files.  You probably want to use alfacube"
-    !todo: check dimensions, read in if 1D, exit only if more
-    stop
-  else
+
+    status=0
+    !  Get an unused Logical Unit Number to use to open the FITS file.
+    call ftgiou(unit,status)
+    !  Open the FITS file
+
+    readwrite=0
+    call ftopen(unit,spectrumfile,readwrite,blocksize,status)
+
+    ! check we have 1 axis
+    nfound=0
+    call ftgidm(unit,nfound,status)
+
+    if (nfound .ne. 1) then
+      print *,gettime(),": error :",trim(spectrumfile)," is not a 1D FITS file"
+      stop
+    endif
+
+    ! now get the dimensions of the axis
+
+    allocate(naxes(nfound))
+    call ftgisz(unit,nfound,naxes,status)
+
+    group=1
+    firstpix=1
+    nullval=-999
+
+    spectrumlength=naxes(1)
+
+    if (nfound .eq. 1) then
+      allocate(realspec(spectrumlength), stat=alloc_err)
+      if (alloc_err .eq. 0) print *,gettime(), ": reading file into memory"
+    endif
+
+    ! find wavelength dispersion
+
+    call ftgkye(unit,"CRVAL1",wavelength,"",status)
+    call ftgkye(unit,"CD1_1",dispersion,"",status)
+
+    ! calculate wavelength values
+
+    do i=1,spectrumlength
+      realspec(i)%wavelength = wavelength+(i-1)*dispersion
+    enddo
+
+    ! read spectrum into memory
+
+    call ftgpve(unit,group,firstpix,spectrumlength,nullval,realspec%flux,anynull,status)
+
+    if (status .eq. 0) then
+      print "(X,A,A,I7,A)",gettime(), ": successfully read ",spectrumlength," pixels into memory"
+    else
+      print *,gettime(), ": couldn't read file into memory"
+      stop
+    endif
+
+    ! close file
+
+    call ftclos(unit, status)
+    call ftfiou(unit, status)
+
+  else ! read plain text
+
     I = 0
     OPEN(199, file=spectrumfile, iostat=IO, status='old')
       DO WHILE (IO >= 0)
@@ -41,22 +110,24 @@ subroutine readspectrum(spectrumfile, realspec, spectrumlength, fittedspectrum)
       I = I + 1
     END DO
     112 spectrumlength=I
+
+    !then allocate and read
+
+    allocate (realspec(spectrumlength))
+
+    REWIND (199)
+    DO I=1,spectrumlength
+      READ(199,*) input1, input2
+      realspec(i)%wavelength = input1
+      realspec(i)%flux = input2
+    END DO
+    CLOSE(199)
+
   endif
 
-  !then allocate and read
+  realspec%uncertainty = 0.d0
 
-  allocate (realspec(spectrumlength))
   allocate (fittedspectrum(spectrumlength))
-
-  REWIND (199)
-  DO I=1,spectrumlength
-    READ(199,*) input1, input2
-    realspec(i)%wavelength = input1
-    realspec(i)%flux = input2
-    realspec(i)%uncertainty = 0.d0
-  END DO
-  CLOSE(199)
-
   fittedspectrum%wavelength=realspec%wavelength
   fittedspectrum%flux=0.d0
 

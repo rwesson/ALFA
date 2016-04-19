@@ -11,7 +11,7 @@
 # at runtime, and bounds-checking.
 # This option is slow (about 2x slower than make all)
 #
-#     > make CO=debug2, debug2, pedantic
+#     > make CO=debug2, debug3, pedantic
 # offer further levels of checks in case of problems
 #
 #     > make new
@@ -25,7 +25,7 @@ FC=gfortran
 LD=gfortran
 PREFIX=/usr
 FFLAGS=-ffree-line-length-0 -Jsource/ -fopenmp -cpp -DPREFIX=\"${PREFIX}\"
-CUBEFLAGS=-L/usr/lib/x86_64-linux-gnu/ -lcfitsio -lm
+CFITSIOFLAGS=-L/usr/lib/x86_64-linux-gnu/ -lcfitsio -lm
 MANDIR=${DESTDIR}${PREFIX}/share/man/man1
 
 ifeq ($(FC),gfortran)
@@ -65,13 +65,13 @@ new: clean all
 	$(FC) $(FFLAGS) $< -c -o $@
 
 alfa: source/types.o source/functions.o source/readfiles.o source/quicksort.o source/continuum.o source/fit.o source/uncertainties.o source/alfa.o
-	$(LD) $(LDFLAGS) $(FFLAGS) -o $@ $^
+	$(LD) $(LDFLAGS) $(FFLAGS) -o $@ $^ ${CFITSIOFLAGS}
 
 alfacube: source/types.o source/functions.o source/readfiles.o source/quicksort.o source/continuum.o source/fit.o source/uncertainties.o source/alfa_cube.o
-	$(LD) $(LDFLAGS) $(FFLAGS) -o $@ $^ ${CUBEFLAGS}
+	$(LD) $(LDFLAGS) $(FFLAGS) -o $@ $^ ${CFITSIOFLAGS}
 
 alfarss: source/types.o source/functions.o source/readfiles.o source/quicksort.o source/continuum.o source/fit.o source/uncertainties.o source/alfa_rss.o
-	$(LD) $(LDFLAGS) $(FFLAGS) -o $@ $^ ${CUBEFLAGS}
+	$(LD) $(LDFLAGS) $(FFLAGS) -o $@ $^ ${CFITSIOFLAGS}
 
 clean:
 	rm -f alfa alfacube source/*.o source/*.mod

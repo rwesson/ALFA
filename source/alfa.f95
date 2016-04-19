@@ -74,7 +74,7 @@ narg = IARGC() !count input arguments
 
 if (narg .eq. 0) then
   print *,"Usage: alfa [options] [file]"
-  print *,"  [file] is an ascii file with columns for wavelength and flux"
+  print *,"  [file] is an ascii file with columns for wavelength and flux, or a 1D FITS file"
   print *,"  see the man page or online documentation for details of the options"
   stop
 endif

@@ -4,7 +4,7 @@ use mod_routines
 
 contains
 
-subroutine getfiletype(spectrumfile, filetype, dimensions, axes)
+subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dispersion)
 !this subroutine determines what type of file the input file is
 !input is the file name
 !output is the file type, indicated by:
@@ -66,13 +66,23 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes)
     elseif (dimensions .gt. 3) then ! can't imagine what a 4D fits file would actually be, but alfa definitely can't handle it
       print *,gettime(),": error : more than 3 axes found in ",trim(spectrumfile)
       stop
-
     endif
 
     ! now get the dimensions of the axis
 
     allocate(axes(dimensions))
     call ftgisz(unit,dimensions,axes,status)
+    filetype=dimensions
+
+    ! get wavelength and dispersion
+
+    call ftgkye(unit,"CRVAL1",wavelength,"",status)
+    call ftgkye(unit,"CD1_1",dispersion,"",status) ! todo:improve this
+
+    ! close file
+
+    call ftclos(unit, status)
+    call ftfiou(unit, status)
 
   else ! not FITS file, assume ascii
 
@@ -82,7 +92,48 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes)
 
 end subroutine getfiletype
 
-subroutine readspectrum(spectrumfile, realspec, spectrumlength, fittedspectrum)
+subroutine readascii(spectrumfile, realspec, spectrumlength, fittedspectrum)
+! read in a plain text file
+
+  implicit none
+  character (len=512) :: spectrumfile
+  integer :: i
+  real :: input1, input2
+  integer :: io, spectrumlength
+  logical :: file_exists
+
+  type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum
+
+  i = 0
+  open(199, file=spectrumfile, iostat=IO, status='old')
+    do while (IO >= 0)
+    read(199,*,end=112) input1
+    i = i + 1
+  end do
+  112 spectrumlength=i
+
+  !then allocate and read
+
+  allocate (realspec(spectrumlength))
+
+  rewind (199)
+  do i=1,spectrumlength
+    read(199,*) input1, input2
+    realspec(i)%wavelength = input1
+    realspec(i)%flux = input2
+  end do
+  close(199)
+
+  realspec%uncertainty = 0.d0
+
+  allocate (fittedspectrum(spectrumlength))
+  fittedspectrum%wavelength=realspec%wavelength
+  fittedspectrum%flux=0.d0
+
+end subroutine readascii
+
+subroutine read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum)
+! read in a 1D fits file
 
   implicit none
   character (len=512) :: spectrumfile
@@ -96,133 +147,161 @@ subroutine readspectrum(spectrumfile, realspec, spectrumlength, fittedspectrum)
   !cfitsio variables
 
   integer :: status,unit,readwrite,blocksize,nfound,hdutype
-  integer, dimension(:), allocatable :: naxes
   integer :: group,firstpix
   real :: nullval
   logical :: anynull
   integer :: alloc_err
   real :: wavelength, dispersion
 
-  !read in spectrum to fit
+  allocate(realspec(spectrumlength))
+  allocate(fittedspectrum(spectrumlength))
 
-  if (trim(spectrumfile)=="") then
-    print *,gettime(),": error: No input spectrum specified"
+  status=0
+  !  Get an unused Logical Unit Number to use to open the FITS file.
+  call ftgiou(unit,status)
+  !  Open the FITS file
+
+  readwrite=0
+  call ftopen(unit,spectrumfile,readwrite,blocksize,status)
+
+  group=1
+  firstpix=1
+  nullval=-999
+
+  ! calculate wavelength values
+
+  do i=1,spectrumlength
+    realspec(i)%wavelength = wavelength+(i-1)*dispersion
+  enddo
+
+  ! read spectrum into memory
+
+  call ftgpve(unit,group,firstpix,spectrumlength,nullval,realspec%flux,anynull,status)
+
+  if (status .eq. 0) then
+    print "(X,A,A,I7,A)",gettime(), ": successfully read 1D fits file with ",spectrumlength," data points into memory"
+  else
+    print *,gettime(), ": couldn't read file into memory"
     stop
   endif
 
-  inquire(file=spectrumfile, exist=file_exists) ! see if the input file is present
+  ! close file
 
-  if (.not. file_exists) then
-    print *,gettime(),": error: input spectrum ",trim(spectrumfile)," does not exist"
-    stop
-  endif
-
-  if (index(spectrumfile,".fit").gt.0 .or. index(spectrumfile,".FIT").gt.0) then
-
-    status=0
-    !  Get an unused Logical Unit Number to use to open the FITS file.
-    call ftgiou(unit,status)
-    !  Open the FITS file
-
-    readwrite=0
-    call ftopen(unit,spectrumfile,readwrite,blocksize,status)
-
-    ! check we have 1 axis
-    nfound=0
-    call ftgidm(unit,nfound,status)
-
-    do while (nfound .eq. 0) ! if no axes found in first extension, advance and check again
-      call ftmrhd(unit,1,hdutype,status)
-      call ftgidm(unit,nfound,status)
-    end do
-
-    if (nfound .eq. 0) then ! still no axes found
-      print *,gettime(),": error : no axes found in ",trim(spectrumfile)
-      stop
-    endif
-
-    ! now get the dimensions of the axis
-
-    allocate(naxes(nfound))
-    call ftgisz(unit,nfound,naxes,status)
-
-    group=1
-    firstpix=1
-    nullval=-999
-
-    spectrumlength=naxes(1)
-
-    if (nfound .eq. 1) then
-      allocate(realspec(spectrumlength), stat=alloc_err)
-      if (alloc_err .eq. 0) print *,gettime(), ": reading file into memory"
-    elseif (nfound .eq. 2) then
-      print *,gettime(),": 2D FITS file : please use alfarss"
-      print *,gettime(),": dimensions seem to be ",naxes(1)," x ",naxes(2)
-      stop
-    elseif (nfound .eq. 3) then
-      print *,gettime(),": 3D FITS file : please use alfacube"
-      print *,gettime(),": dimensions seem to be ",naxes(1)," x ",naxes(2)," x ",naxes(3)
-      stop
-    endif
-
-    ! find wavelength dispersion
-
-    call ftgkye(unit,"CRVAL1",wavelength,"",status)
-    call ftgkye(unit,"CD1_1",dispersion,"",status)
-
-    ! calculate wavelength values
-
-    do i=1,spectrumlength
-      realspec(i)%wavelength = wavelength+(i-1)*dispersion
-    enddo
-
-    ! read spectrum into memory
-
-    call ftgpve(unit,group,firstpix,spectrumlength,nullval,realspec%flux,anynull,status)
-
-    if (status .eq. 0) then
-      print "(X,A,A,I7,A)",gettime(), ": successfully read ",spectrumlength," pixels into memory"
-    else
-      print *,gettime(), ": couldn't read file into memory"
-      stop
-    endif
-
-    ! close file
-
-    call ftclos(unit, status)
-    call ftfiou(unit, status)
-
-  else ! read plain text
-
-    I = 0
-    OPEN(199, file=spectrumfile, iostat=IO, status='old')
-      DO WHILE (IO >= 0)
-      READ(199,*,end=112) input1
-      I = I + 1
-    END DO
-    112 spectrumlength=I
-
-    !then allocate and read
-
-    allocate (realspec(spectrumlength))
-
-    REWIND (199)
-    DO I=1,spectrumlength
-      READ(199,*) input1, input2
-      realspec(i)%wavelength = input1
-      realspec(i)%flux = input2
-    END DO
-    CLOSE(199)
-
-  endif
+  call ftclos(unit, status)
+  call ftfiou(unit, status)
 
   realspec%uncertainty = 0.d0
-
-  allocate (fittedspectrum(spectrumlength))
   fittedspectrum%wavelength=realspec%wavelength
   fittedspectrum%flux=0.d0
 
-end subroutine readspectrum
+end subroutine read1dfits
+
+subroutine read2dfits(spectrumfile, rssdata, dimensions, axes)
+!read a 2D FITS file.
+
+  implicit none
+  character (len=512) :: spectrumfile
+  real, dimension(:,:), allocatable :: rssdata
+  logical :: anynull
+  integer :: alloc_err
+  integer :: dimensions
+  integer, dimension(:) :: axes
+  !cfitsio variables
+
+  integer :: status,unit,readwrite,blocksize,nfound,hdutype, hdunum, nhdu
+  integer :: group,firstpix
+  real :: nullval
+
+  status=0
+  !  Get an unused Logical Unit Number to use to open the FITS file.
+  call ftgiou(unit,status)
+  !  Open the FITS file
+  readwrite=0
+  call ftopen(unit,spectrumfile,readwrite,blocksize,status)
+
+  group=1
+  firstpix=1
+  nullval=-999
+
+  allocate(rssdata(axes(1),axes(2)), stat=alloc_err)
+  if (alloc_err .eq. 0) print *,gettime(), ": reading RSS file into memory"
+
+! advance to first HDU containing axes
+
+  dimensions=0
+  call ftgidm(unit,dimensions,status)
+  do while (dimensions .eq. 0) ! if no axes found in first extension, advance andcheck again
+    call ftmrhd(unit,1,hdutype,status)
+    call ftgidm(unit,dimensions,status)
+  end do
+
+! read RSS file into memory
+
+  status=0
+  call ftg2de(unit,group,nullval,axes(1),axes(1),axes(2),rssdata,anynull,status)
+
+  if (status .eq. 0) then
+    print "(X,A,A,I7,A)",gettime(), ": successfully read ",axes(2)," rows into memory"
+  else
+    print *,gettime(), ": couldn't read RSS file into memory"
+    print *,"error code ",status
+    stop
+  endif
+
+end subroutine read2dfits
+
+subroutine read3dfits(spectrumfile, cubedata, dimensions, axes)
+!read a FITS cube.
+
+  implicit none
+  character (len=512) :: spectrumfile
+  real, dimension(:,:,:), allocatable :: cubedata
+  logical :: anynull
+  integer :: alloc_err
+  integer :: dimensions
+  integer, dimension(:) :: axes
+  !cfitsio variables
+
+  integer :: status,unit,readwrite,blocksize,nfound,hdutype, hdunum, nhdu
+  integer :: group,firstpix
+  real :: nullval
+
+  status=0
+  !  Get an unused Logical Unit Number to use to open the FITS file.
+  call ftgiou(unit,status)
+  !  Open the FITS file
+  readwrite=0
+  call ftopen(unit,spectrumfile,readwrite,blocksize,status)
+
+  group=1
+  firstpix=1
+  nullval=-999
+
+  allocate(cubedata(axes(1),axes(2),axes(3)), stat=alloc_err)
+  if (alloc_err .eq. 0) print *,gettime(), ": reading data cube into memory"
+
+! advance to first HDU containing axes
+
+  dimensions=0
+  call ftgidm(unit,dimensions,status)
+  do while (dimensions .eq. 0) ! if no axes found in first extension, advance andcheck again
+    call ftmrhd(unit,1,hdutype,status)
+    call ftgidm(unit,dimensions,status)
+  end do
+
+! read RSS file into memory
+
+  status=0
+  call ftg3de(unit,group,nullval,axes(1),axes(2),axes(1),axes(2),axes(3),cubedata,anynull,status)
+
+  if (status .eq. 0) then
+    print "(X,A,A,I7,A)",gettime(), ": successfully read ",axes(1)*axes(2)," pixels into memory"
+  else
+    print *,gettime(), ": couldn't read cube into memory"
+    stop
+  endif
+
+end subroutine read3dfits
 
 subroutine readlinelist(linelistfile,referencelinelist,nlines,wavelength1, wavelength2)
 !this subroutine reads in the line catalogue

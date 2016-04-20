@@ -1,138 +1,6 @@
-program alfa
-
-use mod_readfiles
-use mod_routines
-use mod_types
-use mod_continuum
-use mod_fit
-use mod_uncertainties
-
-implicit none
-integer :: I, spectrumlength, nlines, linearraypos, totallines, startpos, endpos
-real :: startwlen, endwlen
-character (len=512) :: spectrumfile,stronglinelistfile,deeplinelistfile,skylinelistfile,outputdirectory,outputbasename
-
-type(linelist), dimension(:), allocatable :: skylines_catalogue, stronglines_catalogue, deeplines_catalogue
-type(linelist), dimension(:), allocatable :: fittedlines, fittedlines_section, skylines, skylines_section
-type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum, spectrumchunk, skyspectrum, continuum, stronglines
-
-integer :: filetype, dimensions
-real :: wavelength, dispersion
-integer, dimension(:), allocatable :: axes
-real, dimension(:,:), allocatable :: rssdata
-real, dimension(:,:,:), allocatable :: cubedata
-
-CHARACTER(len=2048), DIMENSION(:), allocatable :: options
-CHARACTER(len=2048) :: commandline
-integer :: narg, nargused
-
-real :: redshiftguess, resolutionguess, redshiftguess_overall
-real :: vtol1, vtol2, rtol1, rtol2
-real :: blendpeak
-real :: normalisation, hbetaflux
-real :: c
-integer :: linelocation, overlap
-integer :: generations, popsize
-real :: pressure
-
-logical :: normalise=.false. !false means spectrum normalised to whatever H beta is detected, true means spectrum normalised to user specified value
-logical :: resolution_estimated=.false. !true means user specified a value, false means estimate from sampling
-logical :: subtractsky=.false. !attempt to fit night sky emission lines
-logical :: file_exists
-
-logical :: messages
-
-character(len=12) :: fluxformat !for writing out the line list
-
-c=299792.458 !km/s
-!default values in absence of user specificed guess
-redshiftguess=0.0 !km/s
-rtol1=0.d0 !variation allowed in resolution on first pass.  determined later, either from user input, or to be equal to resolution guess.
-rtol2=500. !second pass
-vtol1=0.003 !variation allowed in velocity (expressed as redshift) on first pass. 0.003 = 900 km/s
-vtol2=0.0002 !second pass. 0.0002 = 60 km/s
-
-stronglinelistfile=trim(PREFIX)//"/share/alfa/strong.cat"
-deeplinelistfile=trim(PREFIX)//"/share/alfa/deep.cat"
-skylinelistfile=trim(PREFIX)//"/share/alfa/sky.cat"
-
-outputdirectory="./"
-
-messages=.false.
-
-popsize=30
-pressure=0.3 !pressure * popsize needs to be an integer
-generations=500
-
-! start
-
-print *,"ALFA, the Automated Line Fitting Algorithm"
-print *,"------------------------------------------"
-
-print *
-print *,gettime(),": starting code"
-
-! random seed
-
-call init_random_seed()
-
-! read command line
-
-narg = 0
-nargused = 0 !to count options specified
-narg = IARGC() !count input arguments
-
-if (narg .eq. 0) then
-  print *,"Usage: alfa [options] [file]"
-  print *,"  [file] is an ascii file with columns for wavelength and flux, or a 1D FITS file"
-  print *,"  see the man page or online documentation for details of the options"
-  stop
-endif
-
-include "commandline.f95"
-
-! convert from velocity to redshift
-
-redshiftguess=1.+(redshiftguess/c)
-
-print *,gettime(),": command line: ",trim(commandline)
-
-! read in spectrum to fit and line list
-
-print *,gettime(),": reading in file ",trim(spectrumfile)
-call getfiletype(spectrumfile,filetype,dimensions,axes,wavelength,dispersion) !call subroutine to determine whether it's 1D, 2D or 3D fits, or ascii, or none of the above
-if (filetype.eq.1) then
-  spectrumlength=axes(1)
-  call read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum)
-  messages=.true.
-elseif (filetype .eq. 2) then
-  call read2dfits(spectrumfile, rssdata, dimensions, axes)
-  print *,"ready for 2D processing"
-  stop
-elseif (filetype .eq. 3) then
-  call read3dfits(spectrumfile, cubedata, dimensions, axes)
-  print *,"ready for 3D processing"
-  stop
-elseif (filetype .eq. 4) then
-  print *,"ascii file"
-  call readascii(spectrumfile, realspec, spectrumlength, fittedspectrum)
-  messages=.true.
-else
-  !not recognised, stop
-  print *,"unrecognised file"
-  stop
-endif
-
-outputbasename=spectrumfile(index(spectrumfile,"/",back=.true.)+1:len(trim(spectrumfile)))
-
-!read in catalogues
-
-print *,gettime(),": reading in line catalogues"
-call readlinelist(skylinelistfile, skylines_catalogue, nlines,minval(realspec%wavelength),maxval(realspec%wavelength))
-call readlinelist(stronglinelistfile, stronglines_catalogue, nlines,minval(realspec%wavelength),maxval(realspec%wavelength))
-call readlinelist(deeplinelistfile, deeplines_catalogue, nlines,minval(realspec%wavelength),maxval(realspec%wavelength))
-
-! then subtract the continuum
+! this is the general fitting routine, which first subtracts a continuum, then fits sky lines if requested, then fits the emission lines
+! it is called from within parallelised wrappers for 2D and 3D data, and simply called for 1D data.
+! subtract the continuum
 
 if (messages) print *,gettime(),": fitting continuum"
 call fit_continuum(realspec,spectrumlength, continuum)
@@ -338,14 +206,14 @@ call get_uncertainties(fittedspectrum, realspec, fittedlines)
 
 ! write out the fitted spectrum
 
-open(100,file=trim(outputdirectory)//trim(outputbasename)//"_fit")
+open(100+tid,file=trim(outputdirectory)//trim(outputbasename)//"_fit")
 
-write (100,*) """wavelength""  ""fitted spectrum""  ""cont-subbed orig"" ""continuum""  ""sky lines""  ""residuals"""
+write (100+tid,*) """wavelength""  ""fitted spectrum""  ""cont-subbed orig"" ""continuum""  ""sky lines""  ""residuals"""
 do i=1,spectrumlength
-  write(100,"(F8.2, 5(ES12.3))") fittedspectrum(i)%wavelength,fittedspectrum(i)%flux + continuum(i)%flux + skyspectrum(i)%flux, realspec(i)%flux, continuum(i)%flux, skyspectrum(i)%flux, realspec(i)%flux - fittedspectrum(i)%flux
+  write(100+tid,"(F8.2, 5(ES12.3))") fittedspectrum(i)%wavelength,fittedspectrum(i)%flux + continuum(i)%flux + skyspectrum(i)%flux, realspec(i)%flux, continuum(i)%flux, skyspectrum(i)%flux, realspec(i)%flux - fittedspectrum(i)%flux
 enddo
 
-close(100)
+close(100+tid)
 
 ! normalise if H beta is present and user did not specify a normalisation
 
@@ -397,17 +265,17 @@ endif
 
 if (messages) print *,gettime(),": writing output files ",trim(outputdirectory),trim(outputbasename),"_lines.tex and ",trim(outputdirectory),trim(outputbasename),"_fit"
 
-open(100,file=trim(outputdirectory)//trim(outputbasename)//"_lines.tex")
-open(101,file=trim(outputdirectory)//trim(outputbasename)//"_lines")
-write(100,*) "Observed wavelength & Rest wavelength & Flux & Uncertainty & Ion & Multiplet & Lower term & Upper term & g$_1$ & g$_2$ \\"
+if (messages) open(100+tid,file=trim(outputdirectory)//trim(outputbasename)//"_lines.tex")
+open(200+tid,file=trim(outputdirectory)//trim(outputbasename)//"_lines")
+if (messages) write(100+tid,*) "Observed wavelength & Rest wavelength & Flux & Uncertainty & Ion & Multiplet & Lower term & Upper term & g$_1$ & g$_2$ \\"
 do i=1,totallines
   if (fittedlines(i)%blended .eq. 0 .and. fittedlines(i)%uncertainty .gt. 3.0) then
-    write (100,"(F8.2,' & ',F8.2,' & ',"//fluxformat//",' & ',"//fluxformat//",A85)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty, fittedlines(i)%linedata
-    write (101,"(2(F8.2),2("//fluxformat//"))") fittedlines(i)%wavelength*fittedlines(i)%redshift, fittedlines(i)%wavelength, gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty
+    if (messages) write (100+tid,"(F8.2,' & ',F8.2,' & ',"//fluxformat//",' & ',"//fluxformat//",A85)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty, fittedlines(i)%linedata
+    write (200+tid,"(2(F8.2),2("//fluxformat//"))") fittedlines(i)%wavelength*fittedlines(i)%redshift, fittedlines(i)%wavelength, gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty
   elseif (fittedlines(i)%blended .ne. 0) then
     if (fittedlines(fittedlines(i)%blended)%uncertainty .gt. 3.0) then
-      write (100,"(F8.2,' & ',F8.2,' &            * &            *',A85)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,fittedlines(i)%linedata
-      write (101,"(F8.2,F8.2,'           *           *')") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength
+      if (messages) write (100+tid,"(F8.2,' & ',F8.2,' &            * &            *',A85)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,fittedlines(i)%linedata
+      write (200+tid,"(F8.2,F8.2,'           *           *')") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength
     endif
   endif
 enddo
@@ -416,46 +284,36 @@ enddo
 
 !Balmer
 if (minval(abs(continuum%wavelength-3630.)) .lt. 3630./fittedlines(1)%resolution) then
-  write (100,"(F8.2,' &          & ',"//fluxformat//",' & ',"//fluxformat//",' & Balmer jump-\\')") 3645.5, continuum(minloc(abs(continuum%wavelength-3630.)))%flux, realspec(minloc(abs(continuum%wavelength-3630.)))%uncertainty
-  write (101,"(2(F8.2),"//fluxformat//","//fluxformat//")"), 3645.5, 3645.5, continuum(minloc(abs(continuum%wavelength-3630.)))%flux, realspec(minloc(abs(continuum%wavelength-3630.)))%uncertainty
+  if (messages) write (100+tid,"(F8.2,' &          & ',"//fluxformat//",' & ',"//fluxformat//",' & Balmer jump-\\')") 3645.5, continuum(minloc(abs(continuum%wavelength-3630.)))%flux, realspec(minloc(abs(continuum%wavelength-3630.)))%uncertainty
+  write (200+tid,"(2(F8.2),"//fluxformat//","//fluxformat//")"), 3645.5, 3645.5, continuum(minloc(abs(continuum%wavelength-3630.)))%flux, realspec(minloc(abs(continuum%wavelength-3630.)))%uncertainty
 endif
 
 if (minval(abs(continuum%wavelength-3700.)) .lt. 3700./fittedlines(1)%resolution) then
-  write (100,"(F8.2,' &          & ',"//fluxformat//",' & ',"//fluxformat//",' & Balmer jump+\\')") 3646.5, continuum(minloc(abs(continuum%wavelength-3700.)))%flux, realspec(minloc(abs(continuum%wavelength-3700.          )))%uncertainty
-  write (101,"(2(F8.2),"//fluxformat//","//fluxformat//")"), 3646.5, 3646.5, continuum(minloc(abs(continuum%wavelength-3700.)))%flux, realspec(minloc(abs(continuum%wavelength-3700.)))%uncertainty
+  if (messages) write (100+tid,"(F8.2,' &          & ',"//fluxformat//",' & ',"//fluxformat//",' & Balmer jump+\\')") 3646.5, continuum(minloc(abs(continuum%wavelength-3700.)))%flux, realspec(minloc(abs(continuum%wavelength-3700.          )))%uncertainty
+  write (200+tid,"(2(F8.2),"//fluxformat//","//fluxformat//")"), 3646.5, 3646.5, continuum(minloc(abs(continuum%wavelength-3700.)))%flux, realspec(minloc(abs(continuum%wavelength-3700.)))%uncertainty
 endif
 
 !paschen
 
 if (minval(abs(continuum%wavelength-8100.)) .lt. 8100./fittedlines(1)%resolution) then
-  write (100,"(F8.2,' &          & ',"//fluxformat//",' & ',"//fluxformat//",' & Paschen jump-\\')") 8100.0, continuum(minloc(abs(continuum%wavelength-8100.)))%flux, realspec(minloc(abs(continuum%wavelength-8100.          )))%uncertainty
-  write (101,"(2(F8.2),"//fluxformat//","//fluxformat//")"), 8100.0, 8100.0, continuum(minloc(abs(continuum%wavelength-8100.)))%flux, realspec(minloc(abs(continuum%wavelength-8100.)))%uncertainty
+  if (messages) write (100+tid,"(F8.2,' &          & ',"//fluxformat//",' & ',"//fluxformat//",' & Paschen jump-\\')") 8100.0, continuum(minloc(abs(continuum%wavelength-8100.)))%flux, realspec(minloc(abs(continuum%wavelength-8100.          )))%uncertainty
+  write (200+tid,"(2(F8.2),"//fluxformat//","//fluxformat//")"), 8100.0, 8100.0, continuum(minloc(abs(continuum%wavelength-8100.)))%flux, realspec(minloc(abs(continuum%wavelength-8100.)))%uncertainty
 endif
 
 if (minval(abs(continuum%wavelength-8400.)) .lt. 8400./fittedlines(1)%resolution) then
-  write (100,"(F8.2,' &          & ',"//fluxformat//",' & ',"//fluxformat//",' & Paschen jump+\\')") 8400.0, continuum(minloc(abs(continuum%wavelength-8400.)))%flux, realspec(minloc(abs(continuum%wavelength-8400.          )))%uncertainty
-  write (101,"(2(F8.2),"//fluxformat//","//fluxformat//")"), 8400.0, 8400.0, continuum(minloc(abs(continuum%wavelength-8400.)))%flux, realspec(minloc(abs(continuum%wavelength-8400.)))%uncertainty
+  if (messages) write (100+tid,"(F8.2,' &          & ',"//fluxformat//",' & ',"//fluxformat//",' & Paschen jump+\\')") 8400.0, continuum(minloc(abs(continuum%wavelength-8400.)))%flux, realspec(minloc(abs(continuum%wavelength-8400.          )))%uncertainty
+  write (200+tid,"(2(F8.2),"//fluxformat//","//fluxformat//")"), 8400.0, 8400.0, continuum(minloc(abs(continuum%wavelength-8400.)))%flux, realspec(minloc(abs(continuum%wavelength-8400.)))%uncertainty
 endif
 
 !write out measured Hbeta flux to latex table
 
 if (hbetaflux .gt. 0.d0) then
-  write (100,*) "\hline"
-  write (100,"(A,ES8.2)") "Measured flux of H$\beta$: ",hbetaflux
-  write (100,*) "\hline"
+  if (messages) write (100+tid,*) "\hline"
+  if (messages) write (100+tid,"(A,ES8.2)") "Measured flux of H$\beta$: ",hbetaflux
+  if (messages) write (100+tid,*) "\hline"
 endif
 
 !done, close files
 
-close(101)
-close(100)
-
-!free memory
-
-if (allocated(rssdata)) deallocate(rssdata)
-if (allocated(cubedata)) deallocate(cubedata)
-
-print *,gettime(),": all done"
-print *
-
-end program alfa
+close(200+tid)
+if (messages) close(100+tid) 

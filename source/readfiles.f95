@@ -23,10 +23,6 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
   !cfitsio variables
 
   integer :: status,unit,readwrite,blocksize,hdutype
-  integer :: group,firstpix
-  real :: nullval
-  logical :: anynull
-  integer :: alloc_err
   real :: wavelength, dispersion
 
   !read in spectrum to fit
@@ -100,7 +96,6 @@ subroutine readascii(spectrumfile, realspec, spectrumlength, fittedspectrum)
   integer :: i
   real :: input1, input2
   integer :: io, spectrumlength
-  logical :: file_exists
 
   type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum
 
@@ -138,19 +133,16 @@ subroutine read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum)
   implicit none
   character (len=512) :: spectrumfile
   integer :: i
-  real :: input1, input2
-  integer :: io, spectrumlength
-  logical :: file_exists
+  integer :: spectrumlength
 
   type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum
 
   !cfitsio variables
 
-  integer :: status,unit,readwrite,blocksize,nfound,hdutype
+  integer :: status,unit,readwrite,blocksize
   integer :: group,firstpix
   real :: nullval
   logical :: anynull
-  integer :: alloc_err
   real :: wavelength, dispersion
 
   allocate(realspec(spectrumlength))
@@ -208,7 +200,7 @@ subroutine read2dfits(spectrumfile, rssdata, dimensions, axes)
   integer, dimension(:) :: axes
   !cfitsio variables
 
-  integer :: status,unit,readwrite,blocksize,nfound,hdutype, hdunum, nhdu
+  integer :: status,unit,readwrite,blocksize,hdutype
   integer :: group,firstpix
   real :: nullval
 
@@ -262,7 +254,7 @@ subroutine read3dfits(spectrumfile, cubedata, dimensions, axes)
   integer, dimension(:) :: axes
   !cfitsio variables
 
-  integer :: status,unit,readwrite,blocksize,nfound,hdutype, hdunum, nhdu
+  integer :: status,unit,readwrite,blocksize,hdutype
   integer :: group,firstpix
   real :: nullval
 

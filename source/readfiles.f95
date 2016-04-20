@@ -4,6 +4,84 @@ use mod_routines
 
 contains
 
+subroutine getfiletype(spectrumfile, filetype, dimensions, axes)
+!this subroutine determines what type of file the input file is
+!input is the file name
+!output is the file type, indicated by:
+! 1 - 1d fits
+! 2 - 2d fits
+! 3 - 3dfits
+! 4 - 1d ascii
+!dimensions and lengths of axes are returned if it's a FITS file
+
+  implicit none
+  character (len=512) :: spectrumfile
+  integer :: filetype, dimensions
+  integer, dimension(:), allocatable :: axes
+  logical :: file_exists
+
+  !cfitsio variables
+
+  integer :: status,unit,readwrite,blocksize,hdutype
+  integer :: group,firstpix
+  real :: nullval
+  logical :: anynull
+  integer :: alloc_err
+  real :: wavelength, dispersion
+
+  !read in spectrum to fit
+
+  if (trim(spectrumfile)=="") then
+    print *,gettime(),": error: No input spectrum specified"
+    stop
+  endif
+
+  inquire(file=spectrumfile, exist=file_exists) ! see if the input file is present
+
+  if (.not. file_exists) then
+    print *,gettime(),": error: input spectrum ",trim(spectrumfile)," does not exist"
+    stop
+  endif
+
+  if (index(spectrumfile,".fit").gt.0 .or. index(spectrumfile,".FIT").gt.0) then
+
+    status=0
+    !  Get an unused Logical Unit Number to use to open the FITS file.
+    call ftgiou(unit,status)
+    !  Open the FITS file
+
+    readwrite=0
+    call ftopen(unit,spectrumfile,readwrite,blocksize,status)
+
+    ! get number of axes
+    dimensions=0
+    call ftgidm(unit,dimensions,status)
+    do while (dimensions .eq. 0) ! if no axes found in first extension, advance andcheck again
+      call ftmrhd(unit,1,hdutype,status)
+      call ftgidm(unit,dimensions,status)
+    end do
+    if (dimensions .eq. 0) then ! still no axes found
+      print *,gettime(),": error : no axes found in ",trim(spectrumfile)
+      stop
+    elseif (dimensions .gt. 3) then ! can't imagine what a 4D fits file would actually be, but alfa definitely can't handle it
+      print *,gettime(),": error : more than 3 axes found in ",trim(spectrumfile)
+      stop
+
+    endif
+
+    ! now get the dimensions of the axis
+
+    allocate(axes(dimensions))
+    call ftgisz(unit,dimensions,axes,status)
+
+  else ! not FITS file, assume ascii
+
+    filetype=4
+
+  endif
+
+end subroutine getfiletype
+
 subroutine readspectrum(spectrumfile, realspec, spectrumlength, fittedspectrum)
 
   implicit none

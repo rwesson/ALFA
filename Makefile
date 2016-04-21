@@ -57,7 +57,7 @@ endif
 
 .PHONY: all clean install
 
-all: alfa alfacube alfarss
+all: alfa
 
 new: clean all
 

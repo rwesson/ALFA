@@ -52,7 +52,7 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
     ! get number of axes
     dimensions=0
     call ftgidm(unit,dimensions,status)
-    do while (dimensions .eq. 0) ! if no axes found in first extension, advance andcheck again
+    do while (dimensions .eq. 0) ! if no axes found in first extension, advance and check again
       call ftmrhd(unit,1,hdutype,status)
       call ftgidm(unit,dimensions,status)
     end do
@@ -71,9 +71,23 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
     filetype=dimensions
 
     ! get wavelength and dispersion
+    ! todo: make this more robust
 
-    call ftgkye(unit,"CRVAL1",wavelength,"",status)
-    call ftgkye(unit,"CD1_1",dispersion,"",status) ! todo:improve this
+    if (dimensions .lt. 3) then
+      call ftgkye(unit,"CRVAL1",wavelength,"",status)
+      call ftgkye(unit,"CDELT1",dispersion,"",status)
+      if (status.ne.0) then
+        status=0
+        call ftgkye(unit,"CD1_1",dispersion,"",status)
+      endif
+    else
+      call ftgkye(unit,"CRVAL3",wavelength,"",status)
+      call ftgkye(unit,"CDELT3",dispersion,"",status)
+      if (status.ne.0) then
+        status=0
+        call ftgkye(unit,"CD3_3",dispersion,"",status)
+      endif
+    endif
 
     ! close file
 
@@ -140,7 +154,7 @@ subroutine read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wa
   !cfitsio variables
 
   integer :: status,unit,readwrite,blocksize
-  integer :: group,firstpix
+  integer :: group
   real :: nullval
   logical :: anynull
   real :: wavelength, dispersion
@@ -157,7 +171,6 @@ subroutine read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wa
   call ftopen(unit,spectrumfile,readwrite,blocksize,status)
 
   group=1
-  firstpix=1
   nullval=-999
 
   ! calculate wavelength values
@@ -168,10 +181,10 @@ subroutine read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wa
 
   ! read spectrum into memory
 
-  call ftgpve(unit,group,firstpix,spectrumlength,nullval,realspec%flux,anynull,status)
-
+  call ftgpve(unit,group,1,spectrumlength,nullval,realspec%flux,anynull,status)
+!todo: report null values?
   if (status .eq. 0) then
-    print "(X,A,A,I7,A)",gettime(), ": successfully read 1D fits file with ",spectrumlength," data points into memory"
+    print "(X,A,A,I7,A)",gettime(), ": read 1D fits file with ",spectrumlength," data points into memory."
   else
     print *,gettime(), ": couldn't read file into memory"
     stop
@@ -201,7 +214,7 @@ subroutine read2dfits(spectrumfile, rssdata, dimensions, axes)
   !cfitsio variables
 
   integer :: status,unit,readwrite,blocksize,hdutype
-  integer :: group,firstpix
+  integer :: group
   real :: nullval
 
   status=0
@@ -212,7 +225,6 @@ subroutine read2dfits(spectrumfile, rssdata, dimensions, axes)
   call ftopen(unit,spectrumfile,readwrite,blocksize,status)
 
   group=1
-  firstpix=1
   nullval=-999
 
   allocate(rssdata(axes(1),axes(2)), stat=alloc_err)
@@ -231,9 +243,9 @@ subroutine read2dfits(spectrumfile, rssdata, dimensions, axes)
 
   status=0
   call ftg2de(unit,group,nullval,axes(1),axes(1),axes(2),rssdata,anynull,status)
-
+!todo: report null values?
   if (status .eq. 0) then
-    print "(X,A,A,I7,A)",gettime(), ": successfully read ",axes(2)," rows into memory"
+    print "(X,A,A,I7,A)",gettime(), ": read ",axes(2)," rows into memory."
   else
     print *,gettime(), ": couldn't read RSS file into memory"
     print *,"error code ",status
@@ -255,7 +267,7 @@ subroutine read3dfits(spectrumfile, cubedata, dimensions, axes)
   !cfitsio variables
 
   integer :: status,unit,readwrite,blocksize,hdutype
-  integer :: group,firstpix
+  integer :: group
   real :: nullval
 
   status=0
@@ -266,7 +278,6 @@ subroutine read3dfits(spectrumfile, cubedata, dimensions, axes)
   call ftopen(unit,spectrumfile,readwrite,blocksize,status)
 
   group=1
-  firstpix=1
   nullval=-999
 
   allocate(cubedata(axes(1),axes(2),axes(3)), stat=alloc_err)
@@ -285,9 +296,9 @@ subroutine read3dfits(spectrumfile, cubedata, dimensions, axes)
 
   status=0
   call ftg3de(unit,group,nullval,axes(1),axes(2),axes(1),axes(2),axes(3),cubedata,anynull,status)
-
+!todo: report null values?
   if (status .eq. 0) then
-    print "(X,A,A,I7,A)",gettime(), ": successfully read ",axes(1)*axes(2)," pixels into memory"
+    print "(X,A,A,I7,A)",gettime(), ": read ",axes(1)*axes(2)," pixels into memory."
   else
     print *,gettime(), ": couldn't read cube into memory"
     stop

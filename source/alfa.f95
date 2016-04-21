@@ -48,7 +48,7 @@ character(len=12) :: fluxformat !for writing out the line list
 
 ! openmp variables
 
-integer :: tid, omp_get_thread_num
+integer :: tid, omp_get_thread_num, omp_get_num_threads
 
 c=299792.458 !km/s
 !default values in absence of user specificed guess
@@ -147,6 +147,11 @@ if (filetype .eq. 1 .or. filetype .eq. 4) then !fit 1D data
 elseif (filetype .eq. 2) then !fit 2D data
 
 !$OMP PARALLEL private(spectrumfile,outputbasename,realspec,fittedspectrum,spectrumlength,continuum,nlines,spectrumchunk,linearraypos,overlap,startpos,startwlen,endpos,endwlen,skylines,skylines_section,stronglines,fittedlines,fittedlines_section,blendpeak,hbetaflux,totallines,skyspectrum,redshiftguess_overall,rss_i,tid) firstprivate(redshiftguess,resolutionguess) shared(skylines_catalogue,stronglines_catalogue,deeplines_catalogue, axes)
+!$OMP MASTER
+  if (omp_get_num_threads().gt.1) then
+    print "(X,A9,X,A,I2,A)",gettime(), ": using ",omp_get_num_threads()," processors"
+  endif
+!$OMP END MASTER
 
 !$OMP DO schedule(dynamic)
   do rss_i=1,axes(2)
@@ -202,6 +207,12 @@ elseif (filetype .eq. 3) then !fit 3D data
 !process cube
   print *,gettime(),": processing cube"
 !$OMP PARALLEL private(spectrumfile,outputbasename,realspec,fittedspectrum,spectrumlength,continuum,nlines,spectrumchunk,linearraypos,overlap,startpos,startwlen,endpos,endwlen,skylines,skylines_section,stronglines,fittedlines,fittedlines_section,blendpeak,hbetaflux,totallines,skyspectrum,redshiftguess_overall,cube_i,cube_j,tid) firstprivate(redshiftguess,resolutionguess) shared(skylines_catalogue,stronglines_catalogue,deeplines_catalogue, axes)
+
+!$OMP MASTER
+  if (omp_get_num_threads().gt.1) then
+    print "(X,A9,X,A,I2,A)",gettime(), ": using ",omp_get_num_threads()," processors"
+  endif
+!$OMP END MASTER
 
 !$OMP DO schedule(dynamic)
   do cube_i=1,axes(1)

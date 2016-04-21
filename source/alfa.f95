@@ -48,7 +48,7 @@ character(len=12) :: fluxformat !for writing out the line list
 
 ! openmp variables
 
-integer :: tid, nprocessors, omp_get_thread_num, omp_get_num_procs
+integer :: tid, omp_get_thread_num
 
 c=299792.458 !km/s
 !default values in absence of user specificed guess
@@ -134,8 +134,6 @@ else
   stop
 endif
 
-outputbasename=spectrumfile(index(spectrumfile,"/",back=.true.)+1:len(trim(spectrumfile)))
-
 !read in catalogues
 
 print *,gettime(),": reading in line catalogues"
@@ -144,10 +142,11 @@ call readlinelist(stronglinelistfile, stronglines_catalogue, nlines,minimumwavel
 call readlinelist(deeplinelistfile, deeplines_catalogue, nlines,minimumwavelength,maximumwavelength)
 
 if (filetype .eq. 1 .or. filetype .eq. 4) then !fit 1D data
+  tid=0
   include "spectralfit.f95"
 elseif (filetype .eq. 2) then !fit 2D data
 
-!$OMP PARALLEL private(spectrumfile,realspec,fittedspectrum,spectrumlength,continuum,nlines,spectrumchunk,linearraypos,overlap,startpos,startwlen,endpos,endwlen,skylines,skylines_section,stronglines,fittedlines,fittedlines_section,blendpeak,hbetaflux,totallines,skyspectrum,redshiftguess_overall,rss_i,tid) firstprivate(redshiftguess,resolutionguess) shared(skylines_catalogue,stronglines_catalogue,deeplines_catalogue, axes)
+!$OMP PARALLEL private(spectrumfile,outputbasename,realspec,fittedspectrum,spectrumlength,continuum,nlines,spectrumchunk,linearraypos,overlap,startpos,startwlen,endpos,endwlen,skylines,skylines_section,stronglines,fittedlines,fittedlines_section,blendpeak,hbetaflux,totallines,skyspectrum,redshiftguess_overall,rss_i,tid) firstprivate(redshiftguess,resolutionguess) shared(skylines_catalogue,stronglines_catalogue,deeplines_catalogue, axes)
 
 !$OMP DO schedule(dynamic)
   do rss_i=1,axes(2)
@@ -202,7 +201,7 @@ elseif (filetype .eq. 2) then !fit 2D data
 elseif (filetype .eq. 3) then !fit 3D data
 !process cube
   print *,gettime(),": processing cube"
-!$OMP PARALLEL private(spectrumfile,realspec,fittedspectrum,spectrumlength,continuum,nlines,spectrumchunk,linearraypos,overlap,startpos,startwlen,endpos,endwlen,skylines,skylines_section,stronglines,fittedlines,fittedlines_section,blendpeak,hbetaflux,totallines,skyspectrum,redshiftguess_overall,cube_i,cube_j,tid) firstprivate(redshiftguess,resolutionguess) shared(skylines_catalogue,stronglines_catalogue,deeplines_catalogue, axes)
+!$OMP PARALLEL private(spectrumfile,outputbasename,realspec,fittedspectrum,spectrumlength,continuum,nlines,spectrumchunk,linearraypos,overlap,startpos,startwlen,endpos,endwlen,skylines,skylines_section,stronglines,fittedlines,fittedlines_section,blendpeak,hbetaflux,totallines,skyspectrum,redshiftguess_overall,cube_i,cube_j,tid) firstprivate(redshiftguess,resolutionguess) shared(skylines_catalogue,stronglines_catalogue,deeplines_catalogue, axes)
 
 !$OMP DO schedule(dynamic)
   do cube_i=1,axes(1)

@@ -1,13 +1,13 @@
 .\" Manpage for neat.
-.TH alfa 1 "12 Dec 2015" "1.0" "alfa man page"
+.TH alfa 1 "22 Apr 2016" "1.0" "alfa man page"
 .SH NAME
-alfa, alfacube, alfarss \- automated line fitting algorithm
+alfa \- automated line fitting algorithm
 .SH SYNOPSIS
-alfa / alfacube / alfarss [\fIOPTION\fR] [\fIVALUE\fR]... [\fIFILE\fR]
+alfa [\fIOPTION\fR] [\fIVALUE\fR]... [\fIFILE\fR]
 .SH DESCRIPTION
 \fBalfa\fR rapidly fits deep emission line spectra, using a genetic algorithm to optimise fitting parameters.  It has a number of configurable parameters, and while the default values should work well in many situations, a good fit to your observed spectrum may require some adjustments.
 .PP
-\fBalfa\fR reads one dimensional spectra in either plain text or FITS format.  Plain text input should consist of two columns, giving wavelength and flux.  \fBalfcube\fR reads data cubes in FITS format, while \fBalfarss\fR reads row-stacked spectra in FITS format.  All three codes write out their results in plain text, to files containing the fit (total fit, continuum-subtracted original, continuum, sky lines and residuals), and the line flux measurements.
+\fBalfa\fR reads one dimensional spectra in either plain text or FITS format.  Plain text input should consist of two columns, giving wavelength and flux.  It can also read data cubes and row-stacked spectra in FITS format.  Results are written out in plain text, to files containing the fit (total fit, continuum-subtracted original, continuum, sky lines and residuals), and the line flux measurements.
 .SH OPTIONS
 .TP
 .B \-n, \-\-normalise [VALUE]

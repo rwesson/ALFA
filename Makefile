@@ -67,14 +67,8 @@ new: clean all
 alfa: source/types.o source/functions.o source/readfiles.o source/quicksort.o source/continuum.o source/linefit.o source/uncertainties.o source/alfa.o
 	$(LD) $(LDFLAGS) $(FFLAGS) -o $@ $^ ${CFITSIOFLAGS}
 
-alfacube: source/types.o source/functions.o source/readfiles.o source/quicksort.o source/continuum.o source/linefit.o source/uncertainties.o source/alfa_cube.o
-	$(LD) $(LDFLAGS) $(FFLAGS) -o $@ $^ ${CFITSIOFLAGS}
-
-alfarss: source/types.o source/functions.o source/readfiles.o source/quicksort.o source/continuum.o source/linefit.o source/uncertainties.o source/alfa_rss.o
-	$(LD) $(LDFLAGS) $(FFLAGS) -o $@ $^ ${CFITSIOFLAGS}
-
 clean:
-	rm -f alfa alfacube source/*.o source/*.mod
+	rm -f alfa source/*.o source/*.mod
 
 install:
 	test -e ${DESTDIR}${PREFIX}/share/alfa || mkdir -p ${DESTDIR}${PREFIX}/share/alfa
@@ -82,14 +76,10 @@ install:
 	test -e ${MANDIR} || mkdir -p ${MANDIR}
 	install -m 644 linelists/* ${DESTDIR}${PREFIX}/share/alfa
 	install alfa ${DESTDIR}${PREFIX}/bin
-	install alfacube ${DESTDIR}${PREFIX}/bin
-	install alfarss ${DESTDIR}${PREFIX}/bin
 	install -m 644 man/alfa.1 ${MANDIR}
 	gzip -f ${MANDIR}/alfa.1
-	ln -s -f ${MANDIR}/alfa.1.gz ${MANDIR}/alfacube.1.gz
-	ln -s -f ${MANDIR}/alfa.1.gz ${MANDIR}/alfarss.1.gz
 
 uninstall:
 	rm -rf ${DESTDIR}${PREFIX}/share/alfa
-	rm -f ${DESTDIR}${PREFIX}/bin/alfa ${DESTDIR}${PREFIX}/bin/alfacube ${DESTDIR}${PREFIX}/bin/alfarss
+	rm -f ${DESTDIR}${PREFIX}/bin/alfa
 	rm -f ${MANDIR}/alfa.1.gz ${MANDIR}/alfacube.1.gz

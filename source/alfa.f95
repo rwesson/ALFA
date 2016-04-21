@@ -133,7 +133,7 @@ else
   print *,"unrecognised file"
   stop
 endif
-print *,minimumwavelength,maximumwavelength
+
 outputbasename=spectrumfile(index(spectrumfile,"/",back=.true.)+1:len(trim(spectrumfile)))
 
 !read in catalogues
@@ -164,10 +164,11 @@ elseif (filetype .eq. 2) then !fit 2D data
 
 !check for valid data
 !ultra crude and tailored for NGC 7009 at the moment
-
+!    baddata=20000.
+    baddata=0.
     inquire(file=trim(outputdirectory)//trim(spectrumfile)//"_lines", exist=file_exists)
 
-    if (maxval(realspec%flux) .lt. 0. .or. file_exists) then
+    if (maxval(realspec%flux) .lt. baddata .or. file_exists) then
       print "(X,A,A,I2,A,I5.5,A,I5.5)",gettime(), "(thread ",tid,") : skipped row  ",rss_i
       deallocate(realspec)
       cycle

@@ -22,6 +22,7 @@ integer :: cube_i, cube_j, cube_k, rss_i, rss_k
 integer, dimension(:), allocatable :: axes
 real, dimension(:,:), allocatable :: rssdata
 real, dimension(:,:,:), allocatable :: cubedata
+real :: minimumwavelength,maximumwavelength ! limits of spectrum, to be passed to catalogue reading subroutines
 
 CHARACTER(len=2048), DIMENSION(:), allocatable :: options
 CHARACTER(len=2048) :: commandline
@@ -90,7 +91,8 @@ narg = IARGC() !count input arguments
 
 if (narg .eq. 0) then
   print *,"Usage: alfa [options] [file]"
-  print *,"  [file] is an ascii file with columns for wavelength and flux, or a 1D FITS file"
+  print *,"  [file] is an ascii file with columns for wavelength and flux"
+  print *,"  or a FITS file with 1, 2 or 3 dimensions, containing spectra."
   print *,"  see the man page or online documentation for details of the options"
   stop
 endif
@@ -109,29 +111,37 @@ print *,gettime(),": reading in file ",trim(spectrumfile)
 call getfiletype(spectrumfile,filetype,dimensions,axes,wavelength,dispersion) !call subroutine to determine whether it's 1D, 2D or 3D fits, or ascii, or none of the above
 if (filetype.eq.1) then
   spectrumlength=axes(1)
-  call read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum)
+  call read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wavelength, dispersion)
+  minimumwavelength=realspec(1)%wavelength
+  maximumwavelength=realspec(spectrumlength)%wavelength
   messages=.true.
 elseif (filetype .eq. 2) then
   call read2dfits(spectrumfile, rssdata, dimensions, axes)
+  minimumwavelength=wavelength
+  maximumwavelength=wavelength+(axes(1)-1)*dispersion
 elseif (filetype .eq. 3) then
   call read3dfits(spectrumfile, cubedata, dimensions, axes)
+  minimumwavelength=wavelength
+  maximumwavelength=wavelength+(axes(3)-1)*dispersion
 elseif (filetype .eq. 4) then
   call readascii(spectrumfile, realspec, spectrumlength, fittedspectrum)
+  minimumwavelength=realspec(1)%wavelength
+  maximumwavelength=realspec(spectrumlength)%wavelength
   messages=.true.
 else
   !not recognised, stop
   print *,"unrecognised file"
   stop
 endif
-
+print *,minimumwavelength,maximumwavelength
 outputbasename=spectrumfile(index(spectrumfile,"/",back=.true.)+1:len(trim(spectrumfile)))
 
 !read in catalogues
 
 print *,gettime(),": reading in line catalogues"
-call readlinelist(skylinelistfile, skylines_catalogue, nlines,minval(realspec%wavelength),maxval(realspec%wavelength))
-call readlinelist(stronglinelistfile, stronglines_catalogue, nlines,minval(realspec%wavelength),maxval(realspec%wavelength))
-call readlinelist(deeplinelistfile, deeplines_catalogue, nlines,minval(realspec%wavelength),maxval(realspec%wavelength))
+call readlinelist(skylinelistfile, skylines_catalogue, nlines,minimumwavelength,maximumwavelength)
+call readlinelist(stronglinelistfile, stronglines_catalogue, nlines,minimumwavelength,maximumwavelength)
+call readlinelist(deeplinelistfile, deeplines_catalogue, nlines,minimumwavelength,maximumwavelength)
 
 if (filetype .eq. 1 .or. filetype .eq. 4) then !fit 1D data
   include "spectralfit.f95"

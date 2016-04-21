@@ -127,7 +127,7 @@ subroutine readascii(spectrumfile, realspec, spectrumlength, fittedspectrum)
 
 end subroutine readascii
 
-subroutine read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum)
+subroutine read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wavelength, dispersion)
 ! read in a 1D fits file
 
   implicit none

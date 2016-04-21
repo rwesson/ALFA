@@ -281,7 +281,7 @@ subroutine read3dfits(spectrumfile, cubedata, dimensions, axes)
     call ftgidm(unit,dimensions,status)
   end do
 
-! read RSS file into memory
+! read cube file into memory
 
   status=0
   call ftg3de(unit,group,nullval,axes(1),axes(2),axes(1),axes(2),axes(3),cubedata,anynull,status)

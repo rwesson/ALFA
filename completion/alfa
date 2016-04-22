@@ -1,0 +1,43 @@
+# alfa(1) completion 
+# rw@nebulousresearch.org
+# todo: prevent any completion for options where values are required; complete file names and directorys for -i
+
+_alfa() 
+{
+    local cur prev opts helium_options icf_options extinction_options verbosity_options
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    opts="-n --normalise -vg --velocity-guess -rg --resolution-guess -vtol1 --velocity-tolerance-1 -vtol2 --velocity-tolerance-2 -rtol1 --resolution-tolerance-1 -rtol2 --resolution-tolerance-2 -ss --subtract-sky -o --output-dir -skycat -strongcat -deepcat -g --generations -ps --populationsize -pr --pressure"
+
+    COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+
+    case "${prev}" in
+        --helium-data|-he)
+            helium_options="P12 S96"
+            COMPREPLY=( $( compgen -W "$helium_options" | grep ^$cur ) )
+            return 0
+            ;;
+	--ionisation-correction-scheme|-icf)
+	    icf_options="DI14 KB94 PT92"
+	    COMPREPLY=( $( compgen -W "$icf_options" | grep ^$cur ) )
+            return 0
+            ;;
+        --extinction-law|-e)
+            extinction_options="How Fitz CCM LMC SMC"
+            COMPREPLY=( $( compgen -W "$extinction_options" | grep ^$cur ) )
+            return 0
+            ;;
+        --verbosity|-v)
+            verbosity_options="1 2 3"
+            COMPREPLY=( $( compgen -W "$verbosity_options" | grep ^$cur ) )
+            return 0
+            ;;
+        --input|-i)
+            COMREPLY=( $(compgen -o filenames -o plusdirs) )
+            return 0
+            ;;
+    esac
+
+}
+complete -F _alfa alfa 

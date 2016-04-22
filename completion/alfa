@@ -1,43 +1,34 @@
 # alfa(1) completion 
 # rw@nebulousresearch.org
-# todo: prevent any completion for options where values are required; complete file names and directorys for -i
 
 _alfa() 
 {
-    local cur prev opts helium_options icf_options extinction_options verbosity_options
+    local cur prev opts words cword helium_options icf_options extinction_options verbosity_options
+    _init_completion || return
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
     opts="-n --normalise -vg --velocity-guess -rg --resolution-guess -vtol1 --velocity-tolerance-1 -vtol2 --velocity-tolerance-2 -rtol1 --resolution-tolerance-1 -rtol2 --resolution-tolerance-2 -ss --subtract-sky -o --output-dir -skycat -strongcat -deepcat -g --generations -ps --populationsize -pr --pressure"
 
-    COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+    if [[ "$cur" == -* ]]; then
+        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+    fi
 
     case "${prev}" in
-        --helium-data|-he)
-            helium_options="P12 S96"
-            COMPREPLY=( $( compgen -W "$helium_options" | grep ^$cur ) )
+        -deepcat|-strongcat|-skycat)
+            _filedir
             return 0
             ;;
-	--ionisation-correction-scheme|-icf)
-	    icf_options="DI14 KB94 PT92"
-	    COMPREPLY=( $( compgen -W "$icf_options" | grep ^$cur ) )
+        -o|--output-dir)
+            _filedir -d
             return 0
             ;;
-        --extinction-law|-e)
-            extinction_options="How Fitz CCM LMC SMC"
-            COMPREPLY=( $( compgen -W "$extinction_options" | grep ^$cur ) )
-            return 0
-            ;;
-        --verbosity|-v)
-            verbosity_options="1 2 3"
-            COMPREPLY=( $( compgen -W "$verbosity_options" | grep ^$cur ) )
-            return 0
-            ;;
-        --input|-i)
-            COMREPLY=( $(compgen -o filenames -o plusdirs) )
+        --pressure|-g|-ps|--generations|--resolution-guess|-n|--resolution-tolerance-1|--velocity-guess|--normalise|--resolution-tolerance-2|--velocity-tolerance-1|-rg|--velocity-tolerance-2|-rtol1|-vg|--populationsize|-rtol2|-vtol1|-pr|-vtol2)
+            COMPREPLY=()
             return 0
             ;;
     esac
 
+    _filedir '@(fit?(s)|ascii|dat|txt)'
 }
 complete -F _alfa alfa 

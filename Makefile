@@ -55,7 +55,7 @@ ifeq ($(FC),ifort)
   endif
 endif
 
-.PHONY: all clean install
+.PHONY: all clean install new
 
 all: alfa
 

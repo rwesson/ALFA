@@ -101,7 +101,7 @@ if (narg .eq. 0) then
   stop
 endif
 
-include "commandline.f95"
+include "commandline.f90"
 
 ! convert from velocity to redshift
 
@@ -219,7 +219,7 @@ do cube_i=1,naxes(1)
     fittedspectrum%flux=0.d0
 
 !now do the fitting
-!----start of code taken from alfa.f95
+!----start of code taken from alfa.f90
 !subtract the continuum
 
 call fit_continuum(realspec,spectrumlength, continuum)
@@ -505,7 +505,7 @@ endif
 
 close(200+tid)
 
-!--end of code taken from alfa.f95
+!--end of code taken from alfa.f90
 !deallocate arrays ready for the next pixel
       deallocate(realspec)
       deallocate(fittedspectrum)

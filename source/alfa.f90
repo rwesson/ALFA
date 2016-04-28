@@ -138,7 +138,7 @@ call readlinelist(deeplinelistfile, deeplines_catalogue, nlines,minimumwavelengt
 if (filetype .eq. 1 .or. filetype .eq. 4) then !fit 1D data
   tid=0
   outputbasename=spectrumfile
-  include "spectralfit.f95"
+  include "spectralfit.f90"
 elseif (filetype .eq. 2) then !fit 2D data
 
 !$OMP PARALLEL private(outputbasename,realspec,fittedspectrum,spectrumlength,continuum,nlines,spectrumchunk,linearraypos,overlap,startpos,startwlen,endpos,endwlen,skylines,skylines_section,stronglines,fittedlines,fittedlines_section,blendpeak,hbetaflux,totallines,skyspectrum,redshiftguess_overall,rss_i,tid) firstprivate(redshiftguess,resolutionguess) shared(skylines_catalogue,stronglines_catalogue,deeplines_catalogue,axes,spectrumfile)
@@ -178,7 +178,7 @@ elseif (filetype .eq. 2) then !fit 2D data
 
 !now do the fitting
 
-    include "spectralfit.f95"
+    include "spectralfit.f90"
 
 !deallocate arrays ready for the next pixel
     deallocate(realspec)
@@ -239,7 +239,7 @@ elseif (filetype .eq. 3) then !fit 3D data
 
 !now do the fitting
 
-      include "spectralfit.f95"
+      include "spectralfit.f90"
 
 !deallocate arrays ready for the next pixel
 

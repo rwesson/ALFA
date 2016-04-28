@@ -61,7 +61,7 @@ all: alfa
 
 new: clean all
 
-%.o: %.f95
+%.o: %.f90
 	$(FC) $(FFLAGS) $< -c -o $@
 
 alfa: source/types.o source/functions.o source/commandline.o source/readfiles.o source/quicksort.o source/continuum.o source/linefit.o source/uncertainties.o source/alfa.o

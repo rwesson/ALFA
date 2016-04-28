@@ -18,6 +18,8 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
 
   c=299792.458 !km/s
 
+  spectrumfile=""
+
   narg = 0
   nargused = 0 !to count options specified
   narg = IARGC() !count input arguments
@@ -32,6 +34,7 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
 
   call get_command(commandline)
   allocate (options(Narg))
+  options=""
   print *,gettime(),": command line: ",trim(commandline)
 
   do i=1,Narg
@@ -42,42 +45,42 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
     if ((trim(options(i))=="-n" .or. trim(options(i))=="--normalise") .and. (i+1) .le. Narg) then
       read (options(i+1),*) normalisation
       normalise=.true.
-      nargused = nargused + 2
+      options(i:i+1)=""
     endif
     if ((trim(options(i))=="-vg" .or. trim(options(i))=="--velocity-guess") .and. (i+1) .le. Narg) then
       read (options(i+1),*) redshiftguess
-      nargused = nargused + 2
+      options(i:i+1)=""
     endif
     if ((trim(options(i))=="-rg" .or. trim(options(i))=="--resolution-guess") .and. (i+1) .le. Narg) then
       read (options(i+1),*) resolutionguess
       resolution_estimated=.true.
-      nargused = nargused + 2
+      options(i:i+1)=""
     endif
     if ((trim(options(i))=="-vtol1" .or. trim(options(i))=="--velocity-tolerance-1") .and. (i+1) .le. Narg) then
       read (options(i+1),*) vtol1
       vtol1 = vtol1/c
-      nargused = nargused + 2
+      options(i:i+1)=""
     endif
     if ((trim(options(i))=="-vtol2" .or. trim(options(i))=="--velocity-tolerance-2") .and. (i+1) .le. Narg) then
       read (options(i+1),*) vtol2
       vtol2 = vtol2/c
-      nargused = nargused + 2
+      options(i:i+1)=""
     endif
     if ((trim(options(i))=="-rtol1" .or. trim(options(i))=="--resolution-tolerance-1") .and. (i+1) .le. Narg) then
       read (options(i+1),*) rtol1
-      nargused = nargused + 2
+      options(i:i+1)=""
     endif
     if ((trim(options(i))=="-rtol2" .or. trim(options(i))=="--resolution-tolerance-2") .and. (i+1) .le. Narg) then
       read (options(i+1),*) rtol2
-      nargused = nargused + 2
+      options(i:i+1)=""
     endif
     if (trim(options(i))=="-ss" .or. trim(options(i))=="--subtract-sky") then
       subtractsky=.true.
-      nargused = nargused + 1
+      options(i)=""
     endif
     if (trim(options(i))=="-b" .or. trim(options(i))=="--bad-data") then
       read (options(i+1),*) baddata
-      nargused = nargused + 2
+      options(i:i+1)=""
     endif
     if ((trim(options(i))=="-o" .or. trim(options(i))=="--output-dir") .and. (i+1) .le. Narg) then
       read (options(i+1),"(A)") outputdirectory
@@ -87,44 +90,56 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
         print *,gettime(),": error: output directory does not exist"
         stop
       endif
-      nargused = nargused + 2
+      options(i:i+1)=""
     endif
     if (trim(options(i))=="-skycat" .and. (i+1) .le. Narg) then
       read (options(i+1),"(A)") skylinelistfile
-      nargused = nargused + 2
+      options(i:i+1)=""
     endif
     if (trim(options(i))=="-strongcat" .and. (i+1) .le. Narg) then
       read (options(i+1),"(A)") stronglinelistfile
-      nargused = nargused + 2
+      options(i:i+1)=""
     endif
     if (trim(options(i))=="-deepcat" .and. (i+1) .le. Narg) then
       read (options(i+1),"(A)") deeplinelistfile
-      nargused = nargused + 2
+      options(i:i+1)=""
     endif
     if ((trim(options(i))=="-g" .or. trim(options(i))=="--generations") .and. (i+1) .le. Narg) then
       read (options(i+1),*) generations
-      nargused = nargused + 2
+      options(i:i+1)=""
     endif
     if ((trim(options(i))=="-ps" .or. trim(options(i))=="--populationsize") .and. (i+1) .le. Narg) then
       read (options(i+1),*) popsize
-      nargused = nargused + 2
+      options(i:i+1)=""
     endif
     if ((trim(options(i))=="-pr" .or. trim(options(i))=="--pressure") .and. (i+1) .le. Narg) then
       read (options(i+1),*) pressure
-      nargused = nargused + 2
+      options(i:i+1)=""
     endif
   ! to implement:
   !   continuum window and percentile
   enddo
 
-  if (narg - nargused .eq. 0) then
+  nargused=narg-count(options.ne."")
+
+  do i=1,narg
+    if (len(trim(options(i))).gt.0) then
+      spectrumfile=options(i)
+      exit
+    endif
+  enddo
+
+  if (len(trim(spectrumfile)).eq.0) then
     print *,gettime(),": error: no input file specified"
     stop
   elseif (narg - nargused .gt. 1) then
-    print *,gettime(),": warning: some input options were not recognised"
-  else
-    call get_command_argument(narg,spectrumfile)
-    spectrumfile=trim(spectrumfile)
+    print *,gettime(),": error: some input options were not recognised:"
+    do i=1,narg
+      if (len(trim(options(i))).gt.0) then
+        print *,trim(options(i))
+      endif
+    enddo
+    stop
   endif
 
   deallocate(options)

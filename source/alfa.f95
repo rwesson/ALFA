@@ -137,6 +137,7 @@ call readlinelist(deeplinelistfile, deeplines_catalogue, nlines,minimumwavelengt
 
 if (filetype .eq. 1 .or. filetype .eq. 4) then !fit 1D data
   tid=0
+  outputbasename=spectrumfile
   include "spectralfit.f95"
 elseif (filetype .eq. 2) then !fit 2D data
 

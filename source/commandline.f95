@@ -45,6 +45,10 @@ do i=1,narg
     subtractsky=.true.
     nargused = nargused + 1
   endif
+  if (trim(options(i))=="-b" .or. trim(options(i))=="--bad-data") then
+    read (options(i+1),*) baddata
+    nargused = nargused + 2
+  endif
   if ((trim(options(i))=="-o" .or. trim(options(i))=="--output-dir") .and. (i+1) .le. Narg) then
     read (options(i+1),"(A)") outputdirectory
     outputdirectory=trim(outputdirectory)//"/"
@@ -97,14 +101,15 @@ deallocate(options)
 
 print *,gettime(),": ALFA is running with the following settings:"
 if (.not.normalise) then
-print *,"            normalisation:                    using measured value of Hb"
+  print *,"            normalisation:                    using measured value of Hb"
 else
 if (normalisation.eq.0.d0) then
-print *,"            normalisation:                    no normalisation"
+  print *,"            normalisation:                    no normalisation"
 else
-print *,"            normalisation:                    to Hb=",normalisation
+  print *,"            normalisation:                    to Hb=",normalisation
 endif
 endif
+print *,"            spectrum fitted if max value >    ",baddata
 print *,"            velocity guess:                   ",redshiftguess
 print *,"            resolution guess:                 ",resolutionguess
 print *,"            first pass velocity tolerance:    ",vtol1*c

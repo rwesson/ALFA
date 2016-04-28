@@ -58,6 +58,7 @@ rtol1=0.d0 !variation allowed in resolution on first pass.  determined later, ei
 rtol2=500. !second pass
 vtol1=0.003 !variation allowed in velocity (expressed as redshift) on first pass. 0.003 = 900 km/s
 vtol2=0.0002 !second pass. 0.0002 = 60 km/s
+baddata=0.d0
 
 stronglinelistfile=trim(PREFIX)//"/share/alfa/strong.cat"
 deeplinelistfile=trim(PREFIX)//"/share/alfa/deep.cat"
@@ -109,24 +110,32 @@ print *,gettime(),": command line: ",trim(commandline)
 
 print *,gettime(),": reading in file ",trim(spectrumfile)
 call getfiletype(spectrumfile,filetype,dimensions,axes,wavelength,dispersion) !call subroutine to determine whether it's 1D, 2D or 3D fits, or ascii, or none of the above
-if (filetype.eq.1) then
+if (filetype.eq.1) then !1d fits file
   spectrumlength=axes(1)
   call read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wavelength, dispersion)
   minimumwavelength=realspec(1)%wavelength
   maximumwavelength=realspec(spectrumlength)%wavelength
+  if (maxval(realspec%flux) .lt. baddata) then
+    print *,gettime(),": no good data in spectrum (all fluxes are less than ",baddata,")"
+    stop
+  endif
   messages=.true.
-elseif (filetype .eq. 2) then
+elseif (filetype .eq. 2) then !2d fits file
   call read2dfits(spectrumfile, rssdata, dimensions, axes)
   minimumwavelength=wavelength
   maximumwavelength=wavelength+(axes(1)-1)*dispersion
-elseif (filetype .eq. 3) then
+elseif (filetype .eq. 3) then !3d fits file
   call read3dfits(spectrumfile, cubedata, dimensions, axes)
   minimumwavelength=wavelength
   maximumwavelength=wavelength+(axes(3)-1)*dispersion
-elseif (filetype .eq. 4) then
+elseif (filetype .eq. 4) then !1d ascii file
   call readascii(spectrumfile, realspec, spectrumlength, fittedspectrum)
   minimumwavelength=realspec(1)%wavelength
   maximumwavelength=realspec(spectrumlength)%wavelength
+  if (maxval(realspec%flux) .lt. baddata) then
+    print *,gettime(),": no good data in spectrum (all fluxes are less than ",baddata,")"
+    stop
+  endif
   messages=.true.
 else
   !not recognised, stop
@@ -167,9 +176,8 @@ elseif (filetype .eq. 2) then !fit 2D data
     enddo
 
 !check for valid data
-!ultra crude and tailored for NGC 7009 at the moment
-!    baddata=20000.
-    baddata=0.
+!ultra crude at the moment
+
     inquire(file=trim(outputdirectory)//trim(spectrumfile)//"_lines", exist=file_exists)
 
     if (maxval(realspec%flux) .lt. baddata .or. file_exists) then

@@ -213,9 +213,9 @@ call get_uncertainties(fittedspectrum, realspec, fittedlines)
 
 open(100+tid,file=trim(outputdirectory)//trim(outputbasename)//"_fit")
 
-write (100+tid,*) """wavelength""  ""fitted spectrum""  ""cont-subbed orig"" ""continuum""  ""sky lines""  ""residuals"""
+write (100+tid,*) """wavelength""  ""input spectrum ""  ""fitted spectrum""  ""cont-subbed orig"" ""continuum""  ""sky lines""  ""residuals"""
 do i=1,spectrumlength
-  write(100+tid,"(F8.2, 5(ES12.3))") fittedspectrum(i)%wavelength,fittedspectrum(i)%flux + continuum(i)%flux + skyspectrum(i)%flux, realspec(i)%flux, continuum(i)%flux, skyspectrum(i)%flux, realspec(i)%flux - fittedspectrum(i)%flux
+  write(100+tid,"(F8.2, 6(ES12.3))") fittedspectrum(i)%wavelength,realspec(i)%flux + continuum(i)%flux, fittedspectrum(i)%flux + continuum(i)%flux + skyspectrum(i)%flux, realspec(i)%flux, continuum(i)%flux, skyspectrum(i)%flux, realspec(i)%flux - fittedspectrum(i)%flux
 enddo
 
 close(100+tid)
@@ -310,12 +310,12 @@ if (minval(abs(continuum%wavelength-8400.)) .lt. 8400./fittedlines(1)%resolution
   write (200+tid,"(2(F8.2),"//fluxformat//","//fluxformat//")"), 8400.0, 8400.0, continuum(minloc(abs(continuum%wavelength-8400.)))%flux, realspec(minloc(abs(continuum%wavelength-8400.)))%uncertainty
 endif
 
-!write out measured Hbeta flux to latex table
+!write out measured Hbeta flux to latex table, if normalisation was applied and if output is required
 
-if (hbetaflux .gt. 0.d0) then
-  if (messages) write (100+tid,*) "\hline"
-  if (messages) write (100+tid,"(A,ES8.2)") "Measured flux of H$\beta$: ",hbetaflux
-  if (messages) write (100+tid,*) "\hline"
+if (hbetaflux .gt. 0.d0 .and. normalisation .ne. 1.d0 .and. messages) then
+  write (100+tid,*) "\hline"
+  write (100+tid,"(A,ES8.2)") "Measured flux of H$\beta$: ",hbetaflux
+  write (100+tid,*) "\hline"
 endif
 
 !done, close files

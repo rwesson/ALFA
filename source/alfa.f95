@@ -6,6 +6,7 @@ use mod_types
 use mod_continuum
 use mod_fit
 use mod_uncertainties
+use mod_commandline
 
 implicit none
 integer :: I, spectrumlength, nlines, linearraypos, totallines, startpos, endpos
@@ -24,9 +25,7 @@ real, dimension(:,:), allocatable :: rssdata
 real, dimension(:,:,:), allocatable :: cubedata
 real :: minimumwavelength,maximumwavelength ! limits of spectrum, to be passed to catalogue reading subroutines
 
-CHARACTER(len=2048), DIMENSION(:), allocatable :: options
 CHARACTER(len=2048) :: commandline
-integer :: narg, nargused
 
 real :: redshiftguess, resolutionguess, redshiftguess_overall
 real :: vtol1, vtol2, rtol1, rtol2
@@ -86,25 +85,11 @@ call init_random_seed()
 
 ! read command line
 
-narg = 0
-nargused = 0 !to count options specified
-narg = IARGC() !count input arguments
-
-if (narg .eq. 0) then
-  print *,"Usage: alfa [options] [file]"
-  print *,"  [file] is an ascii file with columns for wavelength and flux"
-  print *,"  or a FITS file with 1, 2 or 3 dimensions, containing spectra."
-  print *,"  see the man page or online documentation for details of the options"
-  stop
-endif
-
-include "commandline.f95"
+call readcommandline(commandline,normalise,normalisation,redshiftguess,resolutionguess,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists)
 
 ! convert from velocity to redshift
 
 redshiftguess=1.+(redshiftguess/c)
-
-print *,gettime(),": command line: ",trim(commandline)
 
 ! read in spectrum to fit and line list
 

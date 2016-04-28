@@ -1,10 +1,6 @@
 ! this is the general fitting routine, which first subtracts a continuum, then fits sky lines if requested, then fits the emission lines
 ! it is called from within parallelised wrappers for 2D and 3D data, and simply called for 1D data.
 
-! set the output file name
-
-outputbasename=spectrumfile(index(spectrumfile,"/",back=.true.)+1:len(trim(spectrumfile)))
-
 ! subtract the continuum
 
 if (messages) print *,gettime(),": fitting continuum"

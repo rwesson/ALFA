@@ -140,7 +140,7 @@ if (filetype .eq. 1 .or. filetype .eq. 4) then !fit 1D data
   include "spectralfit.f95"
 elseif (filetype .eq. 2) then !fit 2D data
 
-!$OMP PARALLEL private(spectrumfile,outputbasename,realspec,fittedspectrum,spectrumlength,continuum,nlines,spectrumchunk,linearraypos,overlap,startpos,startwlen,endpos,endwlen,skylines,skylines_section,stronglines,fittedlines,fittedlines_section,blendpeak,hbetaflux,totallines,skyspectrum,redshiftguess_overall,rss_i,tid) firstprivate(redshiftguess,resolutionguess) shared(skylines_catalogue,stronglines_catalogue,deeplines_catalogue, axes)
+!$OMP PARALLEL private(outputbasename,realspec,fittedspectrum,spectrumlength,continuum,nlines,spectrumchunk,linearraypos,overlap,startpos,startwlen,endpos,endwlen,skylines,skylines_section,stronglines,fittedlines,fittedlines_section,blendpeak,hbetaflux,totallines,skyspectrum,redshiftguess_overall,rss_i,tid) firstprivate(redshiftguess,resolutionguess) shared(skylines_catalogue,stronglines_catalogue,deeplines_catalogue,axes,spectrumfile)
 !$OMP MASTER
   if (omp_get_num_threads().gt.1) then
     print "(X,A9,X,A,I2,A)",gettime(), ": using ",omp_get_num_threads()," processors"
@@ -152,7 +152,7 @@ elseif (filetype .eq. 2) then !fit 2D data
 
     tid=OMP_GET_THREAD_NUM()
 
-    write (spectrumfile,"(A4,I5.5,A4)") "row_",rss_i,".dat"
+    write (outputbasename,"(A,I5.5)") spectrumfile(index(spectrumfile,"/",back=.true.)+1:len(trim(spectrumfile)))//"_row_",rss_i
     allocate(realspec(axes(1)))
     spectrumlength=axes(1)
     realspec%flux=rssdata(:,rss_i)
@@ -163,7 +163,7 @@ elseif (filetype .eq. 2) then !fit 2D data
 !check for valid data
 !ultra crude at the moment
 
-    inquire(file=trim(outputdirectory)//trim(spectrumfile)//"_lines", exist=file_exists)
+    inquire(file=trim(outputdirectory)//trim(outputbasename)//"_lines", exist=file_exists)
 
     if (maxval(realspec%flux) .lt. baddata .or. file_exists) then
       print "(X,A,A,I2,A,I5.5,A,I5.5)",gettime(), "(thread ",tid,") : skipped row  ",rss_i
@@ -199,7 +199,7 @@ elseif (filetype .eq. 2) then !fit 2D data
 elseif (filetype .eq. 3) then !fit 3D data
 !process cube
   print *,gettime(),": processing cube"
-!$OMP PARALLEL private(spectrumfile,outputbasename,realspec,fittedspectrum,spectrumlength,continuum,nlines,spectrumchunk,linearraypos,overlap,startpos,startwlen,endpos,endwlen,skylines,skylines_section,stronglines,fittedlines,fittedlines_section,blendpeak,hbetaflux,totallines,skyspectrum,redshiftguess_overall,cube_i,cube_j,tid) firstprivate(redshiftguess,resolutionguess) shared(skylines_catalogue,stronglines_catalogue,deeplines_catalogue, axes)
+!$OMP PARALLEL private(outputbasename,realspec,fittedspectrum,spectrumlength,continuum,nlines,spectrumchunk,linearraypos,overlap,startpos,startwlen,endpos,endwlen,skylines,skylines_section,stronglines,fittedlines,fittedlines_section,blendpeak,hbetaflux,totallines,skyspectrum,redshiftguess_overall,cube_i,cube_j,tid) firstprivate(redshiftguess,resolutionguess) shared(skylines_catalogue,stronglines_catalogue,deeplines_catalogue,axes,spectrumfile)
 
 !$OMP MASTER
   if (omp_get_num_threads().gt.1) then
@@ -213,7 +213,7 @@ elseif (filetype .eq. 3) then !fit 3D data
 
       tid=OMP_GET_THREAD_NUM()
 
-      write (spectrumfile,"(A5,I3.3,A1,I3.3,A4)") "spec_",cube_i,"_",cube_j,".dat"
+      write (outputbasename,"(A,I3.3,A1,I3.3)") spectrumfile(index(spectrumfile,"/",back=.true.)+1:len(trim(spectrumfile)))//"_pixel_",cube_i,"_",cube_j
       allocate(realspec(axes(3)))
       spectrumlength=axes(3)
       realspec%flux=cubedata(cube_i,cube_j,:)
@@ -223,9 +223,8 @@ elseif (filetype .eq. 3) then !fit 3D data
 
 !check for valid data
 !ultra crude and tailored for NGC 7009 at the moment
-!    baddata=20000.
-      baddata=0.
-      inquire(file=trim(outputdirectory)//trim(spectrumfile)//"_lines", exist=file_exists)
+
+      inquire(file=trim(outputdirectory)//trim(outputbasename)//"_lines", exist=file_exists)
 
       if (maxval(realspec%flux) .lt. baddata .or. file_exists) then
         print "(X,A,A,I2,A,I3.3,A,I3.3)",gettime(), "(thread ",tid,") : skipped pixel  ",cube_i,",",cube_j

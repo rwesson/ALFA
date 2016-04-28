@@ -3,7 +3,7 @@ use mod_routines
 
 contains
 
-subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,resolutionguess,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists)
+subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,resolutionguess,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection)
 
   implicit none
 
@@ -12,6 +12,7 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
   character(len=2048) :: commandline
   character(len=2048), dimension(:), allocatable :: options
   character(len=512),intent(out) :: spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile
+  character(len=32) :: imagesection
   integer,intent(out) :: generations,popsize
   integer :: Narg,nargused,i
   logical,intent(out) :: subtractsky,resolution_estimated,file_exists
@@ -129,6 +130,8 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
     endif
   enddo
 
+!check that an input file was specified and that no unrecognised options are present
+
   if (len(trim(spectrumfile)).eq.0) then
     print *,gettime(),": error: no input file specified"
     stop
@@ -142,7 +145,25 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
     stop
   endif
 
+!deal with image sections
+
+  if (index(spectrumfile,"[") .gt. 0) then !image section specified
+    imagesection=spectrumfile(index(spectrumfile,"["):)
+    spectrumfile=spectrumfile(1:index(spectrumfile,"[")-1)
+  endif
+
+!check if input file exists
+
+  inquire(file=spectrumfile, exist=file_exists) ! see if the input file is present
+
+  if (.not. file_exists) then
+    print *,gettime(),": error: input spectrum ",trim(spectrumfile)," does not exist"
+    stop
+  endif
+
   deallocate(options)
+
+!display the settings
 
   print *,gettime(),": ALFA is running with the following settings:"
   if (.not.normalise) then

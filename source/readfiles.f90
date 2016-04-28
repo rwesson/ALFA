@@ -25,21 +25,9 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
   integer :: status,unit,readwrite,blocksize,hdutype
   real :: wavelength, dispersion
 
-  !read in spectrum to fit
+  !check if it's a fits file
 
-  if (trim(spectrumfile)=="") then
-    print *,gettime(),": error: No input spectrum specified"
-    stop
-  endif
-
-  inquire(file=spectrumfile, exist=file_exists) ! see if the input file is present
-
-  if (.not. file_exists) then
-    print *,gettime(),": error: input spectrum ",trim(spectrumfile)," does not exist"
-    stop
-  endif
-
-  if (index(spectrumfile,".fit").gt.0 .or. index(spectrumfile,".FIT").gt.0) then
+  if (index(spectrumfile,".fit").gt.0 .or. index(spectrumfile,".FIT").gt.0) then !read header
 
     status=0
     !  Get an unused Logical Unit Number to use to open the FITS file.
@@ -205,7 +193,7 @@ subroutine read2dfits(spectrumfile, rssdata, dimensions, axes)
 !read a 2D FITS file.
 
   implicit none
-  character (len=512) :: spectrumfile
+  character(len=512) :: spectrumfile
   real, dimension(:,:), allocatable :: rssdata
   logical :: anynull
   integer :: alloc_err
@@ -258,7 +246,7 @@ subroutine read3dfits(spectrumfile, cubedata, dimensions, axes)
 !read a FITS cube.
 
   implicit none
-  character (len=512) :: spectrumfile
+  character(len=512) :: spectrumfile
   real, dimension(:,:,:), allocatable :: cubedata
   logical :: anynull
   integer :: alloc_err

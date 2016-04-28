@@ -12,6 +12,7 @@ implicit none
 integer :: I, spectrumlength, nlines, linearraypos, totallines, startpos, endpos
 real :: startwlen, endwlen
 character (len=512) :: spectrumfile,stronglinelistfile,deeplinelistfile,skylinelistfile,outputdirectory,outputbasename
+character (len=32) :: imagesection
 
 type(linelist), dimension(:), allocatable :: skylines_catalogue, stronglines_catalogue, deeplines_catalogue
 type(linelist), dimension(:), allocatable :: fittedlines, fittedlines_section, skylines, skylines_section
@@ -64,6 +65,7 @@ deeplinelistfile=trim(PREFIX)//"/share/alfa/deep.cat"
 skylinelistfile=trim(PREFIX)//"/share/alfa/sky.cat"
 
 outputdirectory="./"
+imagesection=""
 
 messages=.false.
 
@@ -85,7 +87,7 @@ call init_random_seed()
 
 ! read command line
 
-call readcommandline(commandline,normalise,normalisation,redshiftguess,resolutionguess,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists)
+call readcommandline(commandline,normalise,normalisation,redshiftguess,resolutionguess,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection)
 
 ! convert from velocity to redshift
 
@@ -94,7 +96,9 @@ redshiftguess=1.+(redshiftguess/c)
 ! read in spectrum to fit and line list
 
 print *,gettime(),": reading in file ",trim(spectrumfile)
-call getfiletype(spectrumfile,filetype,dimensions,axes,wavelength,dispersion) !call subroutine to determine whether it's 1D, 2D or 3D fits, or ascii, or none of the above
+
+call getfiletype(trim(spectrumfile)//imagesection,filetype,dimensions,axes,wavelength,dispersion) !call subroutine to determine whether it's 1D, 2D or 3D fits, or ascii, or none of the above
+
 if (filetype.eq.1) then !1d fits file
   spectrumlength=axes(1)
   call read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wavelength, dispersion)
@@ -106,11 +110,11 @@ if (filetype.eq.1) then !1d fits file
   endif
   messages=.true.
 elseif (filetype .eq. 2) then !2d fits file
-  call read2dfits(spectrumfile, rssdata, dimensions, axes)
+  call read2dfits(trim(spectrumfile)//imagesection, rssdata, dimensions, axes)
   minimumwavelength=wavelength
   maximumwavelength=wavelength+(axes(1)-1)*dispersion
 elseif (filetype .eq. 3) then !3d fits file
-  call read3dfits(spectrumfile, cubedata, dimensions, axes)
+  call read3dfits(trim(spectrumfile)//imagesection, cubedata, dimensions, axes)
   minimumwavelength=wavelength
   maximumwavelength=wavelength+(axes(3)-1)*dispersion
 elseif (filetype .eq. 4) then !1d ascii file

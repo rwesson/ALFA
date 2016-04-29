@@ -85,4 +85,4 @@ uninstall:
 	rm -rf ${DESTDIR}${PREFIX}/share/alfa
 	rm -f ${DESTDIR}${PREFIX}/bin/alfa
 	rm -f ${DESTDIR}${PREFIX}/share/bash-completion/completions/alfa
-	rm -f ${MANDIR}/alfa.1.gz ${MANDIR}/alfacube.1.gz
+	rm -f ${MANDIR}/alfa.1.gz

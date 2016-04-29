@@ -43,79 +43,201 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
   enddo
 
   do i=1,narg
-    if ((trim(options(i))=="-n" .or. trim(options(i))=="--normalise") .and. (i+1) .le. Narg) then
-      read (options(i+1),*) normalisation
-      normalise=.true.
-      options(i:i+1)=""
+
+    if ((trim(options(i))=="-n" .or. trim(options(i))=="--normalise")) then
+      if ((i+1) .le. Narg) then
+        read (options(i+1),*) normalisation
+        normalise=.true.
+        options(i:i+1)=""
+      else
+        print *,gettime(),": error: no value specified for ",trim(options(i))
+        stop
+      endif
     endif
-    if ((trim(options(i))=="-vg" .or. trim(options(i))=="--velocity-guess") .and. (i+1) .le. Narg) then
-      read (options(i+1),*) redshiftguess
-      options(i:i+1)=""
+
+    if ((trim(options(i))=="-vg" .or. trim(options(i))=="--velocity-guess")) then
+      if ((i+1) .le. Narg) then
+        read (options(i+1),*) redshiftguess
+        options(i:i+1)=""
+      else
+        print *,gettime(),": error: no value specified for ",trim(options(i))
+        stop
+      endif
     endif
-    if ((trim(options(i))=="-rg" .or. trim(options(i))=="--resolution-guess") .and. (i+1) .le. Narg) then
-      read (options(i+1),*) resolutionguess
-      resolution_estimated=.true.
-      options(i:i+1)=""
+
+    if ((trim(options(i))=="-rg" .or. trim(options(i))=="--resolution-guess")) then
+      if ((i+1) .le. Narg) then
+        read (options(i+1),*) resolutionguess
+        resolution_estimated=.true.
+        options(i:i+1)=""
+        if (resolutionguess .lt. 0.) then
+          print *,gettime(),": error: invalid value given for resolution guess"
+          stop
+        endif
+      else
+        print *,gettime(),": error: no value specified for ",trim(options(i))
+        stop
+      endif
     endif
-    if ((trim(options(i))=="-vtol1" .or. trim(options(i))=="--velocity-tolerance-1") .and. (i+1) .le. Narg) then
-      read (options(i+1),*) vtol1
-      vtol1 = vtol1/c
-      options(i:i+1)=""
+
+    if ((trim(options(i))=="-vtol1" .or. trim(options(i))=="--velocity-tolerance-1")) then
+      if ((i+1) .le. Narg) then
+        read (options(i+1),*) vtol1
+        vtol1 = vtol1/c
+        options(i:i+1)=""
+        if (vtol1 .lt. 0.) then
+          print *,gettime(),": error: invalid value given for vtol1"
+          stop
+        endif
+      else
+        print *,gettime(),": error: no value specified for ",trim(options(i))
+        stop
+      endif
     endif
-    if ((trim(options(i))=="-vtol2" .or. trim(options(i))=="--velocity-tolerance-2") .and. (i+1) .le. Narg) then
-      read (options(i+1),*) vtol2
-      vtol2 = vtol2/c
-      options(i:i+1)=""
+    if ((trim(options(i))=="-vtol2" .or. trim(options(i))=="--velocity-tolerance-2")) then
+      if ((i+1) .le. Narg) then
+        read (options(i+1),*) vtol2
+        vtol2 = vtol2/c
+        options(i:i+1)=""
+        if (vtol2 .lt. 0.) then
+          print *,gettime(),": error: invalid value given for vtol2"
+          stop
+        endif
+      else
+        print *,gettime(),": error: no value specified for ",trim(options(i))
+        stop
+      endif
     endif
-    if ((trim(options(i))=="-rtol1" .or. trim(options(i))=="--resolution-tolerance-1") .and. (i+1) .le. Narg) then
-      read (options(i+1),*) rtol1
-      options(i:i+1)=""
+
+    if ((trim(options(i))=="-rtol1" .or. trim(options(i))=="--resolution-tolerance-1")) then
+      if ((i+1) .le. Narg) then
+        read (options(i+1),*) rtol1
+        options(i:i+1)=""
+        if (rtol1 .lt. 0.) then
+          print *,gettime(),": error: invalid value given for rtol1"
+          stop
+        endif
+      else
+        print *,gettime(),": error: no value specified for ",trim(options(i))
+        stop
+      endif
     endif
-    if ((trim(options(i))=="-rtol2" .or. trim(options(i))=="--resolution-tolerance-2") .and. (i+1) .le. Narg) then
-      read (options(i+1),*) rtol2
-      options(i:i+1)=""
+
+    if ((trim(options(i))=="-rtol2" .or. trim(options(i))=="--resolution-tolerance-2")) then
+      if ((i+1) .le. Narg) then
+        read (options(i+1),*) rtol2
+        options(i:i+1)=""
+        if (rtol1 .lt. 0.) then
+          print *,gettime(),": error: invalid value given for rtol1"
+          stop
+        endif
+      else
+        print *,gettime(),": error: no value specified for ",trim(options(i))
+        stop
+      endif
     endif
+
     if (trim(options(i))=="-ss" .or. trim(options(i))=="--subtract-sky") then
       subtractsky=.true.
       options(i)=""
     endif
+
     if (trim(options(i))=="-b" .or. trim(options(i))=="--bad-data") then
-      read (options(i+1),*) baddata
-      options(i:i+1)=""
+      if ((i+1) .le. Narg) then
+        read (options(i+1),*) baddata
+        options(i:i+1)=""
+      else
+        print *,gettime(),": error: no value specified for ",trim(options(i))
+        stop
+      endif
     endif
-    if ((trim(options(i))=="-o" .or. trim(options(i))=="--output-dir") .and. (i+1) .le. Narg) then
-      read (options(i+1),"(A)") outputdirectory
-      outputdirectory=trim(outputdirectory)//"/"
-      inquire(file=trim(outputdirectory), exist=file_exists) ! trailing slash ensures it's looking for a directory
+
+    if ((trim(options(i))=="-o" .or. trim(options(i))=="--output-dir")) then
+      if ((i+1) .le. Narg) then
+        read (options(i+1),"(A)") outputdirectory
+        outputdirectory=trim(outputdirectory)//"/"
+        inquire(file=trim(outputdirectory), exist=file_exists) ! trailing slash ensures it's looking for a directory
+      else
+        print *,gettime(),": error: no value specified for ",trim(options(i))
+        stop
+      endif
       if (.not. file_exists) then
         print *,gettime(),": error: output directory does not exist"
         stop
       endif
       options(i:i+1)=""
     endif
-    if (trim(options(i))=="-skycat" .and. (i+1) .le. Narg) then
-      read (options(i+1),"(A)") skylinelistfile
-      options(i:i+1)=""
+
+    if (trim(options(i))=="-skycat") then
+      if ((i+1) .le. Narg) then
+        read (options(i+1),"(A)") skylinelistfile
+        options(i:i+1)=""
+      else
+        print *,gettime(),": error: no value specified for ",trim(options(i))
+        stop
+      endif
     endif
-    if (trim(options(i))=="-strongcat" .and. (i+1) .le. Narg) then
-      read (options(i+1),"(A)") stronglinelistfile
-      options(i:i+1)=""
+
+    if (trim(options(i))=="-strongcat") then
+      if ((i+1) .le. Narg) then
+        read (options(i+1),"(A)") stronglinelistfile
+        options(i:i+1)=""
+      else
+        print *,gettime(),": error: no value specified for ",trim(options(i))
+        stop
+      endif
     endif
-    if (trim(options(i))=="-deepcat" .and. (i+1) .le. Narg) then
-      read (options(i+1),"(A)") deeplinelistfile
-      options(i:i+1)=""
+
+    if (trim(options(i))=="-deepcat") then
+      if ((i+1) .le. Narg) then
+        read (options(i+1),"(A)") deeplinelistfile
+        options(i:i+1)=""
+      else
+        print *,gettime(),": error: no value specified for ",trim(options(i))
+        stop
+      endif
     endif
-    if ((trim(options(i))=="-g" .or. trim(options(i))=="--generations") .and. (i+1) .le. Narg) then
-      read (options(i+1),*) generations
-      options(i:i+1)=""
+
+    if ((trim(options(i))=="-g" .or. trim(options(i))=="--generations")) then
+      if ((i+1) .le. Narg) then
+        read (options(i+1),*) generations
+        options(i:i+1)=""
+        if (generations .lt. 1) then
+          print *,gettime(),": error: invalid value given for generations"
+          stop
+        endif
+      else
+        print *,gettime(),": error: no value specified for ",trim(options(i))
+        stop
+      endif
     endif
-    if ((trim(options(i))=="-ps" .or. trim(options(i))=="--populationsize") .and. (i+1) .le. Narg) then
-      read (options(i+1),*) popsize
-      options(i:i+1)=""
+
+    if ((trim(options(i))=="-ps" .or. trim(options(i))=="--populationsize")) then
+      if ((i+1) .le. Narg) then
+        read (options(i+1),*) popsize
+        options(i:i+1)=""
+        if (popsize .lt. 1) then
+          print *,gettime(),": error: invalid value given for popsize"
+          stop
+        endif
+      else
+        print *,gettime(),": error: no value specified for ",trim(options(i))
+        stop
+      endif
     endif
-    if ((trim(options(i))=="-pr" .or. trim(options(i))=="--pressure") .and. (i+1) .le. Narg) then
-      read (options(i+1),*) pressure
-      options(i:i+1)=""
+
+    if ((trim(options(i))=="-pr" .or. trim(options(i))=="--pressure")) then
+      if ((i+1) .le. Narg) then
+        read (options(i+1),*) pressure
+        options(i:i+1)=""
+        if (pressure .lt. 0.d0 .or. pressure .gt. 1.d0) then
+          print *,"error: pressure must be between 0 and 1"
+          stop
+        endif
+      else
+        print *,gettime(),": error: no value specified for ",trim(options(i))
+        stop
+      endif
     endif
   ! to implement:
   !   continuum window and percentile

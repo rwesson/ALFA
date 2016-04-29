@@ -10,7 +10,7 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
   logical :: normalise
   real :: normalisation,redshiftguess,resolutionguess,vtol1,vtol2,rtol1,rtol2,baddata,pressure,c
   character(len=2048) :: commandline
-  character(len=2048), dimension(:), allocatable :: options
+  character(len=512), dimension(:), allocatable :: options
   character(len=512),intent(out) :: spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile
   character(len=32) :: imagesection
   integer,intent(out) :: generations,popsize

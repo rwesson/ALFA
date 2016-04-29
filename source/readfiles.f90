@@ -15,7 +15,7 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
 !dimensions and lengths of axes are returned if it's a FITS file
 
   implicit none
-  character (len=512) :: spectrumfile
+  character (len=*) :: spectrumfile
   integer :: filetype, dimensions
   integer, dimension(:), allocatable :: axes
   logical :: file_exists

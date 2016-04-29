@@ -70,7 +70,8 @@ subroutine makespectrum(lines,spec)
   type(linelist), dimension(:), intent(in) :: lines
 
 #ifdef CO
-  print *,"subroutine: makespectrum"
+!not so useful, gets called hundreds of times
+!  print *,"subroutine: makespectrum"
 #endif
 
   do i=1,size(lines)

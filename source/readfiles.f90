@@ -18,7 +18,6 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
   character (len=*) :: spectrumfile
   integer :: filetype, dimensions
   integer, dimension(:), allocatable :: axes
-  logical :: file_exists
 
   !cfitsio variables
 

@@ -46,7 +46,7 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
     do while (dimensions .eq. 0) ! if no axes found in first extension, advance and check again
       call ftmrhd(unit,1,hdutype,status)
       call ftgidm(unit,dimensions,status)
-    end do
+    enddo
     if (dimensions .eq. 0) then ! still no axes found
       print *,gettime(),": error : no axes found in ",trim(spectrumfile)
       stop
@@ -113,7 +113,7 @@ subroutine readascii(spectrumfile, realspec, spectrumlength, fittedspectrum)
     do while (IO >= 0)
     read(199,*,end=112) input1
     i = i + 1
-  end do
+  enddo
   112 spectrumlength=i
 
   !then allocate and read
@@ -125,7 +125,7 @@ subroutine readascii(spectrumfile, realspec, spectrumlength, fittedspectrum)
     read(199,*) input1, input2
     realspec(i)%wavelength = input1
     realspec(i)%flux = input2
-  end do
+  enddo
   close(199)
 
   realspec%uncertainty = 0.d0
@@ -240,7 +240,7 @@ subroutine read2dfits(spectrumfile, rssdata, dimensions, axes)
   do while (dimensions .eq. 0) ! if no axes found in first extension, advance andcheck again
     call ftmrhd(unit,1,hdutype,status)
     call ftgidm(unit,dimensions,status)
-  end do
+  enddo
 
 ! read RSS file into memory
 
@@ -297,7 +297,7 @@ subroutine read3dfits(spectrumfile, cubedata, dimensions, axes)
   do while (dimensions .eq. 0) ! if no axes found in first extension, advance andcheck again
     call ftmrhd(unit,1,hdutype,status)
     call ftgidm(unit,dimensions,status)
-  end do
+  enddo
 
 ! read cube file into memory
 

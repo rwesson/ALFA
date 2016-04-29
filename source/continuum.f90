@@ -12,6 +12,10 @@ type(spectrum), dimension(:), allocatable :: continuum
 real, dimension(101) :: spectrumchunk
 integer :: i, spectrumlength
 
+#ifdef CO
+  print *,"subroutine: fit_continuum"
+#endif
+
 ! take the 25th percentile value of 101-element chunks of the spectrum
 
   allocate(continuum(spectrumlength))

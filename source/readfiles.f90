@@ -25,6 +25,10 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
   integer :: status,unit,readwrite,blocksize,hdutype
   real :: wavelength, dispersion
 
+#ifdef CO
+  print *,"subroutine: getfiletype"
+#endif
+
   !check if it's a fits file
 
   if (index(spectrumfile,".fit").gt.0 .or. index(spectrumfile,".FIT").gt.0) then !read header
@@ -101,6 +105,10 @@ subroutine readascii(spectrumfile, realspec, spectrumlength, fittedspectrum)
 
   type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum
 
+#ifdef CO
+  print *,"subroutine: readascii"
+#endif
+
   i = 0
   open(199, file=spectrumfile, iostat=IO, status='old')
     do while (IO >= 0)
@@ -146,6 +154,10 @@ subroutine read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wa
   real :: nullval
   logical :: anynull
   real :: wavelength, dispersion
+
+#ifdef CO
+  print *,"subroutine: read1dfits"
+#endif
 
   allocate(realspec(spectrumlength))
   allocate(fittedspectrum(spectrumlength))
@@ -205,6 +217,10 @@ subroutine read2dfits(spectrumfile, rssdata, dimensions, axes)
   integer :: group
   real :: nullval
 
+#ifdef CO
+  print *,"subroutine: read2dfits"
+#endif
+
   status=0
   !  Get an unused Logical Unit Number to use to open the FITS file.
   call ftgiou(unit,status)
@@ -258,6 +274,10 @@ subroutine read3dfits(spectrumfile, cubedata, dimensions, axes)
   integer :: group
   real :: nullval
 
+#ifdef CO
+  print *,"subroutine: read3dfits"
+#endif
+
   status=0
   !  Get an unused Logical Unit Number to use to open the FITS file.
   call ftgiou(unit,status)
@@ -310,6 +330,10 @@ subroutine readlinelist(linelistfile,referencelinelist,nlines,wavelength1, wavel
   logical :: file_exists
 
   type(linelist), dimension(:), allocatable :: referencelinelist
+
+#ifdef CO
+  print *,"subroutine: readlinelist"
+#endif
 
   ! deallocate if necessary
   if (allocated(referencelinelist)) deallocate(referencelinelist)
@@ -368,6 +392,10 @@ subroutine selectlines(referencelinelist,wavelength1,wavelength2,fittedlines,nli
   integer :: startloc,nlines
 
   type(linelist), dimension(:), allocatable :: referencelinelist, fittedlines
+
+#ifdef CO
+  print *,"subroutine: selectlines"
+#endif
 
 !deallocate if necessary
   if (allocated(fittedlines)) deallocate(fittedlines)

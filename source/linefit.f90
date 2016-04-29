@@ -18,6 +18,10 @@ real :: random, pressure
 real :: resolutionguess, redshiftguess, redshifttolerance, resolutiontolerance
 real :: scalefactor
 
+#ifdef CO
+  print *,"subroutine: fit"
+#endif
+
 !initialisation
 
   nlines=size(fittedlines%wavelength)

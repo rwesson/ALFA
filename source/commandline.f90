@@ -17,6 +17,10 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
   integer :: Narg,nargused,i
   logical,intent(out) :: subtractsky,resolution_estimated,file_exists
 
+#ifdef CO
+  print *,"subroutine: readcommandline"
+#endif
+
   c=299792.458 !km/s
 
   spectrumfile=""

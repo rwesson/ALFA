@@ -25,7 +25,7 @@ FC=gfortran
 LD=gfortran
 PREFIX=/usr
 FFLAGS=-cpp -DPREFIX=\"${PREFIX}\"
-CFITSIOFLAGS=-L/usr/lib/x86_64-linux-gnu/ -lcfitsio -lm
+CFITSIOFLAGS=-lcfitsio -lm #-L/usr/lib/x86_64-linux-gnu/
 MANDIR=${DESTDIR}${PREFIX}/share/man/man1
 
 ifeq ($(FC),gfortran)

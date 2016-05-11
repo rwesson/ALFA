@@ -76,7 +76,15 @@ generations=500
 ! start
 
 print *,"ALFA, the Automated Line Fitting Algorithm"
-print *,"------------------------------------------"
+if (len(VERSION).gt.0) then
+  print *,"version ",VERSION
+else
+  print *,"version 0.96"
+endif
+
+#ifdef BUILDDATE
+  print *,"compiled on ",BUILDDATE
+#endif
 
 print *
 print *,gettime(),": starting code"

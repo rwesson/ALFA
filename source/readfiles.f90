@@ -4,7 +4,7 @@ use mod_routines
 
 contains
 
-subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dispersion)
+subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dispersion, referencepixel)
 !this subroutine determines what type of file the input file is
 !input is the file name
 !output is the file type, indicated by:
@@ -16,7 +16,7 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
 
   implicit none
   character (len=*) :: spectrumfile
-  integer :: filetype, dimensions
+  integer :: filetype, dimensions, referencepixel
   integer, dimension(:), allocatable :: axes
 
   !cfitsio variables
@@ -27,6 +27,8 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
 #ifdef CO
   print *,"subroutine: getfiletype"
 #endif
+
+  referencepixel=1
 
   !check if it's a fits file
 
@@ -66,6 +68,7 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
 
     if (dimensions .lt. 3) then
       call ftgkye(unit,"CRVAL1",wavelength,"",status)
+      call ftgkyj(unit,"CRPIX1",referencepixel,"",status)
       call ftgkye(unit,"CDELT1",dispersion,"",status)
       if (status.ne.0) then
         status=0
@@ -73,6 +76,7 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
       endif
     else
       call ftgkye(unit,"CRVAL3",wavelength,"",status)
+      call ftgkyj(unit,"CRPIX3",referencepixel,"",status)
       call ftgkye(unit,"CDELT3",dispersion,"",status)
       if (status.ne.0) then
         status=0
@@ -136,13 +140,13 @@ subroutine readascii(spectrumfile, realspec, spectrumlength, fittedspectrum)
 
 end subroutine readascii
 
-subroutine read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wavelength, dispersion)
+subroutine read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wavelength, dispersion, referencepixel)
 ! read in a 1D fits file
 
   implicit none
   character (len=512) :: spectrumfile
   integer :: i
-  integer :: spectrumlength
+  integer :: spectrumlength, referencepixel
 
   type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum
 
@@ -175,7 +179,7 @@ subroutine read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wa
   ! calculate wavelength values
 
   do i=1,spectrumlength
-    realspec(i)%wavelength = wavelength+(i-1)*dispersion
+    realspec(i)%wavelength = wavelength+(i-referencepixel)*dispersion
   enddo
 
   ! read spectrum into memory

@@ -18,7 +18,7 @@ type(linelist), dimension(:), allocatable :: skylines_catalogue, stronglines_cat
 type(linelist), dimension(:), allocatable :: fittedlines, fittedlines_section, skylines, skylines_section
 type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum, spectrumchunk, skyspectrum, continuum, stronglines
 
-integer :: filetype, dimensions
+integer :: filetype, dimensions, referencepixel
 real :: wavelength, dispersion, baddata
 integer :: cube_i, cube_j, cube_k, rss_i, rss_k
 integer, dimension(:), allocatable :: axes
@@ -105,11 +105,12 @@ redshiftguess=1.+(redshiftguess/c)
 
 print *,gettime(),": reading in file ",trim(spectrumfile)
 
-call getfiletype(trim(spectrumfile)//imagesection,filetype,dimensions,axes,wavelength,dispersion) !call subroutine to determine whether it's 1D, 2D or 3D fits, or ascii, or none of the above
+!call subroutine to determine whether it's 1D, 2D or 3D fits, or ascii, or none of the above
+call getfiletype(trim(spectrumfile)//imagesection,filetype,dimensions,axes,wavelength,dispersion,referencepixel)
 
 if (filetype.eq.1) then !1d fits file
   spectrumlength=axes(1)
-  call read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wavelength, dispersion)
+  call read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wavelength, dispersion, referencepixel)
   minimumwavelength=realspec(1)%wavelength
   maximumwavelength=realspec(spectrumlength)%wavelength
   if (maxval(realspec%flux) .lt. baddata) then
@@ -170,7 +171,7 @@ elseif (filetype .eq. 2) then !fit 2D data
     spectrumlength=axes(1)
     realspec%flux=rssdata(:,rss_i)
     do rss_k=1,axes(1)
-      realspec(rss_k)%wavelength=wavelength+(rss_k-1)*dispersion
+      realspec(rss_k)%wavelength=wavelength+(rss_k-referencepixel)*dispersion
     enddo
 
 !check for valid data
@@ -231,7 +232,7 @@ elseif (filetype .eq. 3) then !fit 3D data
       spectrumlength=axes(3)
       realspec%flux=cubedata(cube_i,cube_j,:)
       do cube_k=1,axes(3)
-        realspec(cube_k)%wavelength=wavelength+(cube_k-1)*dispersion
+        realspec(cube_k)%wavelength=wavelength+(cube_k-referencepixel)*dispersion
       enddo
 
 !check for valid data

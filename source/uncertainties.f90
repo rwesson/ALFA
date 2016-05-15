@@ -30,8 +30,7 @@ subroutine get_uncertainties(fittedspectrum, realspec, fittedlines)
   do i=10,size(realspec)-10
     spectrumchunk=abs(residuals(i-9:i+10))
     call qsort(spectrumchunk)
-    spectrumchunk(19:20)=0.D0
-    realspec(i)%uncertainty=((sum(spectrumchunk**2)/18.)**0.5)
+    realspec(i)%uncertainty=(sum(spectrumchunk(1:18)**2)/18.)**0.5
   enddo
 
 ! fill in the ends with the closest calculated values

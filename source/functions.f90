@@ -68,6 +68,7 @@ subroutine makespectrum(lines,spec)
   integer :: i
   type(spectrum), dimension(:) :: spec
   type(linelist), dimension(:), intent(in) :: lines
+  real :: sigma
 
 #ifdef CO
 !not so useful, gets called hundreds of times
@@ -75,9 +76,10 @@ subroutine makespectrum(lines,spec)
 #endif
 
   do i=1,size(lines)
-    where (abs(lines(i)%redshift*lines(i)%wavelength - spec%wavelength) .lt. (5*lines(i)%wavelength/lines(i)%resolution))
+    sigma=lines(i)%wavelength/lines(i)%resolution
+    where (abs(lines(i)%redshift*lines(i)%wavelength - spec%wavelength) .lt. 5.*sigma)
       spec%flux = spec%flux + &
-      &lines(i)%peak*exp((-(spec%wavelength-lines(i)%redshift*lines(i)%wavelength)**2)/(2*(lines(i)%wavelength/lines(i)%resolution)**2))
+      &lines(i)%peak*exp((-(spec%wavelength-lines(i)%redshift*lines(i)%wavelength)**2)/(2*sigma**2))
     end where
   enddo
 

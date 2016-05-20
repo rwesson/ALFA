@@ -397,7 +397,7 @@ subroutine selectlines(referencelinelist,wavelength1,wavelength2,fittedlines,nli
   type(linelist), dimension(:), allocatable :: referencelinelist, fittedlines
 
 #ifdef CO
-  print *,"subroutine: selectlines"
+  print *,"subroutine: selectlines: ",wavelength1,wavelength2
 #endif
 
 !deallocate if necessary

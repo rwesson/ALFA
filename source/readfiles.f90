@@ -50,10 +50,10 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
       call ftgidm(unit,dimensions,status)
     enddo
     if (dimensions .eq. 0) then ! still no axes found
-      print *,gettime(),": error : no axes found in ",trim(spectrumfile)
+      print *,gettime(),"error : no axes found in ",trim(spectrumfile)
       stop
     elseif (dimensions .gt. 3) then ! can't imagine what a 4D fits file would actually be, but alfa definitely can't handle it
-      print *,gettime(),": error : more than 3 axes found in ",trim(spectrumfile)
+      print *,gettime(),"error : more than 3 axes found in ",trim(spectrumfile)
       stop
     endif
 
@@ -187,9 +187,9 @@ subroutine read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wa
   call ftgpve(unit,group,1,spectrumlength,nullval,realspec%flux,anynull,status)
 !todo: report null values?
   if (status .eq. 0) then
-    print "(X,A,A,I7,A)",gettime(), ": read 1D fits file with ",spectrumlength," data points into memory."
+    print "(X,A,A,I7,A)",gettime(),"read 1D fits file with ",spectrumlength," data points into memory."
   else
-    print *,gettime(), ": couldn't read file into memory"
+    print *,gettime(),"couldn't read file into memory"
     stop
   endif
 
@@ -235,7 +235,7 @@ subroutine read2dfits(spectrumfile, rssdata, dimensions, axes)
   nullval=-999
 
   allocate(rssdata(axes(1),axes(2)), stat=alloc_err)
-  if (alloc_err .eq. 0) print *,gettime(), ": reading RSS file into memory"
+  if (alloc_err .eq. 0) print *,gettime(),"reading RSS file into memory"
 
 ! advance to first HDU containing axes
 
@@ -252,9 +252,9 @@ subroutine read2dfits(spectrumfile, rssdata, dimensions, axes)
   call ftg2de(unit,group,nullval,axes(1),axes(1),axes(2),rssdata,anynull,status)
 !todo: report null values?
   if (status .eq. 0) then
-    print "(X,A,A,I7,A)",gettime(), ": read ",axes(2)," rows into memory."
+    print "(X,A,A,I7,A)",gettime(),"read ",axes(2)," rows into memory."
   else
-    print *,gettime(), ": couldn't read RSS file into memory"
+    print *,gettime(),"couldn't read RSS file into memory"
     print *,"error code ",status
     stop
   endif
@@ -292,7 +292,7 @@ subroutine read3dfits(spectrumfile, cubedata, dimensions, axes)
   nullval=-999
 
   allocate(cubedata(axes(1),axes(2),axes(3)), stat=alloc_err)
-  if (alloc_err .eq. 0) print *,gettime(), ": reading data cube into memory"
+  if (alloc_err .eq. 0) print *,gettime(),"reading data cube into memory"
 
 ! advance to first HDU containing axes
 
@@ -309,9 +309,9 @@ subroutine read3dfits(spectrumfile, cubedata, dimensions, axes)
   call ftg3de(unit,group,nullval,axes(1),axes(2),axes(1),axes(2),axes(3),cubedata,anynull,status)
 !todo: report null values?
   if (status .eq. 0) then
-    print "(X,A,A,I7,A)",gettime(), ": read ",axes(1)*axes(2)," pixels into memory."
+    print "(X,A,A,I7,A)",gettime(),"read ",axes(1)*axes(2)," pixels into memory."
   else
-    print *,gettime(), ": couldn't read cube into memory"
+    print *,gettime(),"couldn't read cube into memory"
     stop
   endif
 
@@ -342,14 +342,14 @@ subroutine readlinelist(linelistfile,referencelinelist,nlines,wavelength1, wavel
   if (allocated(referencelinelist)) deallocate(referencelinelist)
 
   if (trim(linelistfile)=="") then
-    print *,gettime(),": error: No line catalogue specified"
+    print *,gettime(),"error: No line catalogue specified"
     stop
   endif
 
   inquire(file=linelistfile, exist=file_exists) ! see if the input file is present
 
   if (.not. file_exists) then
-    print *,gettime(),": error: line catalogue ",trim(linelistfile)," does not exist"
+    print *,gettime(),"error: line catalogue ",trim(linelistfile)," does not exist"
     stop
   else
     I = 0

@@ -12,13 +12,23 @@ real function gaussianflux(a,c)
 
 end function gaussianflux
 
-character (len=10) function gettime()
-! write out the time that the function was called
-  implicit none
-  character (len=10) :: time
+character(len=11) function gettime()
+implicit none
+character(len=10) :: time
+character(len=11), save :: oldtime
 
-  call DATE_AND_TIME(TIME=time)
-  gettime = time(1:2)//":"//time(3:4)//":"//time(5:6)
+!debugging
+#ifdef CO
+        !print *,"function: gettime"
+#endif
+
+  call date_and_time(TIME=time)
+  gettime = time(1:2)//":"//time(3:4)//":"//time(5:6)//" : "
+  if (gettime .eq. oldtime) then
+    gettime = "          "
+  else
+    oldtime = gettime
+  endif
   return
 
 end function gettime

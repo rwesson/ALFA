@@ -79,7 +79,7 @@ print *,"ALFA, the Automated Line Fitting Algorithm"
 if (len(VERSION).gt.0) then
   print *,"version ",VERSION
 else
-  print *,"version 0.96"
+  print *,"version 0.98"
 endif
 
 #ifdef BUILDDATE
@@ -87,7 +87,7 @@ endif
 #endif
 
 print *
-print *,gettime(),": starting code"
+print *,gettime(),"starting code"
 
 ! random seed
 
@@ -103,7 +103,7 @@ redshiftguess=1.+(redshiftguess/c)
 
 ! read in spectrum to fit and line list
 
-print *,gettime(),": reading in file ",trim(spectrumfile)
+print *,gettime(),"reading in file ",trim(spectrumfile)
 
 !call subroutine to determine whether it's 1D, 2D or 3D fits, or ascii, or none of the above
 call getfiletype(trim(spectrumfile)//imagesection,filetype,dimensions,axes,wavelength,dispersion,referencepixel)
@@ -114,7 +114,7 @@ if (filetype.eq.1) then !1d fits file
   minimumwavelength=realspec(1)%wavelength
   maximumwavelength=realspec(spectrumlength)%wavelength
   if (maxval(realspec%flux) .lt. baddata) then
-    print *,gettime(),": no good data in spectrum (all fluxes are less than ",baddata,")"
+    print *,gettime(),"no good data in spectrum (all fluxes are less than ",baddata,")"
     stop
   endif
   messages=.true.
@@ -131,7 +131,7 @@ elseif (filetype .eq. 4) then !1d ascii file
   minimumwavelength=realspec(1)%wavelength
   maximumwavelength=realspec(spectrumlength)%wavelength
   if (maxval(realspec%flux) .lt. baddata) then
-    print *,gettime(),": no good data in spectrum (all fluxes are less than ",baddata,")"
+    print *,gettime(),"no good data in spectrum (all fluxes are less than ",baddata,")"
     stop
   endif
   messages=.true.
@@ -143,7 +143,7 @@ endif
 
 !read in catalogues
 
-print *,gettime(),": reading in line catalogues"
+print *,gettime(),"reading in line catalogues"
 call readlinelist(skylinelistfile, skylines_catalogue, nlines,minimumwavelength,maximumwavelength)
 call readlinelist(stronglinelistfile, stronglines_catalogue, nlines,minimumwavelength,maximumwavelength)
 call readlinelist(deeplinelistfile, deeplines_catalogue, nlines,minimumwavelength,maximumwavelength)
@@ -157,7 +157,7 @@ elseif (filetype .eq. 2) then !fit 2D data
 !$OMP PARALLEL private(outputbasename,realspec,fittedspectrum,spectrumlength,continuum,nlines,spectrumchunk,linearraypos,overlap,startpos,startwlen,endpos,endwlen,skylines,skylines_section,stronglines,fittedlines,fittedlines_section,blendpeak,hbetaflux,totallines,skyspectrum,redshiftguess_overall,rss_i,tid) firstprivate(redshiftguess,resolutionguess) shared(skylines_catalogue,stronglines_catalogue,deeplines_catalogue,axes,spectrumfile)
 !$OMP MASTER
   if (omp_get_num_threads().gt.1) then
-    print "(X,A9,X,A,I2,A)",gettime(), ": using ",omp_get_num_threads()," processors"
+    print "(X,A9,X,A,I2,A)",gettime(),"using ",omp_get_num_threads()," processors"
   endif
 !$OMP END MASTER
 
@@ -180,7 +180,7 @@ elseif (filetype .eq. 2) then !fit 2D data
     inquire(file=trim(outputdirectory)//trim(outputbasename)//"_lines", exist=file_exists)
 
     if (maxval(realspec%flux) .lt. baddata .or. file_exists) then
-      print "(X,A,A,I2,A,I5.5,A,I5.5)",gettime(), "(thread ",tid,") : skipped row  ",rss_i
+      print "(X,A,A,I2,A,I5.5,A,I5.5)",gettime(),"(thread ",tid,") : skipped row  ",rss_i
       deallocate(realspec)
       cycle
     endif
@@ -199,25 +199,25 @@ elseif (filetype .eq. 2) then !fit 2D data
     deallocate(continuum)
     if (allocated(skyspectrum)) deallocate(skyspectrum)
 
-    print "(X,A,A,I2,A,I5.5,A,I5.5)",gettime(), "(thread ",tid,") : finished row ",rss_i
+    print "(X,A,A,I2,A,I5.5,A,I5.5)",gettime(),"(thread ",tid,") : finished row ",rss_i
 
   enddo
 
 !$OMP END DO
 !$OMP END PARALLEL
 
-  print *,gettime(), ": all processing finished"
+  print *,gettime(),"all processing finished"
 
   deallocate(rssdata)
 
 elseif (filetype .eq. 3) then !fit 3D data
 !process cube
-  print *,gettime(),": processing cube"
+  print *,gettime(),"processing cube"
 !$OMP PARALLEL private(outputbasename,realspec,fittedspectrum,spectrumlength,continuum,nlines,spectrumchunk,linearraypos,overlap,startpos,startwlen,endpos,endwlen,skylines,skylines_section,stronglines,fittedlines,fittedlines_section,blendpeak,hbetaflux,totallines,skyspectrum,redshiftguess_overall,cube_i,cube_j,tid) firstprivate(redshiftguess,resolutionguess) shared(skylines_catalogue,stronglines_catalogue,deeplines_catalogue,axes,spectrumfile)
 
 !$OMP MASTER
   if (omp_get_num_threads().gt.1) then
-    print "(X,A9,X,A,I2,A)",gettime(), ": using ",omp_get_num_threads()," processors"
+    print "(X,A9,X,A,I2,A)",gettime(),"using ",omp_get_num_threads()," processors"
   endif
 !$OMP END MASTER
 
@@ -241,7 +241,7 @@ elseif (filetype .eq. 3) then !fit 3D data
       inquire(file=trim(outputdirectory)//trim(outputbasename)//"_lines", exist=file_exists)
 
       if (maxval(realspec%flux) .lt. baddata .or. file_exists) then
-        print "(X,A,A,I2,A,I3.3,A,I3.3)",gettime(), "(thread ",tid,") : skipped pixel  ",cube_i,",",cube_j
+        print "(X,A,A,I2,A,I3.3,A,I3.3)",gettime(),"(thread ",tid,") : skipped pixel  ",cube_i,",",cube_j
         deallocate(realspec)
         cycle
       endif
@@ -261,7 +261,7 @@ elseif (filetype .eq. 3) then !fit 3D data
       deallocate(continuum)
       if (allocated(skyspectrum)) deallocate(skyspectrum)
 
-      print "(X,A,A,I2,A,I3.3,A,I3.3)",gettime(), "(thread ",tid,") : finished pixel ",cube_i,",",cube_j
+      print "(X,A,A,I2,A,I3.3,A,I3.3)",gettime(),"(thread ",tid,") : finished pixel ",cube_i,",",cube_j
 
     enddo
   enddo
@@ -269,7 +269,7 @@ elseif (filetype .eq. 3) then !fit 3D data
 !$OMP END DO
 !$OMP END PARALLEL
 
-  print *,gettime(), ": all processing finished"
+  print *,gettime(),"all processing finished"
 
   deallocate(cubedata)
 
@@ -280,7 +280,7 @@ endif
 if (allocated(rssdata)) deallocate(rssdata)
 if (allocated(cubedata)) deallocate(cubedata)
 
-print *,gettime(),": all done"
+print *,gettime(),"all done"
 print *
 
 end program alfa

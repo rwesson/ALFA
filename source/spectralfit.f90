@@ -36,32 +36,38 @@ if (subtractsky) then
   call selectlines(skylines_catalogue,realspec(1)%wavelength, realspec(size(realspec))%wavelength, skylines, nlines)
   linearraypos=1
 
-  !go though in chunks of 400 units
-  do i=1,spectrumlength,400
-    if (i+400 .gt. spectrumlength) then
-      endpos=spectrumlength
-    else
-      endpos=i+400
-    endif
+  !if there are any sky lines to fit, then go though in chunks of 400 units
+  if (nlines .gt. 0) then
+    do i=1,spectrumlength,400
+      if (i+400 .gt. spectrumlength) then
+        endpos=spectrumlength
+      else
+        endpos=i+400
+      endif
 
-    allocate(spectrumchunk(endpos-i+1))
-    spectrumchunk = realspec(i:endpos)
+      allocate(spectrumchunk(endpos-i+1))
+      spectrumchunk = realspec(i:endpos)
 
-    !read in sky lines in chunk
-    call selectlines(skylines_catalogue, realspec(i)%wavelength, realspec(endpos)%wavelength, skylines_section, nlines)
-    if (nlines .gt. 0) then
-      call fit(spectrumchunk, 1., resolutionguess, skylines_section, 0., rtol2, generations, popsize, pressure)
-      skylines(linearraypos:linearraypos+nlines-1)=skylines_section!(1:nlines)
-      linearraypos=linearraypos+nlines
-    endif
-    deallocate(spectrumchunk)
-  enddo
-! make full sky spectrum and subtract at end
+      !read in sky lines in chunk
+      call selectlines(skylines_catalogue, realspec(i)%wavelength, realspec(endpos)%wavelength, skylines_section, nlines)
 
-  call makespectrum(skylines,skyspectrum)
-  realspec%flux = realspec%flux - skyspectrum%flux
+      if (nlines .gt. 0) then
+        call fit(spectrumchunk, 1., resolutionguess, skylines_section, 0., rtol2, generations, popsize, pressure)
+        skylines(linearraypos:linearraypos+nlines-1)=skylines_section!(1:nlines)
+        linearraypos=linearraypos+nlines
+      endif
 
-endif
+      deallocate(spectrumchunk)
+    enddo
+  ! make full sky spectrum and subtract at end
+
+    call makespectrum(skylines,skyspectrum)
+    realspec%flux = realspec%flux - skyspectrum%flux
+
+  else
+    print *,gettime(),": no sky lines in wavelength range covered by spectrum"
+  endif ! nlines .gt. 0
+endif ! subtractsky
 
 ! select the lines from the catalogue
 

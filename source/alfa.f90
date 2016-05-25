@@ -82,10 +82,6 @@ else
   print *,"version 0.98"
 endif
 
-#ifdef BUILDDATE
-  print *,"compiled on ",BUILDDATE
-#endif
-
 print *
 print *,gettime(),"starting code"
 

@@ -3,7 +3,7 @@ use mod_routines
 
 contains
 
-subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,resolutionguess,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection)
+subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,resolutionguess,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits)
 
   implicit none
 
@@ -15,7 +15,7 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
   character(len=32) :: imagesection
   integer,intent(out) :: generations,popsize
   integer :: Narg,nargused,i
-  logical,intent(out) :: subtractsky,resolution_estimated,file_exists
+  logical,intent(out) :: subtractsky,resolution_estimated,file_exists,upperlimits
 
 #ifdef CO
   print *,"subroutine: readcommandline"
@@ -242,6 +242,11 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
         print *,gettime(),"error: no value specified for ",trim(options(i))
         stop
       endif
+    endif
+
+    if ((trim(options(i))=="-ul" .or. trim(options(i))=="--upper-limits")) then
+      upperlimits=.true.
+      options(i)=""
     endif
   ! to implement:
   !   continuum window and percentile

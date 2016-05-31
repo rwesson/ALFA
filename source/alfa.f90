@@ -40,6 +40,7 @@ real :: pressure
 logical :: normalise=.false. !false means spectrum normalised to whatever H beta is detected, true means spectrum normalised to user specified value
 logical :: resolution_estimated=.false. !true means user specified a value, false means estimate from sampling
 logical :: subtractsky=.false. !attempt to fit night sky emission lines
+logical :: upperlimits=.false. !if true, code reports 3 sigma limit for undetected lines
 logical :: file_exists
 
 logical :: messages
@@ -91,7 +92,7 @@ call init_random_seed()
 
 ! read command line
 
-call readcommandline(commandline,normalise,normalisation,redshiftguess,resolutionguess,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection)
+call readcommandline(commandline,normalise,normalisation,redshiftguess,resolutionguess,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits)
 
 ! convert from velocity to redshift
 

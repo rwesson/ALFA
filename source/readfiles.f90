@@ -51,10 +51,10 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
     enddo
     if (dimensions .eq. 0) then ! still no axes found
       print *,gettime(),"error : no axes found in ",trim(spectrumfile)
-      stop
+      call exit(1)
     elseif (dimensions .gt. 3) then ! can't imagine what a 4D fits file would actually be, but alfa definitely can't handle it
       print *,gettime(),"error : more than 3 axes found in ",trim(spectrumfile)
-      stop
+      call exit(1)
     endif
 
     ! now get the dimensions of the axis
@@ -190,7 +190,7 @@ subroutine read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wa
     print "(X,A,A,I7,A)",gettime(),"read 1D fits file with ",spectrumlength," data points into memory."
   else
     print *,gettime(),"couldn't read file into memory"
-    stop
+    call exit(1)
   endif
 
   ! close file
@@ -256,7 +256,7 @@ subroutine read2dfits(spectrumfile, rssdata, dimensions, axes)
   else
     print *,gettime(),"couldn't read RSS file into memory"
     print *,"error code ",status
-    stop
+    call exit(1)
   endif
 
 end subroutine read2dfits
@@ -312,7 +312,7 @@ subroutine read3dfits(spectrumfile, cubedata, dimensions, axes)
     print "(X,A,A,I7,A)",gettime(),"read ",axes(1)*axes(2)," pixels into memory."
   else
     print *,gettime(),"couldn't read cube into memory"
-    stop
+    call exit(1)
   endif
 
 end subroutine read3dfits
@@ -343,14 +343,14 @@ subroutine readlinelist(linelistfile,referencelinelist,nlines,wavelength1, wavel
 
   if (trim(linelistfile)=="") then
     print *,gettime(),"error: No line catalogue specified"
-    stop
+    call exit(1)
   endif
 
   inquire(file=linelistfile, exist=file_exists) ! see if the input file is present
 
   if (.not. file_exists) then
     print *,gettime(),"error: line catalogue ",trim(linelistfile)," does not exist"
-    stop
+    call exit(1)
   else
     I = 0
     OPEN(199, file=linelistfile, iostat=IO, status='old')

@@ -112,7 +112,7 @@ if (filetype.eq.1) then !1d fits file
   maximumwavelength=realspec(spectrumlength)%wavelength
   if (maxval(realspec%flux) .lt. baddata) then
     print *,gettime(),"no good data in spectrum (all fluxes are less than ",baddata,")"
-    stop
+    call exit(1)
   endif
   messages=.true.
 elseif (filetype .eq. 2) then !2d fits file
@@ -129,13 +129,13 @@ elseif (filetype .eq. 4) then !1d ascii file
   maximumwavelength=realspec(spectrumlength)%wavelength
   if (maxval(realspec%flux) .lt. baddata) then
     print *,gettime(),"no good data in spectrum (all fluxes are less than ",baddata,")"
-    stop
+    call exit(1)
   endif
   messages=.true.
 else
   !not recognised, stop
   print *,"unrecognised file"
-  stop
+  call exit(1)
 endif
 
 !read in catalogues

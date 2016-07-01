@@ -34,7 +34,7 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
     print *,"  [file] is an ascii file with columns for wavelength and flux"
     print *,"  or a FITS file with 1, 2 or 3 dimensions, containing spectra."
     print *,"  see the man page or online documentation for details of the options"
-    stop
+    call exit(0)
   endif
 
   call get_command(commandline)
@@ -55,7 +55,7 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
         options(i:i+1)=""
       else
         print *,gettime(),"error: no value specified for ",trim(options(i))
-        stop
+        call exit(1)
       endif
     endif
 
@@ -65,7 +65,7 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
         options(i:i+1)=""
       else
         print *,gettime(),"error: no value specified for ",trim(options(i))
-        stop
+        call exit(1)
       endif
     endif
 
@@ -76,11 +76,11 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
         options(i:i+1)=""
         if (resolutionguess .lt. 0.) then
           print *,gettime(),"error: invalid value given for resolution guess"
-          stop
+          call exit(1)
         endif
       else
         print *,gettime(),"error: no value specified for ",trim(options(i))
-        stop
+        call exit(1)
       endif
     endif
 
@@ -91,11 +91,11 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
         options(i:i+1)=""
         if (vtol1 .lt. 0.) then
           print *,gettime(),"error: invalid value given for vtol1"
-          stop
+          call exit(1)
         endif
       else
         print *,gettime(),"error: no value specified for ",trim(options(i))
-        stop
+        call exit(1)
       endif
     endif
     if ((trim(options(i))=="-vtol2" .or. trim(options(i))=="--velocity-tolerance-2")) then
@@ -105,11 +105,11 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
         options(i:i+1)=""
         if (vtol2 .lt. 0.) then
           print *,gettime(),"error: invalid value given for vtol2"
-          stop
+          call exit(1)
         endif
       else
         print *,gettime(),"error: no value specified for ",trim(options(i))
-        stop
+        call exit(1)
       endif
     endif
 
@@ -119,11 +119,11 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
         options(i:i+1)=""
         if (rtol1 .lt. 0.) then
           print *,gettime(),"error: invalid value given for rtol1"
-          stop
+          call exit(1)
         endif
       else
         print *,gettime(),"error: no value specified for ",trim(options(i))
-        stop
+        call exit(1)
       endif
     endif
 
@@ -133,11 +133,11 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
         options(i:i+1)=""
         if (rtol1 .lt. 0.) then
           print *,gettime(),"error: invalid value given for rtol1"
-          stop
+          call exit(1)
         endif
       else
         print *,gettime(),"error: no value specified for ",trim(options(i))
-        stop
+        call exit(1)
       endif
     endif
 
@@ -152,7 +152,7 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
         options(i:i+1)=""
       else
         print *,gettime(),"error: no value specified for ",trim(options(i))
-        stop
+        call exit(1)
       endif
     endif
 
@@ -163,11 +163,11 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
         inquire(file=trim(outputdirectory), exist=file_exists) ! trailing slash ensures it's looking for a directory
       else
         print *,gettime(),"error: no value specified for ",trim(options(i))
-        stop
+        call exit(1)
       endif
       if (.not. file_exists) then
         print *,gettime(),"error: output directory does not exist"
-        stop
+        call exit(1)
       endif
       options(i:i+1)=""
     endif
@@ -178,7 +178,7 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
         options(i:i+1)=""
       else
         print *,gettime(),"error: no value specified for ",trim(options(i))
-        stop
+        call exit(1)
       endif
     endif
 
@@ -188,7 +188,7 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
         options(i:i+1)=""
       else
         print *,gettime(),"error: no value specified for ",trim(options(i))
-        stop
+        call exit(1)
       endif
     endif
 
@@ -198,7 +198,7 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
         options(i:i+1)=""
       else
         print *,gettime(),"error: no value specified for ",trim(options(i))
-        stop
+        call exit(1)
       endif
     endif
 
@@ -208,11 +208,11 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
         options(i:i+1)=""
         if (generations .lt. 1) then
           print *,gettime(),"error: invalid value given for generations"
-          stop
+          call exit(1)
         endif
       else
         print *,gettime(),"error: no value specified for ",trim(options(i))
-        stop
+        call exit(1)
       endif
     endif
 
@@ -222,11 +222,11 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
         options(i:i+1)=""
         if (popsize .lt. 1) then
           print *,gettime(),"error: invalid value given for popsize"
-          stop
+          call exit(1)
         endif
       else
         print *,gettime(),"error: no value specified for ",trim(options(i))
-        stop
+        call exit(1)
       endif
     endif
 
@@ -236,11 +236,11 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
         options(i:i+1)=""
         if (pressure .lt. 0.d0 .or. pressure .gt. 1.d0) then
           print *,"error: pressure must be between 0 and 1"
-          stop
+          call exit(1)
         endif
       else
         print *,gettime(),"error: no value specified for ",trim(options(i))
-        stop
+        call exit(1)
       endif
     endif
 
@@ -265,7 +265,7 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
 
   if (len(trim(spectrumfile)).eq.0) then
     print *,gettime(),"error: no input file specified"
-    stop
+    call exit(1)
   elseif (narg - nargused .gt. 1) then
     print *,gettime(),"error: some input options were not recognised:"
     do i=1,narg
@@ -273,7 +273,7 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
         print *,trim(options(i))
       endif
     enddo
-    stop
+    call exit(1)
   endif
 
 !deal with image sections
@@ -289,7 +289,7 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
 
   if (.not. file_exists) then
     print *,gettime(),"error: input spectrum ",trim(spectrumfile)," does not exist"
-    stop
+    call exit(1)
   endif
 
   deallocate(options)

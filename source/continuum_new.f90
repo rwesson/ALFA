@@ -1,3 +1,6 @@
+!Copyright (C) 2013- Roger Wesson
+!Free under the terms of the GNU General Public License v3
+
 program cont
 use mod_quicksort
 

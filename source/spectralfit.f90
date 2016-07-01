@@ -1,3 +1,6 @@
+!Copyright (C) 2013- Roger Wesson
+!Free under the terms of the GNU General Public License v3
+
 ! this is the general fitting routine, which first subtracts a continuum, then fits sky lines if requested, then fits the emission lines
 ! it is called from within parallelised wrappers for 2D and 3D data, and simply called for 1D data.
 

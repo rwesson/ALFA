@@ -80,7 +80,8 @@ install:
 	install -m 644 linelists/* ${DESTDIR}${PREFIX}/share/alfa
 	install alfa ${DESTDIR}${PREFIX}/bin
 	install -m 644 man/alfa.1 ${MANDIR}
-	-test -e ${DESTDIR}${PREFIX}/share/bash-completion/completions && install -m 644 source/bashcompletion ${DESTDIR}${PREFIX}/share/bash-completion/completions/alfa
+	test -e ${DESTDIR}${PREFIX}/share/bash-completion/completions || mkdir -p ${DESTDIR}${PREFIX}/share/bash-completion/completions
+	install -m 644 source/bashcompletion ${DESTDIR}${PREFIX}/share/bash-completion/completions/alfa )
 	gzip -f ${MANDIR}/alfa.1
 
 uninstall:

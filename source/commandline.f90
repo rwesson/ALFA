@@ -253,6 +253,7 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
     endif
 
     if (trim(options(i))=="--citation") then
+      print *
       print *,"ALFA was described in Wesson, 2016.  The bibtex data for the paper is:"
       print *
       print *,"@ARTICLE{2016MNRAS.456.3774W,"

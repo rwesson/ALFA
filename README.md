@@ -25,3 +25,8 @@ If you don't have the necessary permissions to execute the second command, then 
 
     make
     make install
+
+License
+=======
+
+ALFA is released under the GNU General Public License, v3.  The full text is in the file LICENSE.

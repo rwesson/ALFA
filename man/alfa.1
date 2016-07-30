@@ -1,4 +1,4 @@
-.\" Manpage for neat.
+.\" Manpage for alfa.
 .TH alfa 1 "22 Apr 2016" "1.0" "alfa man page"
 .SH NAME
 \fBalfa\fR \- automated line fitting algorithm
@@ -11,20 +11,24 @@
 .SH OPTIONS
 
 .TP
+.B \-b, \-\-bad-data [REAL]
+If all values in a spectrum are below the value specified, \fBalfa\fR will not fit it.  Most useful for avoiding wasting time on low signal regions of data cubes.
+
+.TP
 .B \-\-citation
-Prints out the bibliographic details of the paper to cite if you use \fBalfa\fR in your research
+Prints out the bibliographic details of the paper to cite if you use \fBalfa\fR in your research.
 
 .TP
 .B \-g, \-\-generations [INTEGER]
-the number of generations used in the genetic algorithm. Default: 500
+The number of generations used in the genetic algorithm. Default: 500
 
 .TP
 .B \-n, \-\-normalise [VALUE]
-normalise to Hb=100 assuming that F(Hb)=\fIVALUE\fR.  If \fIVALUE\fR is zero, no normalisation is applied.  If this option is not specified, fluxes are normalised using the measured value of Hb if it is detected, and not normalised otherwise.
+Normalise to Hb=100 assuming that F(Hb)=\fIVALUE\fR.  If \fIVALUE\fR is zero, no normalisation is applied.  If this option is not specified, fluxes are normalised using the measured value of Hb if it is detected, and not normalised otherwise.
 
 .TP
 .B \-o, \-\-output\-dir [DIRECTORY]
-the directory in which to put the output files. Default: current working directory
+The directory in which to put the output files. Default: current working directory.
 
 .TP
 .B \-pr, \-\-pressure [REAL]
@@ -36,35 +40,39 @@ The size of the population used in the genetic algorithm. Default: 30
 
 .TP
 .B \-rg, \-\-resolution\-guess [VALUE]
-initial guess for the resolution [lambda/delta lambda]. Default: estimated using the sampling of the input spectrum, assuming that it is Nyquist sampled.
+Initial guess for the resolution [lambda/delta lambda]. Default: estimated using the sampling of the input spectrum, assuming that it is Nyquist sampled.
 
 .TP
 .B \-rtol1, \-\-resolution\-tolerance\-1 [VALUE]
-variation allowed in resolution in first pass. Default: equal to 0.9 x resolution guess
+Variation allowed in resolution in first pass. Default: equal to 0.9 x resolution guess.
 
 .TP
 .B \-rtol2, \-\-resolution\-tolerance\-2 [VALUE]
-variation allowed in resolution in second pass. Default: 500.
+Variation allowed in resolution in second pass. Default: 500.
 
 .TP
 .B \-skycat, \-strongcat, \-deepcat [FILENAME]
-the files containing the line catalogues to be used for the removal of sky lines, the estimation of velocity and resolution, and the full line fitting.  The default catalogues are stored in /usr/share/alfa
+The files containing the line catalogues to be used for the removal of sky lines, the estimation of velocity and resolution, and the full line fitting.  The default catalogues are stored in /usr/share/alfa .
 
 .TP
 .B \-ss, \-\-subtract\-sky
-fit and subtract night sky emission lines before fitting nebular emission lines
+Fit and subtract night sky emission lines before fitting nebular emission lines.
+
+.TP
+.B \-ul, \-\-upper-limits
+Write out upper limits for all lines searched for and not detected.
 
 .TP
 .B \-vg, \-\-velocity\-guess [VALUE]
-initial guess for the velocity of the object [km/s]. Default: 0.
+Initial guess for the velocity of the object [km/s]. Default: 0.
 
 .TP
 .B \-vtol1, \-\-velocity\-tolerance\-1 [VALUE]
-variation allowed in velocity in first pass of the fitting. Default: 900km/s
+Variation allowed in velocity in first pass of the fitting. Default: 900km/s
 
 .TP
 .B \-vtol2, \-\-velocity\-tolerance\-2 [VALUE]
-variation allowed in velocity in second pass of the fitting. Default: 60km/s
+Variation allowed in velocity in second pass of the fitting. Default: 60km/s
 
 .SH SEE ALSO
 neat

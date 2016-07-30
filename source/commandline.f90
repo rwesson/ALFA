@@ -251,6 +251,30 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
       upperlimits=.true.
       options(i)=""
     endif
+
+    if (trim(options(i))=="--citation") then
+      print *
+      print *,"ALFA was described in Wesson, 2016.  The bibtex data for the paper is:"
+      print *
+      print *,"@ARTICLE{2016MNRAS.456.3774W,"
+      print *,"   author = {{Wesson}, R.},"
+      print *,"    title = ""{ALFA: an automated line fitting algorithm}"","
+      print *,"  journal = {\mnras},"
+      print *,"archivePrefix = ""arXiv"","
+      print *,"   eprint = {1512.04539},"
+      print *," primaryClass = ""astro-ph.SR"","
+      print *," keywords = {line: identification, methods: data analysis, H II regions,"
+      print *,"planetary nebulae: general},"
+      print *,"     year = 2016,"
+      print *,"    month = mar,"
+      print *,"   volume = 456,"
+      print *,"    pages = {3774-3781},"
+      print *,"      doi = {10.1093/mnras/stv2946},"
+      print *,"   adsurl = {http://adsabs.harvard.edu/abs/2016MNRAS.456.3774W},"
+      print *,"  adsnote = {Provided by the SAO/NASA Astrophysics Data System}"
+      print *,"}"
+      call exit(0)
+    endif
   ! to implement:
   !   continuum window and percentile
   enddo

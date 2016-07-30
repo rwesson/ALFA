@@ -19,19 +19,19 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
 
   implicit none
   character (len=*) :: spectrumfile
-  integer :: filetype, dimensions, referencepixel
+  integer :: filetype, dimensions
   integer, dimension(:), allocatable :: axes
 
   !cfitsio variables
 
   integer :: status,unit,readwrite,blocksize,hdutype
-  real :: wavelength, dispersion
+  real :: wavelength, dispersion, referencepixel
 
 #ifdef CO
   print *,"subroutine: getfiletype"
 #endif
 
-  referencepixel=1
+  referencepixel=1.0
 
   !check if it's a fits file
 
@@ -71,7 +71,7 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
 
     if (dimensions .lt. 3) then
       call ftgkye(unit,"CRVAL1",wavelength,"",status)
-      call ftgkyj(unit,"CRPIX1",referencepixel,"",status)
+      call ftgkye(unit,"CRPIX1",referencepixel,"",status)
       call ftgkye(unit,"CDELT1",dispersion,"",status)
       if (status.ne.0) then
         status=0
@@ -79,7 +79,7 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
       endif
     else
       call ftgkye(unit,"CRVAL3",wavelength,"",status)
-      call ftgkyj(unit,"CRPIX3",referencepixel,"",status)
+      call ftgkye(unit,"CRPIX3",referencepixel,"",status)
       call ftgkye(unit,"CDELT3",dispersion,"",status)
       if (status.ne.0) then
         status=0
@@ -149,7 +149,7 @@ subroutine read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wa
   implicit none
   character (len=512) :: spectrumfile
   integer :: i
-  integer :: spectrumlength, referencepixel
+  integer :: spectrumlength
 
   type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum
 
@@ -159,7 +159,7 @@ subroutine read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wa
   integer :: group
   real :: nullval
   logical :: anynull
-  real :: wavelength, dispersion
+  real :: wavelength, dispersion, referencepixel
 
 #ifdef CO
   print *,"subroutine: read1dfits"

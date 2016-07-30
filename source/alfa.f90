@@ -33,8 +33,8 @@ type(linelist), dimension(:), allocatable :: skylines_catalogue, stronglines_cat
 type(linelist), dimension(:), allocatable :: fittedlines, fittedlines_section, skylines, skylines_section
 type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum, spectrumchunk, skyspectrum, continuum, stronglines
 
-integer :: filetype, dimensions, referencepixel
-real :: wavelength, dispersion, baddata
+integer :: filetype, dimensions
+real :: wavelength, dispersion, referencepixel, baddata
 integer :: cube_i, cube_j, cube_k, rss_i, rss_k
 integer, dimension(:), allocatable :: axes
 real, dimension(:,:), allocatable :: rssdata

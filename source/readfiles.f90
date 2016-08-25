@@ -66,24 +66,58 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
     call ftgisz(unit,dimensions,axes,status)
     filetype=dimensions
 
-    ! get wavelength and dispersion
-    ! todo: make this more robust
+    ! get wavelength, dispersion and reference pixel
+
+    status=0
 
     if (dimensions .lt. 3) then
+
       call ftgkye(unit,"CRVAL1",wavelength,"",status)
+      if (status .ne. 0) then
+        print *,gettime(),"error: couldn't find wavelength value at reference pixel CRVAL1."
+        call exit(1)
+      endif
+
       call ftgkye(unit,"CRPIX1",referencepixel,"",status)
+      if (status .ne. 0) then
+        print *,gettime(),"warning: couldn't find reference pixel CRPIX1. Setting to 1.0"
+        referencepixel=1.0
+        status=0
+      endif
+
       call ftgkye(unit,"CDELT1",dispersion,"",status)
       if (status.ne.0) then
         status=0
         call ftgkye(unit,"CD1_1",dispersion,"",status)
+          if (status .ne. 0) then
+            print *,gettime(),"error: couldn't find wavelength dispersion CDELT1 or CD1_1."
+            call exit(1)
+          endif
       endif
+
     else
+
       call ftgkye(unit,"CRVAL3",wavelength,"",status)
+      if (status .ne. 0) then
+        print *,gettime(),"error: couldn't find wavelength value at referencepixel CRVAL1."
+        call exit(1)
+      endif
+
       call ftgkye(unit,"CRPIX3",referencepixel,"",status)
+      if (status .ne. 0) then
+        print *,gettime(),"warning: couldn't find reference pixel CRPIX1. Setting to 1.0"
+        referencepixel=1.0
+        status=0
+      endif
+
       call ftgkye(unit,"CDELT3",dispersion,"",status)
       if (status.ne.0) then
         status=0
         call ftgkye(unit,"CD3_3",dispersion,"",status)
+          if (status .ne. 0) then
+            print *,gettime(),"error: couldn't find wavelength dispersion CDELT1 or CD1_1."
+            call exit(1)
+          endif
       endif
     endif
 

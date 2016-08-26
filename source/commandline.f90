@@ -254,7 +254,7 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
 
     if (trim(options(i))=="--citation") then
       print *
-      print *,"ALFA was described in Wesson, 2016.  The bibtex data for the paper is:"
+      print *,"ALFA was described in Wesson, 2016, MNRAS, 456, 3774.  The bibtex data for the paper is:"
       print *
       print *,"@ARTICLE{2016MNRAS.456.3774W,"
       print *,"   author = {{Wesson}, R.},"

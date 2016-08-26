@@ -97,7 +97,7 @@ else
 
   call fit(stronglines, redshiftguess, resolutionguess, fittedlines, vtol1, rtol1, generations, popsize, pressure)
 
-  if (messages) print *,gettime(),"estimated redshift and resolution: ",c*(fittedlines(1)%redshift-1),fittedlines(1)%resolution
+  if (messages) print *,gettime(),"estimated velocity and resolution: ",c*(fittedlines(1)%redshift-1),fittedlines(1)%resolution
   redshiftguess_overall = fittedlines(1)%redshift ! when fitting chunks, use this redshift to get lines in the right range from the catalogue. if velocity from each chunk is used, then there's a chance that a line could be missed or double counted due to variations in the calculated velocity between chunks.
   redshiftguess=fittedlines(1)%redshift
   resolutionguess=fittedlines(1)%resolution

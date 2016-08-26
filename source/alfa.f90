@@ -96,7 +96,7 @@ print *,"ALFA, the Automated Line Fitting Algorithm"
 if (len(VERSION).gt.0) then
   print *,"version ",VERSION
 else
-  print *,"version 0.98"
+  print *,"version 1.0"
 endif
 
 print *

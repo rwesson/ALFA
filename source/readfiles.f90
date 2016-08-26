@@ -7,7 +7,7 @@ use mod_routines
 
 contains
 
-subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dispersion, referencepixel)
+subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dispersion, referencepixel, loglambda)
 !this subroutine determines what type of file the input file is
 !input is the file name
 !output is the file type, indicated by:
@@ -21,11 +21,13 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
   character (len=*) :: spectrumfile
   integer :: filetype, dimensions
   integer, dimension(:), allocatable :: axes
+  logical :: loglambda
 
   !cfitsio variables
 
   integer :: status,unit,readwrite,blocksize,hdutype
   real :: wavelength, dispersion, referencepixel
+  character(len=80) :: ctype
 
 #ifdef CO
   print *,"subroutine: getfiletype"
@@ -95,6 +97,16 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
           endif
       endif
 
+      ! check if the wavelength axis is log-sampled
+print *,"fuuuu"
+      call ftgkey(unit,"CTYPE1",ctype,"",status)
+print *,"shite"
+      if (index(ctype,"-LOG").gt.0) then
+        loglambda = .true.
+      else
+        loglambda = .false.
+      endif
+print *,"ffff"
     else
 
       call ftgkye(unit,"CRVAL3",wavelength,"",status)
@@ -114,11 +126,21 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
       if (status.ne.0) then
         status=0
         call ftgkye(unit,"CD3_3",dispersion,"",status)
-          if (status .ne. 0) then
-            print *,gettime(),"error: couldn't find wavelength dispersion CDELT1 or CD1_1."
-            call exit(1)
-          endif
+        if (status .ne. 0) then
+          print *,gettime(),"error: couldn't find wavelength dispersion CDELT1 or CD1_1."
+          call exit(1)
+        endif
       endif
+
+      ! check if the wavelength axis is log-sampled
+
+      call ftgkey(unit,"CTYPE3",ctype,"",status)
+      if (index(ctype,"-LOG").gt.0) then
+        loglambda = .true.
+      else
+        loglambda = .false.
+      endif
+
     endif
 
     ! close file
@@ -177,7 +199,7 @@ subroutine readascii(spectrumfile, realspec, spectrumlength, fittedspectrum)
 
 end subroutine readascii
 
-subroutine read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wavelength, dispersion, referencepixel)
+subroutine read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wavelength, dispersion, referencepixel, loglambda)
 ! read in a 1D fits file
 
   implicit none
@@ -194,6 +216,7 @@ subroutine read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wa
   real :: nullval
   logical :: anynull
   real :: wavelength, dispersion, referencepixel
+  logical :: loglambda
 
 #ifdef CO
   print *,"subroutine: read1dfits"
@@ -215,9 +238,15 @@ subroutine read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wa
 
   ! calculate wavelength values
 
-  do i=1,spectrumlength
-    realspec(i)%wavelength = wavelength+(i-referencepixel)*dispersion
-  enddo
+  if (loglambda) then
+    do i=1,spectrumlength ! log-sampled case
+      realspec(i)%wavelength = wavelength*exp((i-referencepixel)*dispersion/wavelength)
+    enddo
+  else
+    do i=1,spectrumlength ! linear case
+      realspec(i)%wavelength = wavelength+(i-referencepixel)*dispersion
+    enddo
+  endif
 
   ! read spectrum into memory
 

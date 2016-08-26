@@ -35,6 +35,7 @@ type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum, spectrumc
 
 integer :: filetype, dimensions
 real :: wavelength, dispersion, referencepixel, baddata
+logical :: loglambda
 integer :: cube_i, cube_j, cube_k, rss_i, rss_k
 integer, dimension(:), allocatable :: axes
 real, dimension(:,:), allocatable :: rssdata
@@ -118,11 +119,12 @@ redshiftguess=1.+(redshiftguess/c)
 print *,gettime(),"reading in file ",trim(spectrumfile)
 
 !call subroutine to determine whether it's 1D, 2D or 3D fits, or ascii, or none of the above
-call getfiletype(trim(spectrumfile)//imagesection,filetype,dimensions,axes,wavelength,dispersion,referencepixel)
+call getfiletype(trim(spectrumfile)//imagesection,filetype,dimensions,axes,wavelength,dispersion,referencepixel,loglambda)
 
 if (filetype.eq.1) then !1d fits file
+
   spectrumlength=axes(1)
-  call read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wavelength, dispersion, referencepixel)
+  call read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wavelength, dispersion, referencepixel, loglambda)
   minimumwavelength=realspec(1)%wavelength
   maximumwavelength=realspec(spectrumlength)%wavelength
   if (maxval(realspec%flux) .lt. baddata) then
@@ -130,14 +132,31 @@ if (filetype.eq.1) then !1d fits file
     call exit(1)
   endif
   messages=.true.
+
 elseif (filetype .eq. 2) then !2d fits file
+
   call read2dfits(trim(spectrumfile)//imagesection, rssdata, dimensions, axes)
-  minimumwavelength=wavelength
-  maximumwavelength=wavelength+(axes(1)-1)*dispersion
+
+  if (loglambda) then
+    minimumwavelength=wavelength*exp((1-referencepixel)*dispersion/wavelength)
+    maximumwavelength=wavelength*exp((axes(1)-referencepixel)*dispersion/wavelength)
+  else
+    minimumwavelength=wavelength
+    maximumwavelength=wavelength+(axes(1)-1)*dispersion
+  endif
+
 elseif (filetype .eq. 3) then !3d fits file
+
   call read3dfits(trim(spectrumfile)//imagesection, cubedata, dimensions, axes)
-  minimumwavelength=wavelength
-  maximumwavelength=wavelength+(axes(3)-1)*dispersion
+
+  if (loglambda) then
+    minimumwavelength=wavelength*exp((1-referencepixel)*dispersion/wavelength)
+    maximumwavelength=wavelength*exp((axes(3)-referencepixel)*dispersion/wavelength)
+  else
+    minimumwavelength=wavelength
+    maximumwavelength=wavelength+(axes(3)-1)*dispersion
+  endif
+
 elseif (filetype .eq. 4) then !1d ascii file
   call readascii(spectrumfile, realspec, spectrumlength, fittedspectrum)
   minimumwavelength=realspec(1)%wavelength
@@ -152,6 +171,9 @@ else
   print *,"unrecognised file"
   call exit(1)
 endif
+
+print *,gettime(),"wavelength range ",minimumwavelength," to ",maximumwavelength,"(log: ",loglambda,")" ! PmW
+if (loglambda) print *,gettime(),"warning: uncertainty estimation is not reliable for log-sampled spectra"
 
 !read in catalogues
 
@@ -182,9 +204,16 @@ elseif (filetype .eq. 2) then !fit 2D data
     allocate(realspec(axes(1)))
     spectrumlength=axes(1)
     realspec%flux=rssdata(:,rss_i)
-    do rss_k=1,axes(1)
-      realspec(rss_k)%wavelength=wavelength+(rss_k-referencepixel)*dispersion
-    enddo
+
+    if (loglambda) then
+      do rss_k=1,axes(1)
+        realspec(rss_k)%wavelength=wavelength*exp((rss_k-referencepixel)*dispersion/wavelength)
+      enddo
+    else
+      do rss_k=1,axes(1)
+        realspec(rss_k)%wavelength=wavelength+(rss_k-referencepixel)*dispersion
+      enddo
+    endif
 
 !check for valid data
 !ultra crude at the moment
@@ -243,9 +272,16 @@ elseif (filetype .eq. 3) then !fit 3D data
       allocate(realspec(axes(3)))
       spectrumlength=axes(3)
       realspec%flux=cubedata(cube_i,cube_j,:)
-      do cube_k=1,axes(3)
-        realspec(cube_k)%wavelength=wavelength+(cube_k-referencepixel)*dispersion
-      enddo
+
+      if (loglambda) then
+        do cube_k=1,axes(3)
+          realspec(cube_k)%wavelength=wavelength*exp((cube_k-referencepixel)*dispersion/wavelength)
+        enddo
+      else
+        do cube_k=1,axes(3)
+          realspec(cube_k)%wavelength=wavelength+(cube_k-referencepixel)*dispersion
+        enddo
+      endif
 
 !check for valid data
 !ultra crude and tailored for NGC 7009 at the moment

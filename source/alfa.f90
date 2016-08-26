@@ -184,7 +184,7 @@ call readlinelist(deeplinelistfile, deeplines_catalogue, nlines,minimumwavelengt
 
 if (filetype .eq. 1 .or. filetype .eq. 4) then !fit 1D data
   tid=0
-  outputbasename=spectrumfile
+  write (outputbasename,"(A)") spectrumfile(index(spectrumfile,"/",back=.true.)+1:len(trim(spectrumfile)))
   include "spectralfit.f90"
 elseif (filetype .eq. 2) then !fit 2D data
 
@@ -284,7 +284,7 @@ elseif (filetype .eq. 3) then !fit 3D data
       endif
 
 !check for valid data
-!ultra crude and tailored for NGC 7009 at the moment
+!ultra crude at the moment
 
       inquire(file=trim(outputdirectory)//trim(outputbasename)//"_lines", exist=file_exists)
 

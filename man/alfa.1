@@ -1,11 +1,11 @@
 .\" Manpage for alfa.
-.TH alfa 1 "22 Apr 2016" "1.0" "alfa man page"
+.TH alfa 1 "26 Aug 2016" "1.0" "alfa man page"
 .SH NAME
 \fBalfa\fR \- automated line fitting algorithm
 .SH SYNOPSIS
 \fBalfa\fR [\fIOPTION\fR] [\fIVALUE\fR]... [\fIFILE\fR]
 .SH DESCRIPTION
-\fBalfa\fR rapidly fits deep emission line spectra, using a genetic algorithm to optimise fitting parameters.  It has a number of configurable parameters, and while the default values should work well in many situations, a good fit to your observed spectrum may require some adjustments.
+\fBalfa\fR rapidly fits emission line spectra, using a genetic algorithm to optimise fitting parameters.  It is intended to be entirely automated, but while the default values should work well in many situations, a good fit to your observed spectrum may require some adjustments to the input parameters.  It is optimised for optical spectra, but can be applied to any wavelength range if a suitable line catalogue is provided.
 .PP
 \fBalfa\fR reads one dimensional spectra in either plain text or FITS format.  Plain text input should consist of two columns, giving wavelength and flux.  It can also read data cubes and row-stacked spectra in FITS format.  Results are written out in plain text, to files containing the fit (total fit, continuum-subtracted original, continuum, sky lines and residuals), and the line flux measurements.
 .SH OPTIONS
@@ -52,7 +52,7 @@ Variation allowed in resolution in second pass. Default: 500.
 
 .TP
 .B \-skycat, \-strongcat, \-deepcat [FILENAME]
-The files containing the line catalogues to be used for the removal of sky lines, the estimation of velocity and resolution, and the full line fitting.  The default catalogues are stored in /usr/share/alfa .
+The files containing the line catalogues to be used for the removal of sky lines, the estimation of velocity and resolution, and the full line fitting.  The default catalogues are stored in /usr/share/alfa .  If you wish to create your own catalogue, the required format is that each line should be 85 characters wide, with a wavelength in the first column, and the rest of the characters are not used by the code but are transferred to the output files.  They can thus be used, as in the supplied catalogues, for line transition data.
 
 .TP
 .B \-ss, \-\-subtract\-sky

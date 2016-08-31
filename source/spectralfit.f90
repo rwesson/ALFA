@@ -114,6 +114,11 @@ linearraypos=1
 
 call selectlines(deeplines_catalogue, realspec(1)%wavelength/redshiftguess_overall, realspec(size(realspec))%wavelength/redshiftguess_overall, fittedlines, totallines)
 
+if (totallines .eq. 0) then
+  print *,gettime(),"Error: no known emission lines in this spectrum.  Are your wavelength units correct?"
+  call exit(1)
+endif
+
 if (messages) print *, gettime(),"fitting full spectrum with ",totallines," lines"
 
 !now go through spectrum in chunks of 440 units.  Each one overlaps by 20 units with the previous and succeeding chunk, to avoid the code attempting to fit part of a line profile

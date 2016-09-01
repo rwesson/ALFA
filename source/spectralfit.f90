@@ -55,7 +55,7 @@ if (subtractsky) then
       call selectlines(skylines_catalogue, realspec(i)%wavelength, realspec(endpos)%wavelength, skylines_section, nlines)
 
       if (nlines .gt. 0) then
-        call fit(spectrumchunk, 1., resolutionguess, skylines_section, 0., rtol2, generations, popsize, pressure)
+        call fit(spectrumchunk, 1., resolutionguess, skylines_section, 1.0, rtol2, generations, popsize, pressure)
         skylines(linearraypos:linearraypos+nlines-1)=skylines_section!(1:nlines)
         linearraypos=linearraypos+nlines
       endif
@@ -115,7 +115,8 @@ linearraypos=1
 call selectlines(deeplines_catalogue, realspec(1)%wavelength/redshiftguess_overall, realspec(size(realspec))%wavelength/redshiftguess_overall, fittedlines, totallines)
 
 if (totallines .eq. 0) then
-  print *,gettime(),"Error: no known emission lines in this spectrum.  Are your wavelength units correct?"
+  print *,gettime(),"Error: no known emission lines in this spectrum."
+  print *,gettime(),"       Are your wavelength units correct?  Default catalogues use Angstroms"
   call exit(1)
 endif
 

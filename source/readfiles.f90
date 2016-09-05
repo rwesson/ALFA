@@ -98,15 +98,13 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
       endif
 
       ! check if the wavelength axis is log-sampled
-print *,"fuuuu"
       call ftgkey(unit,"CTYPE1",ctype,"",status)
-print *,"shite"
       if (index(ctype,"-LOG").gt.0) then
         loglambda = .true.
       else
         loglambda = .false.
       endif
-print *,"ffff"
+
     else
 
       call ftgkye(unit,"CRVAL3",wavelength,"",status)

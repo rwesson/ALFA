@@ -25,21 +25,21 @@ FC=gfortran
 LD=gfortran
 PREFIX=/usr
 VERSION := $(shell git describe --always --tags --dirty)
-FFLAGS+=-cpp -DPREFIX=\"${PREFIX}\" -DVERSION=\"${VERSION}\"
+FFLAGS+=-cpp -DPREFIX=\"$(PREFIX)\" -DVERSION=\"$(VERSION)\"
 LDFLAGS+=
 CFITSIOFLAGS=-lcfitsio -lm #-L/usr/lib/x86_64-linux-gnu/
-MANDIR=${DESTDIR}${PREFIX}/share/man/man1
+MANDIR=$(DESTDIR)$(PREFIX)/share/man/man1
 
 ifeq ($(FC),gfortran)
   FFLAGS += -ffree-line-length-0 -Jsource/ -fopenmp
   ifeq ($(CO),debug)
-    FFLAGS += -fbounds-check -Wall -Wuninitialized -DCO=\"${CO}\" #-ffpe-trap=zero,overflow,invalid,underflow,denormal
+    FFLAGS += -fbounds-check -Wall -Wuninitialized -DCO=\"$(CO)\" #-ffpe-trap=zero,overflow,invalid,underflow,denormal
   else ifeq ($(CO),debug2)
-    FFLAGS += -g -pg -fbounds-check -Wall -Wuninitialized -DCO=\"${CO}\" #-ffpe-trap=zero,overflow,invalid,underflow,denormal
+    FFLAGS += -g -pg -fbounds-check -Wall -Wuninitialized -DCO=\"$(CO)\" #-ffpe-trap=zero,overflow,invalid,underflow,denormal
   else ifeq ($(CO),debug3)
-    FFLAGS += -g -pg -fbounds-check -Wall -Wuninitialized -ffpe-trap=zero,overflow,invalid,underflow,denormal -DCO=\"${CO}\"
+    FFLAGS += -g -pg -fbounds-check -Wall -Wuninitialized -ffpe-trap=zero,overflow,invalid,underflow,denormal -DCO=\"$(CO)\"
   else ifeq ($(CO),pedantic)
-    FFLAGS += -g -pg -fbounds-check -Wall -Wuninitialized -Werror -pedantic -ffpe-trap=zero,overflow,invalid,underflow,denormal -DCO=\"${CO}\"
+    FFLAGS += -g -pg -fbounds-check -Wall -Wuninitialized -Werror -pedantic -ffpe-trap=zero,overflow,invalid,underflow,denormal -DCO=\"$(CO)\"
   else
     FFLAGS += -O3 -fno-backtrace
   endif
@@ -49,9 +49,9 @@ ifeq ($(FC),ifort)
   FFLAGS += -module source/ -openmp
   LD=ifort
   ifeq ($(CO),debug)
-    FFLAGS += -pg -g -check bounds -check uninit -warn all -warn nodeclarations -WB -zero -traceback -DCO=\"${CO}\" # -std
+    FFLAGS += -pg -g -check bounds -check uninit -warn all -warn nodeclarations -WB -zero -traceback -DCO=\"$(CO)\" # -std
   else ifeq ($(CO),pedantic)
-    FFLAGS += -pg -g -check bounds -check uninit -warn all -warn nodeclarations -WB -zero -traceback -std -DCO=\"${CO}\"
+    FFLAGS += -pg -g -check bounds -check uninit -warn all -warn nodeclarations -WB -zero -traceback -std -DCO=\"$(CO)\"
   else
     FFLAGS += -axavx -msse3 -O3 -ip -ipo # for today's CPUs
 #    FFLAGS = -fast -tune pn4 # for older pentium 4
@@ -68,27 +68,27 @@ new: clean all
 	$(FC) $(FFLAGS) $< -c -o $@
 
 alfa: source/types.o source/functions.o source/commandline.o source/readfiles.o source/quicksort.o source/continuum.o source/linefit.o source/uncertainties.o source/alfa.o
-	$(LD) $(LDFLAGS) $(FFLAGS) -o $@ $^ ${CFITSIOFLAGS}
+	$(LD) $(LDFLAGS) $(FFLAGS) -o $@ $^ $(CFITSIOFLAGS)
 
 clean:
 	rm -f alfa source/*.o source/*.mod man/alfa.html
 
-install:
-	test -e ${DESTDIR}${PREFIX}/share/alfa || mkdir -p ${DESTDIR}${PREFIX}/share/alfa
-	test -e ${DESTDIR}${PREFIX}/bin || mkdir -p ${DESTDIR}${PREFIX}/bin
-	test -e ${MANDIR} || mkdir -p ${MANDIR}
-	install -m 644 linelists/* ${DESTDIR}${PREFIX}/share/alfa
-	install alfa ${DESTDIR}${PREFIX}/bin
-	install -m 644 man/alfa.1 ${MANDIR}
-	test -e ${DESTDIR}${PREFIX}/share/bash-completion/completions || mkdir -p ${DESTDIR}${PREFIX}/share/bash-completion/completions
-	install -m 644 source/bashcompletion ${DESTDIR}${PREFIX}/share/bash-completion/completions/alfa
-	gzip -f ${MANDIR}/alfa.1
+install: alfa
+	test -e $(DESTDIR)$(PREFIX)/share/alfa || mkdir -p $(DESTDIR)$(PREFIX)/share/alfa
+	test -e $(DESTDIR)$(PREFIX)/bin || mkdir -p $(DESTDIR)$(PREFIX)/bin
+	test -e $(MANDIR) || mkdir -p $(MANDIR)
+	install -m 644 linelists/* $(DESTDIR)$(PREFIX)/share/alfa
+	install alfa $(DESTDIR)$(PREFIX)/bin
+	install -m 644 man/alfa.1 $(MANDIR)
+	test -e $(DESTDIR)$(PREFIX)/share/bash-completion/completions || mkdir -p $(DESTDIR)$(PREFIX)/share/bash-completion/completions
+	install -m 644 source/bashcompletion $(DESTDIR)$(PREFIX)/share/bash-completion/completions/alfa
+	gzip -f $(MANDIR)/alfa.1
 
 uninstall:
-	rm -rf ${DESTDIR}${PREFIX}/share/alfa
-	rm -f ${DESTDIR}${PREFIX}/bin/alfa
-	rm -f ${DESTDIR}${PREFIX}/share/bash-completion/completions/alfa
-	rm -f ${MANDIR}/alfa.1.gz
+	rm -rf $(DESTDIR)$(PREFIX)/share/alfa
+	rm -f $(DESTDIR)$(PREFIX)/bin/alfa
+	rm -f $(DESTDIR)$(PREFIX)/share/bash-completion/completions/alfa
+	rm -f $(MANDIR)/alfa.1.gz
 
 htmlmanual:
 	groff -m mandoc -Thtml man/alfa.1 > man/alfa.html

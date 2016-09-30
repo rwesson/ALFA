@@ -282,8 +282,15 @@ endif
 if (messages) print *,gettime(),"writing output files ",trim(outputdirectory),trim(outputbasename),"_lines.tex and ",trim(outputdirectory),trim(outputbasename),"_fit"
 
 if (messages) open(100+tid,file=trim(outputdirectory)//trim(outputbasename)//"_lines.tex")
+
 open(200+tid,file=trim(outputdirectory)//trim(outputbasename)//"_lines")
-if (messages) write(100+tid,*) "Observed wavelength & Rest wavelength & Flux & Uncertainty & Ion & Multiplet & Lower term & Upper term & g$_1$ & g$_2$ \\"
+
+if (messages) then
+  write(100+tid,*) "\\ \hline"
+  write(100+tid,*) "Observed wavelength & Rest wavelength & Flux & Uncertainty & Ion & Multiplet & Lower term & Upper term & g$_1$ & g$_2$ \\"
+  write(100+tid,*) "\hline"
+endif
+
 do i=1,totallines
   if (fittedlines(i)%blended .eq. 0 .and. fittedlines(i)%uncertainty .gt. 3.0) then
     if (messages) write (100+tid,"(F8.2,' & ',F8.2,' & ',"//fluxformat//",' & ',"//fluxformat//",A85)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty, fittedlines(i)%linedata
@@ -329,7 +336,7 @@ endif
 
 if (hbetaflux .gt. 0.d0 .and. normalisation .ne. 1.d0 .and. messages) then
   write (100+tid,*) "\hline"
-  write (100+tid,"(A,ES8.2)") "Measured flux of H$\beta$: ",hbetaflux
+  write (100+tid,"(A,ES8.2)") "\multicolumn{10}{l}{Measured flux of H$\beta$: ",hbetaflux,"} \\"
   write (100+tid,*) "\hline"
 endif
 

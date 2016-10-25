@@ -1,5 +1,5 @@
-!Copyright (C) 2013- Roger Wesson
-!Free under the terms of the GNU General Public License v3
+! Copyright (C) 2005  Alberto Ramos <alberto@martin.ft.uam.es>
+!Free under the terms of the GNU General Public License v2+
 
 MODULE mod_error
 ! *

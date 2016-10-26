@@ -76,13 +76,13 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
 
       call ftgkye(unit,"CRVAL1",wavelength,"",status)
       if (status .ne. 0) then
-        print *,gettime(),"error: couldn't find wavelength value at reference pixel CRVAL1."
+        print *,gettime(),"error: couldn't find wavelength value at reference pixel - no keyword CRVAL1."
         call exit(1)
       endif
 
       call ftgkye(unit,"CRPIX1",referencepixel,"",status)
       if (status .ne. 0) then
-        print *,gettime(),"warning: couldn't find reference pixel CRPIX1. Setting to 1.0"
+        print *,gettime(),"warning: couldn't find reference pixel - no keyword CRPIX1. Setting to 1.0"
         referencepixel=1.0
         status=0
       endif
@@ -92,7 +92,7 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
         status=0
         call ftgkye(unit,"CD1_1",dispersion,"",status)
           if (status .ne. 0) then
-            print *,gettime(),"error: couldn't find wavelength dispersion CDELT1 or CD1_1."
+            print *,gettime(),"error: couldn't find wavelength dispersion - no keyword CDELT1 or CD1_1."
             call exit(1)
           endif
       endif
@@ -109,13 +109,13 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
 
       call ftgkye(unit,"CRVAL3",wavelength,"",status)
       if (status .ne. 0) then
-        print *,gettime(),"error: couldn't find wavelength value at referencepixel CRVAL1."
+        print *,gettime(),"error: couldn't find wavelength value at referencepixel - no keyword CRVAL3."
         call exit(1)
       endif
 
       call ftgkye(unit,"CRPIX3",referencepixel,"",status)
       if (status .ne. 0) then
-        print *,gettime(),"warning: couldn't find reference pixel CRPIX1. Setting to 1.0"
+        print *,gettime(),"warning: couldn't find reference pixel - no keyword CRPIX3. Setting to 1.0"
         referencepixel=1.0
         status=0
       endif
@@ -125,7 +125,7 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
         status=0
         call ftgkye(unit,"CD3_3",dispersion,"",status)
         if (status .ne. 0) then
-          print *,gettime(),"error: couldn't find wavelength dispersion CDELT1 or CD1_1."
+          print *,gettime(),"error: couldn't find wavelength dispersion - no keyword CDELT3 or CD3_3."
           call exit(1)
         endif
       endif

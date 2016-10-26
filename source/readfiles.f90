@@ -47,6 +47,11 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
     readwrite=0
     call ftopen(unit,spectrumfile,readwrite,blocksize,status)
 
+    if (status .ne. 0) then
+      print *,gettime(),"error: couldn't open FITS file"
+      call exit(1)
+    endif
+
     ! get number of axes
     dimensions=0
     call ftgidm(unit,dimensions,status)
@@ -351,6 +356,11 @@ subroutine read3dfits(spectrumfile, cubedata, dimensions, axes)
   !  Open the FITS file
   readwrite=0
   call ftopen(unit,spectrumfile,readwrite,blocksize,status)
+
+  if (status .ne. 0) then
+    print *,gettime(),"error: couldn't open FITS file"
+    call exit(1)
+  endif
 
   group=1
   nullval=-999

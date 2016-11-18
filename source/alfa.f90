@@ -62,6 +62,7 @@ logical :: file_exists
 logical :: messages
 
 character(len=12) :: fluxformat !for writing out the line list
+character(len=4),dimension(2) :: filenameformat !variable format to give suitable file names for 2D and 3D outputs
 
 ! openmp variables
 
@@ -188,6 +189,8 @@ if (filetype .eq. 1 .or. filetype .eq. 4) then !fit 1D data
   include "spectralfit.f90"
 elseif (filetype .eq. 2) then !fit 2D data
 
+  write (filenameformat,"(A,I1,A,I1)") "I",floor(log10(real(axes(2))))+1,".",floor(log10(real(axes(2))))+1
+
 !$OMP PARALLEL private(outputbasename,realspec,fittedspectrum,spectrumlength,continuum,nlines,spectrumchunk,linearraypos,overlap,startpos,startwlen,endpos,endwlen,skylines,skylines_section,stronglines,fittedlines,fittedlines_section,blendpeak,hbetaflux,totallines,skyspectrum,redshiftguess_overall,rss_i,tid) firstprivate(redshiftguess,resolutionguess) shared(skylines_catalogue,stronglines_catalogue,deeplines_catalogue,axes,spectrumfile)
 !$OMP MASTER
   if (omp_get_num_threads().gt.1) then
@@ -200,7 +203,8 @@ elseif (filetype .eq. 2) then !fit 2D data
 
     tid=OMP_GET_THREAD_NUM()
 
-    write (outputbasename,"(A,I5.5)") spectrumfile(index(spectrumfile,"/",back=.true.)+1:len(trim(spectrumfile)))//"_row_",rss_i
+    write (outputbasename,"(A,"//filenameformat(1)//")") spectrumfile(index(spectrumfile,"/",back=.true.)+1:len(trim(spectrumfile)))//"_row_",rss_i
+
     allocate(realspec(axes(1)))
     spectrumlength=axes(1)
     realspec%flux=rssdata(:,rss_i)
@@ -221,7 +225,7 @@ elseif (filetype .eq. 2) then !fit 2D data
     inquire(file=trim(outputdirectory)//trim(outputbasename)//"_lines", exist=file_exists)
 
     if (maxval(realspec%flux) .lt. baddata .or. file_exists) then
-      print "(X,A,A,I2,A,I5.5,A,I5.5)",gettime(),"(thread ",tid,") : skipped row  ",rss_i
+      print "(X,A,A,I2,A,"//filenameformat(1)//")",gettime(),"(thread ",tid,") : skipped row  ",rss_i
       deallocate(realspec)
       cycle
     endif
@@ -240,7 +244,7 @@ elseif (filetype .eq. 2) then !fit 2D data
     deallocate(continuum)
     if (allocated(skyspectrum)) deallocate(skyspectrum)
 
-    print "(X,A,A,I2,A,I5.5,A,I5.5)",gettime(),"(thread ",tid,") : finished row ",rss_i
+    print "(X,A,A,I2,A,"//filenameformat(1)//")",gettime(),"(thread ",tid,") : finished row ",rss_i
 
   enddo
 
@@ -262,13 +266,16 @@ elseif (filetype .eq. 3) then !fit 3D data
   endif
 !$OMP END MASTER
 
+  write (filenameformat(1),"(A,I1,A,I1)") "I",floor(log10(real(axes(1))))+1,".",floor(log10(real(axes(1))))+1
+  write (filenameformat(2),"(A,I1,A,I1)") "I",floor(log10(real(axes(2))))+1,".",floor(log10(real(axes(2))))+1
+
 !$OMP DO schedule(dynamic)
   do cube_i=1,axes(1)
     do cube_j=1,axes(2)
 
       tid=OMP_GET_THREAD_NUM()
 
-      write (outputbasename,"(A,I3.3,A1,I3.3)") spectrumfile(index(spectrumfile,"/",back=.true.)+1:len(trim(spectrumfile)))//"_pixel_",cube_i,"_",cube_j
+      write (outputbasename,"(A,"//filenameformat(1)//",A1,"//filenameformat(2)//")") spectrumfile(index(spectrumfile,"/",back=.true.)+1:len(trim(spectrumfile)))//"_pixel_",cube_i,"_",cube_j
       allocate(realspec(axes(3)))
       spectrumlength=axes(3)
       realspec%flux=cubedata(cube_i,cube_j,:)
@@ -289,7 +296,7 @@ elseif (filetype .eq. 3) then !fit 3D data
       inquire(file=trim(outputdirectory)//trim(outputbasename)//"_lines", exist=file_exists)
 
       if (maxval(realspec%flux) .lt. baddata .or. file_exists) then
-        print "(X,A,A,I2,A,I3.3,A,I3.3)",gettime(),"(thread ",tid,") : skipped pixel  ",cube_i,",",cube_j
+        print "(X,A,A,I2,A,"//filenameformat(1)//",A,"//filenameformat(2)//")",gettime(),"(thread ",tid,") : skipped pixel  ",cube_i,",",cube_j
         deallocate(realspec)
         cycle
       endif
@@ -309,7 +316,7 @@ elseif (filetype .eq. 3) then !fit 3D data
       deallocate(continuum)
       if (allocated(skyspectrum)) deallocate(skyspectrum)
 
-      print "(X,A,A,I2,A,I3.3,A,I3.3)",gettime(),"(thread ",tid,") : finished pixel ",cube_i,",",cube_j
+      print "(X,A,A,I2,A,"//filenameformat(1)//",A,"//filenameformat(2)//")",gettime(),"(thread ",tid,") : finished pixel ",cube_i,",",cube_j
 
     enddo
   enddo

@@ -173,8 +173,8 @@ else
   call exit(1)
 endif
 
-print *,gettime(),"wavelength range ",minimumwavelength," to ",maximumwavelength,"(log: ",loglambda,")" ! PmW
-if (loglambda) print *,gettime(),"warning: uncertainty estimation is not reliable for log-sampled spectra"
+print *,gettime(),"wavelength range ",minimumwavelength," to ",maximumwavelength
+if (loglambda) print *,gettime(), "  (logarithmically sampled)" ! PmW
 
 !read in catalogues
 

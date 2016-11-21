@@ -339,7 +339,7 @@ if (hbetaflux .gt. 0.d0 .and. normalisation .ne. 1.d0 .and. messages) then
   write (100+tid,"(A,ES8.2)") "\multicolumn{10}{l}{Measured flux of H$\beta$: ",hbetaflux,"} \\"
 endif
 
-write (100+tid,*) "\hline"
+if (messages) write (100+tid,*) "\hline"
 
 !done, close files
 

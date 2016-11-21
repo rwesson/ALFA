@@ -42,12 +42,12 @@ subroutine get_uncertainties(fittedspectrum, realspec, fittedlines)
   realspec(size(realspec%uncertainty)-10:size(realspec%uncertainty))%uncertainty=realspec(size(realspec%uncertainty)-11)%uncertainty
 
 ! determine uncertainty for each line from ratio of peak flux to rms at wavelength of line, using relation from Lenz & Ayres, 1992, PASP, 104, 1104
-
-  wavelengthsampling=realspec(2)%wavelength - realspec(1)%wavelength
+! wavelength sampling determined at location of line. this would break if a line peak is in the last pixel of the spectrum, should add something to prevent this as it would only have half the profile to fit from anyway in that case.
 
   do i=1,size(fittedlines%uncertainty)
     uncertaintywavelengthindex=minloc(abs(realspec%wavelength-fittedlines(i)%wavelength),1)
     if (realspec(uncertaintywavelengthindex)%uncertainty .ne. 0.d0) then
+      wavelengthsampling = realspec(uncertaintywavelengthindex+1)%wavelength - realspec(uncertaintywavelengthindex)%wavelength
       fittedlines(i)%uncertainty=0.67*(fittedlines(i)%wavelength/(fittedlines(i)%resolution*wavelengthsampling))**0.5&
       &*fittedlines(i)%peak/realspec(uncertaintywavelengthindex)%uncertainty
     else

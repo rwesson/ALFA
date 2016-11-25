@@ -18,7 +18,7 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
 !dimensions and lengths of axes are returned if it's a FITS file
 
   implicit none
-  character (len=*) :: spectrumfile
+  character (len=512), intent(in) :: spectrumfile
   integer :: filetype, dimensions
   integer, dimension(:), allocatable :: axes
   logical :: loglambda
@@ -334,7 +334,7 @@ subroutine read3dfits(spectrumfile, cubedata, dimensions, axes)
 !read a FITS cube.
 
   implicit none
-  character(len=512) :: spectrumfile
+  character(len=512), intent(in) :: spectrumfile
   real, dimension(:,:,:), allocatable :: cubedata
   logical :: anynull
   integer :: alloc_err
@@ -358,7 +358,7 @@ subroutine read3dfits(spectrumfile, cubedata, dimensions, axes)
   call ftopen(unit,spectrumfile,readwrite,blocksize,status)
 
   if (status .ne. 0) then
-    print *,gettime(),"error: couldn't open FITS file"
+    print *,gettime(),"error: couldn't open FITS file. status=",status
     call exit(1)
   endif
 

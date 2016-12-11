@@ -3,7 +3,7 @@
 
 _alfa()
 {
-    local cur prev opts words cword helium_options icf_options extinction_options verbosity_options
+    local cur prev opts words cword
     _init_completion || return
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"

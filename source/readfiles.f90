@@ -48,7 +48,7 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
     call ftopen(unit,spectrumfile,readwrite,blocksize,status)
 
     if (status .ne. 0) then
-      print *,gettime(),"error: couldn't open FITS file"
+      print *,gettime(),"error: couldn't open FITS file. CFITSIO error code was ",status
       call exit(1)
     endif
 
@@ -358,7 +358,7 @@ subroutine read3dfits(spectrumfile, cubedata, dimensions, axes)
   call ftopen(unit,spectrumfile,readwrite,blocksize,status)
 
   if (status .ne. 0) then
-    print *,gettime(),"error: couldn't open FITS file. status=",status
+    print *,gettime(),"error: couldn't open FITS file. CFITSIO error code was ",status
     call exit(1)
   endif
 

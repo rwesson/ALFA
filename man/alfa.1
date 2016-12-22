@@ -74,8 +74,29 @@ Variation allowed in velocity in first pass of the fitting. Default: 900km/s
 .B \-vtol2, \-\-velocity\-tolerance\-2 [VALUE]
 Variation allowed in velocity in second pass of the fitting. Default: 60km/s
 
+.SH ALGORITHM
+
+\fBalfa\fR works in three stages.  First, it estimates and subtracts the continuum.  Second, it estimates the resolution of the spectra and the velocity of the object.  And third, it fits the emission lines.  These stages work as follows:
+
+.TP
+.B Continuum subtraction
+
+\fBalfa\fR estimates the continuum using a percentile filter, taking the 25th percentile in a moving window 101 pixels wide.  Currently these values are hard-coded, but will be user-configurable in a future release.  Regions such as the Balmer and Paschen jumps may be poorly fitted by this method if the spectral resolution is low and the continuum gradient is changing fast.  Broad stellar emission lines and telluric absorption features may also not be well fitted by this method.  Inspection of the fitted continuum is recommended.
+
+.TP
+.B Estimation of the resolution and velocity
+
+If no relevant command line options are specified, \fBalfa\fR begins by assuming that the velocity of the object is zero, and that the spectrum is Nyquist-sampled.  It then carries out a fit on a subset of strong lines, using the genetic algorith described below, to obtain an overall estimate for the velocity and the resolution.  If necessary, the initial guesses can be specified with the \fB-vg\fR and \fB-rg\fR options described above, and the parameter space for the fine tuning can be specified with \fB-vtol1\fR and \fB-rtol1\fR.
+
+.TP
+.B Fitting of the emission lines
+
+With the continuum subtracted and the resolution and velocity estimated, \fBalfa\fR divides the spectrum up into chunks 440 pixels wide, with 20 pixels at either end overlapping with adjacent chunks.  Then the genetic algorithm fits all lines from the deep catalogue that fall within the central 400 pixels, with the overlap regions providing the full line profile for lines close to the edge of the chunk.  The initial guess for the resolution and velocity are taken from the global estimate for the first chunk, and from the preceding chunk's fine tuned value for all succeeding chunks.
+
+With the parameters optimised in each chunk, uncertainties are estimated using the root mean square of the residuals in a 20 pixel window, exlucing the two largest residuals to mitigate against overestimated uncertainties in the neighbourhood of bad pixels or strong lines.
+
 .SH INPUT FILES
-\fBalfa\fR can read either plain text files or FITS format files.  For plain text, the file should contain a wavelength and a flux, with the wavelength in the same units as the line catalogues (the default catalogues have wavelengths in Angstroms).  FITS files are read using the CFITSIO library, so any FITS-compliant file should be fine.  However, a surprisingly significant fraction of all FITS files do not comply with the standard, so in case of problems, trying using \fBfitsverify\rR to check your FITS file.
+\fBalfa\fR can read either plain text files or FITS format files.  For plain text, the file should contain a wavelength and a flux, with the wavelength in the same units as the line catalogues (the default catalogues have wavelengths in Angstroms).  FITS files are read using the CFITSIO library, so any FITS-compliant file should be fine.  However, a surprisingly large fraction of all FITS files do not comply with the standard, so in case of problems, trying using \fBfitsverify\rR to check your FITS file.
 
 The FITS file can have one, two or three dimensions.  If it has two, it is assumed to be in Row-Stacked Spectra (RSS) format, while if it has three, it is assumed to be a data cube with two axes representing spatial dimensions and the third representing the spectral dimension.
 
@@ -84,15 +105,18 @@ For single spectra, \fBalfa\fR writes out three text files containing its result
 
 .TP
 .B The fit file (filename_fit):
+
 The fit file contains the best fitting synthesised spectrum.  It contains seven columns, representing the wavelength, the input spectrum, the fitted spectrum, the original after continuum subtraction, the estimated continuum, the fluxes of sky lines, and the residuals.  Thus, to see the fitted spectrum, you need to plot columns 1 and 3 of this file.  In gnuplot, one can compare the input and fitted spectra using this command:
     plot 'filename_fit' w l, 'filename_fit' using 1:3 w l
 
 .TP
 .B The plain text lines file (filename_lines):
+
 This file contains four columns with parameters of the fitted lines - the observed wavelength, the rest wavelength, the flux, and the uncertainty estimated from the residuals.  This file can be read directly by \fBneat\fR, which determines abundances for photoionised nebulae.
 
 .TP
 .B The latex lines file (filename_lines.tex):
+
 This file can be used in publications.  It contains the information in the plain text lines file, as well as the line identification and atomic transition data.
 
 For RSS files and data cubes, \fBalfa\fR currently produces two files per pixel, these being the fit file and the plain text lines file.  Thus, for a data cube you may end up with tens of thousands of files in the output directory.  FITS output will be supported in the next release of \fBalfa\fR.

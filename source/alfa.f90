@@ -116,7 +116,7 @@ redshiftguess=1.+(redshiftguess/c)
 print *,gettime(),"reading in file ",trim(spectrumfile)
 
 !call subroutine to determine whether it's 1D, 2D or 3D fits, or ascii, or none of the above
-call getfiletype(trim(spectrumfile)//imagesection,filetype,dimensions,axes,wavelength,dispersion,referencepixel,loglambda)
+call getfiletype(trim(spectrumfile)//trim(imagesection),filetype,dimensions,axes,wavelength,dispersion,referencepixel,loglambda)
 
 if (filetype.eq.1) then !1d fits file
 

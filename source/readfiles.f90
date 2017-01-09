@@ -18,7 +18,7 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
 !dimensions and lengths of axes are returned if it's a FITS file
 
   implicit none
-  character (len=512), intent(in) :: spectrumfile
+  character (len=*), intent(in) :: spectrumfile
   integer :: filetype, dimensions
   integer, dimension(:), allocatable :: axes
   logical :: loglambda
@@ -43,9 +43,8 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
     !  Get an unused Logical Unit Number to use to open the FITS file.
     call ftgiou(unit,status)
     !  Open the FITS file
-
     readwrite=0
-    call ftopen(unit,spectrumfile,readwrite,blocksize,status)
+    call ftopen(unit,trim(spectrumfile),readwrite,blocksize,status)
 
     if (status .ne. 0) then
       print *,gettime(),"error: couldn't open FITS file. CFITSIO error code was ",status
@@ -206,7 +205,7 @@ subroutine read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wa
 ! read in a 1D fits file
 
   implicit none
-  character (len=512) :: spectrumfile
+  character (len=*), intent(in) :: spectrumfile
   integer :: i
   integer :: spectrumlength
 
@@ -355,7 +354,7 @@ subroutine read3dfits(spectrumfile, cubedata, dimensions, axes)
   call ftgiou(unit,status)
   !  Open the FITS file
   readwrite=0
-  call ftopen(unit,spectrumfile,readwrite,blocksize,status)
+  call ftopen(unit,trim(spectrumfile),readwrite,blocksize,status)
 
   if (status .ne. 0) then
     print *,gettime(),"error: couldn't open FITS file. CFITSIO error code was ",status

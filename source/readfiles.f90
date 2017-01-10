@@ -47,7 +47,7 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
     call ftopen(unit,trim(spectrumfile),readwrite,blocksize,status)
 
     if (status .ne. 0) then
-      print *,gettime(),"error: couldn't open FITS file. CFITSIO error code was ",status
+      print *,gettime(),"error: couldn't open FITS file ",trim(spectrumfile),". CFITSIO error code was ",status
       call exit(1)
     endif
 
@@ -162,7 +162,7 @@ subroutine readascii(spectrumfile, realspec, spectrumlength, fittedspectrum)
 ! read in a plain text file
 
   implicit none
-  character (len=512) :: spectrumfile
+  character (len=*), intent(in) :: spectrumfile
   integer :: i
   real :: input1, input2
   integer :: io, spectrumlength
@@ -276,7 +276,7 @@ subroutine read2dfits(spectrumfile, rssdata, dimensions, axes)
 !read a 2D FITS file.
 
   implicit none
-  character(len=512) :: spectrumfile
+  character(len=*), intent(in) :: spectrumfile
   real, dimension(:,:), allocatable :: rssdata
   logical :: anynull
   integer :: alloc_err
@@ -305,14 +305,19 @@ subroutine read2dfits(spectrumfile, rssdata, dimensions, axes)
   allocate(rssdata(axes(1),axes(2)), stat=alloc_err)
   if (alloc_err .eq. 0) print *,gettime(),"reading RSS file into memory"
 
-! advance to first HDU containing axes
+! advance to first HDU containing axes.
 
   dimensions=0
+  status=0
   call ftgidm(unit,dimensions,status)
-  do while (dimensions .eq. 0) ! if no axes found in first extension, advance andcheck again
+  do while (dimensions .eq. 0 .and. status .eq. 0) ! if no axes found in first extension, advance andcheck again
     call ftmrhd(unit,1,hdutype,status)
     call ftgidm(unit,dimensions,status)
   enddo
+
+  if (status .ne. 0) then
+    print *,gettime(),"no axes found in FITS file.  Try 'fitsverify'"
+  endif
 
 ! read RSS file into memory
 
@@ -333,7 +338,7 @@ subroutine read3dfits(spectrumfile, cubedata, dimensions, axes)
 !read a FITS cube.
 
   implicit none
-  character(len=512), intent(in) :: spectrumfile
+  character(len=*), intent(in) :: spectrumfile
   real, dimension(:,:,:), allocatable :: cubedata
   logical :: anynull
   integer :: alloc_err
@@ -357,7 +362,7 @@ subroutine read3dfits(spectrumfile, cubedata, dimensions, axes)
   call ftopen(unit,trim(spectrumfile),readwrite,blocksize,status)
 
   if (status .ne. 0) then
-    print *,gettime(),"error: couldn't open FITS file. CFITSIO error code was ",status
+    print *,gettime(),"error: couldn't open FITS file ",trim(spectrumfile),". CFITSIO error code was ",status
     call exit(1)
   endif
 

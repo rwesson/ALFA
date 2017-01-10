@@ -1,5 +1,5 @@
 language: cpp
-compiler: gfortran
+compiler: gcc
 sudo: required
 install:
     - sudo apt-get install gfortran

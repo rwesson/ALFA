@@ -2,7 +2,7 @@ language: cpp
 compiler: gcc
 sudo: required
 install:
-    - sudo apt-get install gfortran
+    - sudo apt-get install gfortran libcfitsio-dev
 script: make
 os:
   - linux

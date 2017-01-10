@@ -1,4 +1,9 @@
-language: fortran
+language: cpp
+compiler: gfortran
+sudo: required
+install:
+    - sudo apt-get install gfortran
+script: make
 os:
   - linux
   - osx

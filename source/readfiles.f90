@@ -66,6 +66,8 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
       call exit(1)
     endif
 
+    print *,gettime(),dimensions,"dimensional FITS file"
+
     ! now get the dimensions of the axis
 
     allocate(axes(dimensions))
@@ -152,6 +154,7 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
 
   else ! not FITS file, assume ascii
 
+    print *,gettime(),"ASCII file"
     filetype=4
 
   endif

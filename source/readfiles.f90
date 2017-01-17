@@ -220,8 +220,9 @@ subroutine read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wa
   integer :: group
   real :: nullval
   logical :: anynull
-  real :: wavelength, dispersion, referencepixel
+  real :: wavelength, dispersion, referencepixel, wavelengthscaling
   logical :: loglambda
+  character(len=80) :: cunit
 
 #ifdef CO
   print *,"subroutine: read1dfits"
@@ -243,13 +244,21 @@ subroutine read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wa
 
   ! calculate wavelength values
 
+  wavelengthscaling=1.d0 !assume wavelengths are in A
+
+  call ftgkys(unit,"CUNIT1",cunit,"",status)
+  if (trim(cunit) .eq. "nm" .or. trim(cunit) .eq. "NM") then
+    wavelengthscaling=10.d0 ! convert to Angstroms if it's in nm
+    print *,gettime(),"wavelengths are in nm - converting to A"
+  endif
+
   if (loglambda) then
     do i=1,spectrumlength ! log-sampled case
-      realspec(i)%wavelength = wavelength*exp((i-referencepixel)*dispersion/wavelength)
+      realspec(i)%wavelength = wavelengthscaling * wavelength*exp((i-referencepixel)*dispersion/wavelength)
     enddo
   else
     do i=1,spectrumlength ! linear case
-      realspec(i)%wavelength = wavelength+(i-referencepixel)*dispersion
+      realspec(i)%wavelength = wavelengthscaling * (wavelength+(i-referencepixel)*dispersion)
     enddo
   endif
 

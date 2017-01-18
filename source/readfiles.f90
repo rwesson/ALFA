@@ -264,6 +264,7 @@ subroutine read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wa
 
   ! read spectrum into memory
 
+  status = 0
   call ftgpve(unit,group,1,spectrumlength,nullval,realspec%flux,anynull,status)
 !todo: report null values?
   if (status .eq. 0) then

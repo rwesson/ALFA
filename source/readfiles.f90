@@ -7,39 +7,40 @@ use mod_routines
 
 contains
 
-subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dispersion, referencepixel, loglambda, wavelengthscaling)
-!this subroutine determines what type of file the input file is
-!input is the file name
-!output is the file type, indicated by:
-! 1 - 1d fits
-! 2 - 2d fits
-! 3 - 3dfits
-! 4 - 1d ascii
-!dimensions and lengths of axes are returned if it's a FITS file
+subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelengths, wavelengthscaling, axes)
+!take the filename, check if it's FITS or plain text
+!if FITS, then read the necessary keywords to set the wavelength scale, allocate the data array according to the number of dimensions found, and fill it
+!if plain text, read two columns for wavelength and flux, return.
 
   implicit none
-  character (len=*), intent(in) :: spectrumfile
-  integer :: filetype, dimensions
-  integer, dimension(:), allocatable :: axes
-  logical :: loglambda
-  character(len=80) :: cunit
+  character (len=*), intent(in) :: spectrumfile !input file name
+  real, dimension(:), allocatable :: wavelengths !wavelength array
+  real, dimension(:), allocatable :: spectrum_1d !array for 1d data
+  real, dimension(:,:), allocatable :: spectrum_2d !array for 2d data
+  real, dimension(:,:,:), allocatable :: spectrum_3d !array for 3d data
+  real :: wavelength, dispersion, referencepixel
+  real :: wavelengthscaling !factor to convert wavelengths into Angstroms
+  logical :: loglambda !is the spectrum logarithmically sampled?
+  integer :: dimensions !number of dimensions
+  integer, dimension(:), allocatable :: axes !number of pixels in each dimension
+  integer :: i, io !counter and io status for file reading
 
   !cfitsio variables
 
-  integer :: status,unit,readwrite,blocksize,hdutype
-  real :: wavelength, dispersion, referencepixel
-  real :: wavelengthscaling
-  character(len=80) :: ctype
+  integer :: status,unit,readwrite,blocksize,hdutype,group
+  character(len=80) :: key_cunit, key_ctype, key_crpix, key_crval, key_cdelt, key_cd
+  character(len=80) :: cunit,ctype
+  real :: nullval
+  logical :: anynull
 
 #ifdef CO
-  print *,"subroutine: getfiletype"
+  print *,"subroutine: readdata"
 #endif
 
-  referencepixel=1.0
+  !is the file a FITS file?
+  !if it ends with .fit, .FIT, .fits or .FITS, assume that it is.
 
-  !check if it's a fits file
-
-  if (index(spectrumfile,".fit").gt.0 .or. index(spectrumfile,".FIT").gt.0) then !read header
+  if (index(spectrumfile,".fit").ge.len_trim(spectrumfile)-4 .or. index(spectrumfile,".FIT").ge.len_trim(spectrumfile)-4) then !read header
 
     status=0
     !  Get an unused Logical Unit Number to use to open the FITS file.
@@ -68,356 +69,213 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
       call exit(1)
     endif
 
-    print *,gettime(),dimensions,"dimensional FITS file"
+    print *,gettime(),"  number of dimensions: ",dimensions
 
     ! now get the dimensions of the axis
 
     allocate(axes(dimensions))
     call ftgisz(unit,dimensions,axes,status)
-    filetype=dimensions
+
+    ! set up array for wavelengths
+
+    if (dimensions.eq.3) then
+      allocate(wavelengths(axes(3)))
+    else
+      allocate(wavelengths(axes(1)))
+    endif
 
     ! get wavelength, dispersion and reference pixel
+    ! set which FITS keywords we are looking for depending on which axis represents wavelength
+    ! this will be axis 3 for cubes, axis 1 otherwise
 
     status=0
 
     if (dimensions .lt. 3) then
 
-      call ftgkye(unit,"CRVAL1",wavelength,"",status)
-      if (status .ne. 0) then
-        print *,gettime(),"error: couldn't find wavelength value at reference pixel - no keyword CRVAL1."
+      key_crval="CRVAL1"
+      key_crpix="CRPIX1"
+      key_ctype="CTYPE1"
+      key_cunit="CUNIT1"
+      key_cdelt="CDELT1"
+      key_cd   ="CD1_1"
+
+    else
+
+      key_crval="CRVAL3"
+      key_crpix="CRPIX3"
+      key_ctype="CTYPE3"
+      key_cunit="CUNIT3"
+      key_cdelt="CDELT3"
+      key_cd   ="CD3_3"
+
+    endif
+
+    call ftgkye(unit,key_crval,wavelength,"",status)
+    if (status .ne. 0) then
+      print *,gettime(),"error: couldn't find wavelength value at reference pixel - no keyword ",trim(key_crval),"."
+      call exit(1)
+    endif
+
+    print *,gettime(),"  wavelength at reference pixel: ",wavelength
+
+    call ftgkye(unit,key_crpix,referencepixel,"",status)
+    if (status .ne. 0) then
+      print *,gettime(),"warning: couldn't find reference pixel - no keyword ",trim(key_crpix),". Setting to 1.0"
+      referencepixel=1.0
+      status=0
+    endif
+
+    print *,gettime(),"  reference pixel: ",referencepixel
+
+    call ftgkye(unit,key_cdelt,dispersion,"",status)
+    if (status.ne.0) then
+      status=0
+      call ftgkye(unit,key_cd,dispersion,"",status)
+        if (status .ne. 0) then
+          print *,gettime(),"error: couldn't find wavelength dispersion - no keyword ",trim(key_cdelt)," or ",trim(key_cd),"."
+          call exit(1)
+        endif
+    endif
+
+    print *,gettime(),"  wavelength dispersion: ",dispersion
+
+    ! check if the wavelength axis is log-sampled
+    call ftgkey(unit,key_ctype,ctype,"",status)
+    if (index(ctype,"-LOG").gt.0) then
+      loglambda = .true.
+      print *,gettime(),"  sampling: logarithmic"
+    else
+      loglambda = .false.
+      print *,gettime(),"  sampling: linear"
+    endif
+
+    ! get units of wavelength
+    ! current assumption is it will be A or nm
+
+    if (wavelengthscaling .ne. 0.d0) then
+      print *,gettime(),"  wavelength units: set by user. Angstroms per wavelength unit = ",wavelengthscaling
+    else
+      call ftgkys(unit,key_cunit,cunit,"",status)
+      if (trim(cunit) .eq. "nm" .or. trim(cunit) .eq. "NM") then
+        wavelengthscaling=10.d0 ! convert to Angstroms if it's in nm
+        print *,gettime(),"  wavelength units: nm.  Will convert to A."
+      elseif (trim(cunit).eq."Angstrom" .or. trim(cunit).eq."Angstroms") then
+        print *,gettime(),"  wavelength units: Angstroms"
+        wavelengthscaling = 1.d0
+      else
+        print *,gettime(),"  wavelength units: not recognised - will assume A.  Set the --wavelength-scaling if this is not correct"
+        wavelengthscaling = 1.d0
+      endif
+    endif
+
+    !now we have the information we need to read in the data
+
+    group=1
+    nullval=-999
+
+    if (dimensions.eq.1) then
+
+      allocate(spectrum_1d(axes(1)))
+
+      status = 0
+      call ftgpve(unit,group,1,axes(1),nullval,spectrum_1d,anynull,status)
+      !todo: report null values?
+      if (status .eq. 0) then
+        print "(X,A,A,I7,A)",gettime(),"read 1D fits file with ",axes(1)," data points into memory."
+      else
+        print *,gettime(),"couldn't read file into memory"
         call exit(1)
       endif
 
-      call ftgkye(unit,"CRPIX1",referencepixel,"",status)
-      if (status .ne. 0) then
-        print *,gettime(),"warning: couldn't find reference pixel - no keyword CRPIX1. Setting to 1.0"
-        referencepixel=1.0
-        status=0
-      endif
+    elseif (dimensions.eq.2) then
 
-      call ftgkye(unit,"CDELT1",dispersion,"",status)
-      if (status.ne.0) then
-        status=0
-        call ftgkye(unit,"CD1_1",dispersion,"",status)
-          if (status .ne. 0) then
-            print *,gettime(),"error: couldn't find wavelength dispersion - no keyword CDELT1 or CD1_1."
-            call exit(1)
-          endif
-      endif
+      allocate(spectrum_2d(axes(1),axes(2)))
 
-      ! check if the wavelength axis is log-sampled
-      call ftgkey(unit,"CTYPE1",ctype,"",status)
-      if (index(ctype,"-LOG").gt.0) then
-        loglambda = .true.
+      status=0
+      call ftg2de(unit,group,nullval,axes(1),axes(1),axes(2),spectrum_2d,anynull,status)
+    !todo: report null values?
+      if (status .eq. 0) then
+        print "(X,A,A,I7,A)",gettime(),"read ",axes(2)," rows into memory."
       else
-        loglambda = .false.
+        print *,gettime(),"couldn't read RSS file into memory"
+        print *,"error code ",status
+        call exit(1)
       endif
 
-      ! get units of wavelength
-      ! current assumption is it will be A or nm
+    elseif (dimensions.eq.3) then
 
-      call ftgkys(unit,"CUNIT1",cunit,"",status)
-      if (trim(cunit) .eq. "nm" .or. trim(cunit) .eq. "NM") then
-        wavelengthscaling=10.d0 ! convert to Angstroms if it's in nm
-        print *,gettime(),"wavelengths are in nm - converting to A"
+      allocate(spectrum_3d(axes(1),axes(2),axes(3)))
+
+      status=0
+      call ftg3de(unit,group,nullval,axes(1),axes(2),axes(1),axes(2),axes(3),spectrum_3d,anynull,status)
+    !todo: report null values?
+      if (status .eq. 0) then
+        print "(X,A,A,I7,A)",gettime(),"read ",axes(1)*axes(2)," pixels into memory."
+      else
+        print *,gettime(),"couldn't read cube into memory"
+        call exit(1)
       endif
 
     else
 
-      call ftgkye(unit,"CRVAL3",wavelength,"",status)
-      if (status .ne. 0) then
-        print *,gettime(),"error: couldn't find wavelength value at referencepixel - no keyword CRVAL3."
-        call exit(1)
-      endif
-
-      call ftgkye(unit,"CRPIX3",referencepixel,"",status)
-      if (status .ne. 0) then
-        print *,gettime(),"warning: couldn't find reference pixel - no keyword CRPIX3. Setting to 1.0"
-        referencepixel=1.0
-        status=0
-      endif
-
-      call ftgkye(unit,"CDELT3",dispersion,"",status)
-      if (status.ne.0) then
-        status=0
-        call ftgkye(unit,"CD3_3",dispersion,"",status)
-        if (status .ne. 0) then
-          print *,gettime(),"error: couldn't find wavelength dispersion - no keyword CDELT3 or CD3_3."
-          call exit(1)
-        endif
-      endif
-
-      ! check if the wavelength axis is log-sampled
-
-      call ftgkey(unit,"CTYPE3",ctype,"",status)
-      if (index(ctype,"-LOG").gt.0) then
-        loglambda = .true.
-      else
-        loglambda = .false.
-      endif
-
-      ! get units of wavelength
-      ! current assumption is it will be A or nm
-
-      call ftgkys(unit,"CUNIT3",cunit,"",status)
-      if (trim(cunit) .eq. "nm" .or. trim(cunit) .eq. "NM") then
-        wavelengthscaling=10.d0 ! convert to Angstroms if it's in nm
-        print *,gettime(),"wavelengths are in nm - converting to A"
-      endif
+      print *,gettime(),"More than 3 dimensions.  ALFA cannot comprehend that yet, sorry."
+      call exit(1)
 
     endif
 
-    ! close file
+    ! calculate wavelength array
 
-    call ftclos(unit, status)
-    call ftfiou(unit, status)
+    if (loglambda) then !log-sampled case
+      do i=1,size(wavelengths)
+        wavelengths(i) = wavelengthscaling * wavelength*exp((i-referencepixel)*dispersion/wavelength)
+      enddo
+    else !linear case
+      do i=1,size(wavelengths) 
+        wavelengths(i) = wavelengthscaling * (wavelength+(i-referencepixel)*dispersion)
+      enddo
+    endif
 
-  else ! not FITS file, assume ascii
+  else ! end of FITS file loop. if we are here, assume file is 1D ascii with wavelength and flux columns.
 
-    print *,gettime(),"ASCII file"
-    filetype=4
+    allocate(axes(1))
 
-  endif
+    !get number of lines
 
-end subroutine getfiletype
-
-subroutine readascii(spectrumfile, realspec, spectrumlength, fittedspectrum)
-! read in a plain text file
-
-  implicit none
-  character (len=*), intent(in) :: spectrumfile
-  integer :: i
-  real :: input1, input2
-  integer :: io, spectrumlength
-
-  type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum
-
-#ifdef CO
-  print *,"subroutine: readascii"
-#endif
-
-  i = 0
-  open(199, file=spectrumfile, iostat=IO, status='old')
-    do while (IO >= 0)
-    read(199,*,end=112) input1
-    i = i + 1
-  enddo
-  112 spectrumlength=i
-
-  !then allocate and read
-
-  allocate (realspec(spectrumlength))
-
-  rewind (199)
-  do i=1,spectrumlength
-    read(199,*) input1, input2
-    realspec(i)%wavelength = input1
-    realspec(i)%flux = input2
-  enddo
-  close(199)
-
-  realspec%uncertainty = 0.d0
-
-  allocate (fittedspectrum(spectrumlength))
-  fittedspectrum%wavelength=realspec%wavelength
-  fittedspectrum%flux=0.d0
-
-end subroutine readascii
-
-subroutine read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wavelength, dispersion, referencepixel, loglambda, wavelengthscaling)
-! read in a 1D fits file
-
-  implicit none
-  character (len=*), intent(in) :: spectrumfile
-  integer :: i
-  integer :: spectrumlength
-
-  type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum
-
-  !cfitsio variables
-
-  integer :: status,unit,readwrite,blocksize
-  integer :: group
-  real :: nullval
-  logical :: anynull
-  real :: wavelength, dispersion, referencepixel, wavelengthscaling
-  logical :: loglambda
-
-#ifdef CO
-  print *,"subroutine: read1dfits"
-#endif
-
-  allocate(realspec(spectrumlength))
-  allocate(fittedspectrum(spectrumlength))
-
-  status=0
-  !  Get an unused Logical Unit Number to use to open the FITS file.
-  call ftgiou(unit,status)
-  !  Open the FITS file
-
-  readwrite=0
-  call ftopen(unit,spectrumfile,readwrite,blocksize,status)
-
-  group=1
-  nullval=-999
-
-  ! calculate wavelength values
-
-  if (loglambda) then
-    do i=1,spectrumlength ! log-sampled case
-      realspec(i)%wavelength = wavelengthscaling * wavelength*exp((i-referencepixel)*dispersion/wavelength)
+    i = 0
+    open(199, file=spectrumfile, iostat=IO, status='old')
+      do while (IO >= 0)
+      read(199,*,end=112)
+      i = i + 1
     enddo
-  else
-    do i=1,spectrumlength ! linear case
-      realspec(i)%wavelength = wavelengthscaling * (wavelength+(i-referencepixel)*dispersion)
+    112 axes(1) = i
+    print *,gettime(),"  number of data points: ",axes(1)
+
+    !then allocate and read
+
+    allocate(spectrum_1d(axes(1)))
+    allocate(wavelengths(axes(1)))
+
+    rewind (199)
+    do i=1,axes(1)
+      read(199,*) wavelengths(i), spectrum_1d(i)
     enddo
+    close(199)
+
+    if (wavelengthscaling .eq. 0.d0) then
+      print *,gettime(),"  wavelength units: assumed to be Angstroms"
+      wavelengthscaling = 1.d0
+    else
+      print *,gettime(),"  wavelength units: set by user. Angstroms per wavelength unit = ",wavelengthscaling
+    endif
+
+    wavelengths = wavelengths * wavelengthscaling
+
   endif
 
-  ! read spectrum into memory
+  print *,gettime(),"wavelength range: ",wavelengths(1),wavelengths(size(wavelengths))
+  print *
 
-  status = 0
-  call ftgpve(unit,group,1,spectrumlength,nullval,realspec%flux,anynull,status)
-!todo: report null values?
-  if (status .eq. 0) then
-    print "(X,A,A,I7,A)",gettime(),"read 1D fits file with ",spectrumlength," data points into memory."
-  else
-    print *,gettime(),"couldn't read file into memory"
-    call exit(1)
-  endif
-
-  ! close file
-
-  call ftclos(unit, status)
-  call ftfiou(unit, status)
-
-  realspec%uncertainty = 0.d0
-  fittedspectrum%wavelength=realspec%wavelength
-  fittedspectrum%flux=0.d0
-
-end subroutine read1dfits
-
-subroutine read2dfits(spectrumfile, rssdata, dimensions, axes)
-!read a 2D FITS file.
-
-  implicit none
-  character(len=*), intent(in) :: spectrumfile
-  real, dimension(:,:), allocatable :: rssdata
-  logical :: anynull
-  integer :: alloc_err
-  integer :: dimensions
-  integer, dimension(:) :: axes
-  !cfitsio variables
-
-  integer :: status,unit,readwrite,blocksize,hdutype
-  integer :: group
-  real :: nullval
-
-#ifdef CO
-  print *,"subroutine: read2dfits"
-#endif
-
-  status=0
-  !  Get an unused Logical Unit Number to use to open the FITS file.
-  call ftgiou(unit,status)
-  !  Open the FITS file
-  readwrite=0
-  call ftopen(unit,spectrumfile,readwrite,blocksize,status)
-
-  group=1
-  nullval=-999
-
-  allocate(rssdata(axes(1),axes(2)), stat=alloc_err)
-  if (alloc_err .eq. 0) print *,gettime(),"reading RSS file into memory"
-
-! advance to first HDU containing axes.
-
-  dimensions=0
-  status=0
-  call ftgidm(unit,dimensions,status)
-  do while (dimensions .eq. 0 .and. status .eq. 0) ! if no axes found in first extension, advance andcheck again
-    call ftmrhd(unit,1,hdutype,status)
-    call ftgidm(unit,dimensions,status)
-  enddo
-
-  if (status .ne. 0) then
-    print *,gettime(),"no axes found in FITS file.  Try 'fitsverify'"
-  endif
-
-! read RSS file into memory
-
-  status=0
-  call ftg2de(unit,group,nullval,axes(1),axes(1),axes(2),rssdata,anynull,status)
-!todo: report null values?
-  if (status .eq. 0) then
-    print "(X,A,A,I7,A)",gettime(),"read ",axes(2)," rows into memory."
-  else
-    print *,gettime(),"couldn't read RSS file into memory"
-    print *,"error code ",status
-    call exit(1)
-  endif
-
-end subroutine read2dfits
-
-subroutine read3dfits(spectrumfile, cubedata, dimensions, axes)
-!read a FITS cube.
-
-  implicit none
-  character(len=*), intent(in) :: spectrumfile
-  real, dimension(:,:,:), allocatable :: cubedata
-  logical :: anynull
-  integer :: alloc_err
-  integer :: dimensions
-  integer, dimension(:) :: axes
-  !cfitsio variables
-
-  integer :: status,unit,readwrite,blocksize,hdutype
-  integer :: group
-  real :: nullval
-
-#ifdef CO
-  print *,"subroutine: read3dfits"
-#endif
-
-  status=0
-  !  Get an unused Logical Unit Number to use to open the FITS file.
-  call ftgiou(unit,status)
-  !  Open the FITS file
-  readwrite=0
-  call ftopen(unit,trim(spectrumfile),readwrite,blocksize,status)
-
-  if (status .ne. 0) then
-    print *,gettime(),"error: couldn't open FITS file ",trim(spectrumfile),". CFITSIO error code was ",status
-    call exit(1)
-  endif
-
-  group=1
-  nullval=-999
-
-  allocate(cubedata(axes(1),axes(2),axes(3)), stat=alloc_err)
-  if (alloc_err .eq. 0) print *,gettime(),"reading data cube into memory"
-
-! advance to first HDU containing axes
-
-  dimensions=0
-  call ftgidm(unit,dimensions,status)
-  do while (dimensions .eq. 0) ! if no axes found in first extension, advance andcheck again
-    call ftmrhd(unit,1,hdutype,status)
-    call ftgidm(unit,dimensions,status)
-  enddo
-
-! read cube file into memory
-
-  status=0
-  call ftg3de(unit,group,nullval,axes(1),axes(2),axes(1),axes(2),axes(3),cubedata,anynull,status)
-!todo: report null values?
-  if (status .eq. 0) then
-    print "(X,A,A,I7,A)",gettime(),"read ",axes(1)*axes(2)," pixels into memory."
-  else
-    print *,gettime(),"couldn't read cube into memory"
-    call exit(1)
-  endif
-
-end subroutine read3dfits
+end subroutine readdata
 
 subroutine readlinelist(linelistfile,referencelinelist,nlines,wavelength1, wavelength2)
 !this subroutine reads in the line catalogue

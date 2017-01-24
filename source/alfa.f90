@@ -33,13 +33,13 @@ type(linelist), dimension(:), allocatable :: skylines_catalogue, stronglines_cat
 type(linelist), dimension(:), allocatable :: fittedlines, fittedlines_section, skylines, skylines_section
 type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum, spectrumchunk, skyspectrum, continuum, stronglines
 
-integer :: filetype, dimensions
-real :: wavelength, dispersion, referencepixel, baddata
-logical :: loglambda
-integer :: cube_i, cube_j, cube_k, rss_i, rss_k
+real :: baddata
+integer :: cube_i, cube_j, rss_i
 integer, dimension(:), allocatable :: axes
-real, dimension(:,:), allocatable :: rssdata
-real, dimension(:,:,:), allocatable :: cubedata
+real, dimension(:), allocatable :: wavelengths !wavelength array
+real, dimension(:), allocatable :: spectrum_1d
+real, dimension(:,:), allocatable :: spectrum_2d
+real, dimension(:,:,:), allocatable :: spectrum_3d
 real :: minimumwavelength,maximumwavelength ! limits of spectrum, to be passed to catalogue reading subroutines
 real :: wavelengthscaling ! default is 1.0 which is for wavelengths in A.  subroutine getfiletype checks if FITS header indicates units are nm, and sets to 10.0 if so.  todo: check for other units
 
@@ -78,7 +78,7 @@ rtol2=500. !second pass
 vtol1=0.003 !variation allowed in velocity (expressed as redshift) on first pass. 0.003 = 900 km/s
 vtol2=0.0002 !second pass. 0.0002 = 60 km/s
 baddata=0.d0
-wavelengthscaling=1.d0
+wavelengthscaling=0.d0
 
 stronglinelistfile=trim(PREFIX)//"/share/alfa/strong.cat"
 deeplinelistfile=trim(PREFIX)//"/share/alfa/deep.cat"
@@ -115,77 +115,48 @@ redshiftguess=1.+(redshiftguess/c)
 
 ! read in spectrum to fit and line list
 
-print *,gettime(),"reading in file ",trim(spectrumfile)
+print *
+print *,gettime(),"reading in file ",trim(spectrumfile),":"
 
-!call subroutine to determine whether it's 1D, 2D or 3D fits, or ascii, or none of the above
-call getfiletype(trim(spectrumfile)//trim(imagesection),filetype,dimensions,axes,wavelength,dispersion,referencepixel,loglambda,wavelengthscaling)
+!call subroutine to read in the data.  input is filename, output is 3D array containing data, length of dimensions dependent on whether file was 1D, 2D or 3D.
+call readdata(trim(spectrumfile)//trim(imagesection), spectrum_1d, spectrum_2d, spectrum_3d, wavelengths, wavelengthscaling, axes)
 
-if (filetype.eq.1) then !1d fits file
+minimumwavelength = wavelengths(1)
+maximumwavelength = wavelengths(size(wavelengths))
+spectrumlength = size(wavelengths)
 
-  spectrumlength=axes(1)
-  call read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wavelength, dispersion, referencepixel, loglambda, wavelengthscaling)
-  minimumwavelength=realspec(1)%wavelength
-  maximumwavelength=realspec(spectrumlength)%wavelength
-  if (maxval(realspec%flux) .lt. baddata) then
-    print *,gettime(),"no good data in spectrum (all fluxes are less than ",baddata,")"
-    call exit(1)
-  endif
-  messages=.true.
+!now we have all the flux values in an array and can fit the spectra
 
-elseif (filetype .eq. 2) then !2d fits file
-
-  call read2dfits(trim(spectrumfile)//imagesection, rssdata, dimensions, axes)
-
-  if (loglambda) then
-    minimumwavelength=wavelengthscaling*wavelength*exp((1-referencepixel)*dispersion/wavelength)
-    maximumwavelength=wavelengthscaling*wavelength*exp((axes(1)-referencepixel)*dispersion/wavelength)
-  else
-    minimumwavelength=wavelengthscaling*wavelength
-    maximumwavelength=wavelengthscaling*(wavelength+(axes(1)-1)*dispersion)
-  endif
-
-elseif (filetype .eq. 3) then !3d fits file
-
-  call read3dfits(trim(spectrumfile)//imagesection, cubedata, dimensions, axes)
-
-  if (loglambda) then
-    minimumwavelength=wavelengthscaling*wavelength*exp((1-referencepixel)*dispersion/wavelength)
-    maximumwavelength=wavelengthscaling*wavelength*exp((axes(3)-referencepixel)*dispersion/wavelength)
-  else
-    minimumwavelength=wavelengthscaling*wavelength
-    maximumwavelength=wavelengthscaling*(wavelength+(axes(3)-1)*dispersion)
-  endif
-
-elseif (filetype .eq. 4) then !1d ascii file
-  call readascii(spectrumfile, realspec, spectrumlength, fittedspectrum)
-  minimumwavelength=realspec(1)%wavelength
-  maximumwavelength=realspec(spectrumlength)%wavelength
-  if (maxval(realspec%flux) .lt. baddata) then
-    print *,gettime(),"no good data in spectrum (all fluxes are less than ",baddata,")"
-    call exit(1)
-  endif
-  messages=.true.
-else
-  !not recognised, stop
-  print *,"unrecognised file"
-  call exit(1)
-endif
-
-print *,gettime(),"wavelength range ",minimumwavelength," to ",maximumwavelength
-if (loglambda) print *,gettime(), "  (logarithmically sampled)" ! PmW
-
-!read in catalogues
+!read in the line catalogues
 
 print *,gettime(),"reading in line catalogues"
 call readlinelist(skylinelistfile, skylines_catalogue, nlines,minimumwavelength,maximumwavelength)
 call readlinelist(stronglinelistfile, stronglines_catalogue, nlines,minimumwavelength,maximumwavelength)
 call readlinelist(deeplinelistfile, deeplines_catalogue, nlines,minimumwavelength,maximumwavelength)
 
-if (filetype .eq. 1 .or. filetype .eq. 4) then !fit 1D data
+if (allocated(spectrum_1d)) then !1d spectrum
+
+  allocate(realspec(size(wavelengths)))
+  allocate(fittedspectrum(spectrumlength))
+
+  realspec%wavelength = wavelengths
+  realspec%flux = spectrum_1d
+  realspec%uncertainty = 0.d0
+
+  fittedspectrum%wavelength=realspec%wavelength
+  fittedspectrum%flux=0.d0
+
+  if (maxval(realspec%flux) .lt. baddata) then
+    print *,gettime(),"no good data in spectrum (all fluxes are less than ",baddata,")"
+    call exit(1)
+  endif
+  messages=.true.
+
   tid=0
   write (outputbasename,"(A)") spectrumfile(index(spectrumfile,"/",back=.true.)+1:len(trim(spectrumfile)))
   include "spectralfit.f90"
-elseif (filetype .eq. 2) then !fit 2D data
+
+elseif (allocated(spectrum_2d)) then !fit 2D data
 
   write (filenameformat,"(A,I1,A,I1)") "I",floor(log10(real(axes(2))))+1,".",floor(log10(real(axes(2))))+1
 
@@ -197,7 +168,7 @@ elseif (filetype .eq. 2) then !fit 2D data
 !$OMP END MASTER
 
 !$OMP DO schedule(dynamic)
-  do rss_i=1,axes(2)
+  do rss_i=1,axes(2) ! wavelength is on axis 1, row position is on axis 2, so this loops over rows
 
     tid=OMP_GET_THREAD_NUM()
 
@@ -205,19 +176,8 @@ elseif (filetype .eq. 2) then !fit 2D data
 
     allocate(realspec(axes(1)))
     spectrumlength=axes(1)
-    realspec%flux=rssdata(:,rss_i)
-
-    if (loglambda) then
-      do rss_k=1,axes(1)
-        realspec(rss_k)%wavelength=wavelength*exp((rss_k-referencepixel)*dispersion/wavelength)
-      enddo
-    else
-      do rss_k=1,axes(1)
-        realspec(rss_k)%wavelength=wavelength+(rss_k-referencepixel)*dispersion
-      enddo
-    endif
-
-    realspec%wavelength = realspec%wavelength*wavelengthscaling
+    realspec%wavelength = wavelengths
+    realspec%flux=spectrum_2d(:,rss_i)
 
 !check for valid data
 !ultra crude at the moment
@@ -244,7 +204,7 @@ elseif (filetype .eq. 2) then !fit 2D data
     deallocate(continuum)
     if (allocated(skyspectrum)) deallocate(skyspectrum)
 
-    print "(X,A,A,I2,A,"//filenameformat(1)//")",gettime(),"(thread ",tid,") : finished row ",rss_i
+    print "(X,A,A,I2,A,"//filenameformat(1)//",A,F6.1,A,F5.0)",gettime(),"(thread ",tid,") : finished row ",rss_i,". approx velocity and resolution ",c*(redshiftguess_overall-1.d0),", ",fittedlines(1)%resolution
 
   enddo
 
@@ -253,9 +213,9 @@ elseif (filetype .eq. 2) then !fit 2D data
 
   print *,gettime(),"all processing finished"
 
-  deallocate(rssdata)
+  deallocate(spectrum_2d)
 
-elseif (filetype .eq. 3) then !fit 3D data
+elseif (allocated(spectrum_3d)) then !fit 3D data
 !process cube
   print *,gettime(),"processing cube"
 !$OMP PARALLEL private(outputbasename,realspec,fittedspectrum,spectrumlength,continuum,nlines,spectrumchunk,linearraypos,overlap,startpos,startwlen,endpos,endwlen,skylines,skylines_section,stronglines,fittedlines,fittedlines_section,blendpeak,hbetaflux,totallines,skyspectrum,redshiftguess_overall,cube_i,cube_j,tid) firstprivate(redshiftguess,resolutionguess) shared(skylines_catalogue,stronglines_catalogue,deeplines_catalogue,axes,spectrumfile)
@@ -278,19 +238,8 @@ elseif (filetype .eq. 3) then !fit 3D data
       write (outputbasename,"(A,"//filenameformat(1)//",A1,"//filenameformat(2)//")") spectrumfile(index(spectrumfile,"/",back=.true.)+1:len(trim(spectrumfile)))//"_pixel_",cube_i,"_",cube_j
       allocate(realspec(axes(3)))
       spectrumlength=axes(3)
-      realspec%flux=cubedata(cube_i,cube_j,:)
-
-      if (loglambda) then
-        do cube_k=1,axes(3)
-          realspec(cube_k)%wavelength=wavelength*exp((cube_k-referencepixel)*dispersion/wavelength)
-        enddo
-      else
-        do cube_k=1,axes(3)
-          realspec(cube_k)%wavelength=wavelength+(cube_k-referencepixel)*dispersion
-        enddo
-      endif
-
-      realspec%wavelength = realspec%wavelength*wavelengthscaling
+      realspec%flux=spectrum_3d(cube_i,cube_j,:)
+      realspec%wavelength=wavelengths
 
 !check for valid data
 !ultra crude at the moment
@@ -318,7 +267,7 @@ elseif (filetype .eq. 3) then !fit 3D data
       deallocate(continuum)
       if (allocated(skyspectrum)) deallocate(skyspectrum)
 
-      print "(X,A,A,I2,A,"//filenameformat(1)//",A,"//filenameformat(2)//")",gettime(),"(thread ",tid,") : finished pixel ",cube_i,",",cube_j
+      print "(X,A,A,I2,A,"//filenameformat(1)//",A,"//filenameformat(2)//"A,F6.1,A,F5.0)",gettime(),"(thread ",tid,") : finished pixel ",cube_i,",",cube_j,". approx velocity and resolution ",c*(redshiftguess_overall-1.d0),", ",fittedlines(1)%resolution
 
     enddo
   enddo
@@ -328,14 +277,14 @@ elseif (filetype .eq. 3) then !fit 3D data
 
   print *,gettime(),"all processing finished"
 
-  deallocate(cubedata)
+  deallocate(spectrum_3d)
 
 endif
 
 !free memory
 
-if (allocated(rssdata)) deallocate(rssdata)
-if (allocated(cubedata)) deallocate(cubedata)
+if (allocated(spectrum_2d)) deallocate(spectrum_2d)
+if (allocated(spectrum_3d)) deallocate(spectrum_3d)
 
 print *,gettime(),"all done"
 print *

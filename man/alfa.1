@@ -74,6 +74,10 @@ Variation allowed in velocity in first pass of the fitting. Default: 900km/s
 .B \-vtol2, \-\-velocity\-tolerance\-2 [VALUE]
 Variation allowed in velocity in second pass of the fitting. Default: 60km/s
 
+.TP
+.B \-ws, \-\-wavelength\-scaling [VALUE]
+\fBalfa\fR checks the units of FITS file headers to set the wavelength scale, defaulting to assuming Angstroms if no keyword is present.  If your input spectrum is not in Angstroms, use this option to set the value by which wavelengths should be multiplied to convert them to A.  For example, \-ws 10.0 would apply if your spectra have wavelengths in nm.
+
 .SH ALGORITHM
 
 \fBalfa\fR works in three stages.  First, it estimates and subtracts the continuum.  Second, it estimates the resolution of the spectra and the velocity of the object.  And third, it fits the emission lines.  These stages work as follows:

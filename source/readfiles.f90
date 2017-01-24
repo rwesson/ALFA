@@ -7,7 +7,7 @@ use mod_routines
 
 contains
 
-subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dispersion, referencepixel, loglambda)
+subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dispersion, referencepixel, loglambda, wavelengthscaling)
 !this subroutine determines what type of file the input file is
 !input is the file name
 !output is the file type, indicated by:
@@ -22,11 +22,13 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
   integer :: filetype, dimensions
   integer, dimension(:), allocatable :: axes
   logical :: loglambda
+  character(len=80) :: cunit
 
   !cfitsio variables
 
   integer :: status,unit,readwrite,blocksize,hdutype
   real :: wavelength, dispersion, referencepixel
+  real :: wavelengthscaling
   character(len=80) :: ctype
 
 #ifdef CO
@@ -111,6 +113,15 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
         loglambda = .false.
       endif
 
+      ! get units of wavelength
+      ! current assumption is it will be A or nm
+
+      call ftgkys(unit,"CUNIT1",cunit,"",status)
+      if (trim(cunit) .eq. "nm" .or. trim(cunit) .eq. "NM") then
+        wavelengthscaling=10.d0 ! convert to Angstroms if it's in nm
+        print *,gettime(),"wavelengths are in nm - converting to A"
+      endif
+
     else
 
       call ftgkye(unit,"CRVAL3",wavelength,"",status)
@@ -143,6 +154,15 @@ subroutine getfiletype(spectrumfile, filetype, dimensions, axes, wavelength, dis
         loglambda = .true.
       else
         loglambda = .false.
+      endif
+
+      ! get units of wavelength
+      ! current assumption is it will be A or nm
+
+      call ftgkys(unit,"CUNIT3",cunit,"",status)
+      if (trim(cunit) .eq. "nm" .or. trim(cunit) .eq. "NM") then
+        wavelengthscaling=10.d0 ! convert to Angstroms if it's in nm
+        print *,gettime(),"wavelengths are in nm - converting to A"
       endif
 
     endif
@@ -204,7 +224,7 @@ subroutine readascii(spectrumfile, realspec, spectrumlength, fittedspectrum)
 
 end subroutine readascii
 
-subroutine read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wavelength, dispersion, referencepixel, loglambda)
+subroutine read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wavelength, dispersion, referencepixel, loglambda, wavelengthscaling)
 ! read in a 1D fits file
 
   implicit none
@@ -222,7 +242,6 @@ subroutine read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wa
   logical :: anynull
   real :: wavelength, dispersion, referencepixel, wavelengthscaling
   logical :: loglambda
-  character(len=80) :: cunit
 
 #ifdef CO
   print *,"subroutine: read1dfits"
@@ -243,14 +262,6 @@ subroutine read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wa
   nullval=-999
 
   ! calculate wavelength values
-
-  wavelengthscaling=1.d0 !assume wavelengths are in A
-
-  call ftgkys(unit,"CUNIT1",cunit,"",status)
-  if (trim(cunit) .eq. "nm" .or. trim(cunit) .eq. "NM") then
-    wavelengthscaling=10.d0 ! convert to Angstroms if it's in nm
-    print *,gettime(),"wavelengths are in nm - converting to A"
-  endif
 
   if (loglambda) then
     do i=1,spectrumlength ! log-sampled case

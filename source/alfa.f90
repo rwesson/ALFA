@@ -41,6 +41,7 @@ integer, dimension(:), allocatable :: axes
 real, dimension(:,:), allocatable :: rssdata
 real, dimension(:,:,:), allocatable :: cubedata
 real :: minimumwavelength,maximumwavelength ! limits of spectrum, to be passed to catalogue reading subroutines
+real :: wavelengthscaling ! default is 1.0 which is for wavelengths in A.  subroutine getfiletype checks if FITS header indicates units are nm, and sets to 10.0 if so.  todo: check for other units
 
 CHARACTER(len=2048) :: commandline
 
@@ -77,6 +78,7 @@ rtol2=500. !second pass
 vtol1=0.003 !variation allowed in velocity (expressed as redshift) on first pass. 0.003 = 900 km/s
 vtol2=0.0002 !second pass. 0.0002 = 60 km/s
 baddata=0.d0
+wavelengthscaling=1.d0
 
 stronglinelistfile=trim(PREFIX)//"/share/alfa/strong.cat"
 deeplinelistfile=trim(PREFIX)//"/share/alfa/deep.cat"
@@ -105,7 +107,7 @@ call init_random_seed()
 
 ! read command line
 
-call readcommandline(commandline,normalise,normalisation,redshiftguess,resolutionguess,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits)
+call readcommandline(commandline,normalise,normalisation,redshiftguess,resolutionguess,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits,wavelengthscaling)
 
 ! convert from velocity to redshift
 
@@ -116,12 +118,12 @@ redshiftguess=1.+(redshiftguess/c)
 print *,gettime(),"reading in file ",trim(spectrumfile)
 
 !call subroutine to determine whether it's 1D, 2D or 3D fits, or ascii, or none of the above
-call getfiletype(trim(spectrumfile)//trim(imagesection),filetype,dimensions,axes,wavelength,dispersion,referencepixel,loglambda)
+call getfiletype(trim(spectrumfile)//trim(imagesection),filetype,dimensions,axes,wavelength,dispersion,referencepixel,loglambda,wavelengthscaling)
 
 if (filetype.eq.1) then !1d fits file
 
   spectrumlength=axes(1)
-  call read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wavelength, dispersion, referencepixel, loglambda)
+  call read1dfits(spectrumfile, realspec, spectrumlength, fittedspectrum, wavelength, dispersion, referencepixel, loglambda, wavelengthscaling)
   minimumwavelength=realspec(1)%wavelength
   maximumwavelength=realspec(spectrumlength)%wavelength
   if (maxval(realspec%flux) .lt. baddata) then
@@ -135,11 +137,11 @@ elseif (filetype .eq. 2) then !2d fits file
   call read2dfits(trim(spectrumfile)//imagesection, rssdata, dimensions, axes)
 
   if (loglambda) then
-    minimumwavelength=wavelength*exp((1-referencepixel)*dispersion/wavelength)
-    maximumwavelength=wavelength*exp((axes(1)-referencepixel)*dispersion/wavelength)
+    minimumwavelength=wavelengthscaling*wavelength*exp((1-referencepixel)*dispersion/wavelength)
+    maximumwavelength=wavelengthscaling*wavelength*exp((axes(1)-referencepixel)*dispersion/wavelength)
   else
-    minimumwavelength=wavelength
-    maximumwavelength=wavelength+(axes(1)-1)*dispersion
+    minimumwavelength=wavelengthscaling*wavelength
+    maximumwavelength=wavelengthscaling*(wavelength+(axes(1)-1)*dispersion)
   endif
 
 elseif (filetype .eq. 3) then !3d fits file
@@ -147,11 +149,11 @@ elseif (filetype .eq. 3) then !3d fits file
   call read3dfits(trim(spectrumfile)//imagesection, cubedata, dimensions, axes)
 
   if (loglambda) then
-    minimumwavelength=wavelength*exp((1-referencepixel)*dispersion/wavelength)
-    maximumwavelength=wavelength*exp((axes(3)-referencepixel)*dispersion/wavelength)
+    minimumwavelength=wavelengthscaling*wavelength*exp((1-referencepixel)*dispersion/wavelength)
+    maximumwavelength=wavelengthscaling*wavelength*exp((axes(3)-referencepixel)*dispersion/wavelength)
   else
-    minimumwavelength=wavelength
-    maximumwavelength=wavelength+(axes(3)-1)*dispersion
+    minimumwavelength=wavelengthscaling*wavelength
+    maximumwavelength=wavelengthscaling*(wavelength+(axes(3)-1)*dispersion)
   endif
 
 elseif (filetype .eq. 4) then !1d ascii file
@@ -214,6 +216,8 @@ elseif (filetype .eq. 2) then !fit 2D data
         realspec(rss_k)%wavelength=wavelength+(rss_k-referencepixel)*dispersion
       enddo
     endif
+
+    realspec%wavelength = realspec%wavelength*wavelengthscaling
 
 !check for valid data
 !ultra crude at the moment
@@ -285,6 +289,8 @@ elseif (filetype .eq. 3) then !fit 3D data
           realspec(cube_k)%wavelength=wavelength+(cube_k-referencepixel)*dispersion
         enddo
       endif
+
+      realspec%wavelength = realspec%wavelength*wavelengthscaling
 
 !check for valid data
 !ultra crude at the moment

@@ -6,12 +6,12 @@ use mod_routines
 
 contains
 
-subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,resolutionguess,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits)
+subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,resolutionguess,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits,wavelengthscaling)
 
   implicit none
 
   logical :: normalise
-  real :: normalisation,redshiftguess,resolutionguess,vtol1,vtol2,rtol1,rtol2,baddata,pressure,c
+  real :: normalisation,redshiftguess,resolutionguess,vtol1,vtol2,rtol1,rtol2,baddata,pressure,c,wavelengthscaling
   character(len=2048) :: commandline
   character(len=512), dimension(:), allocatable :: options
   character(len=512),intent(out) :: spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile
@@ -275,6 +275,21 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
       print *,"}"
       call exit(0)
     endif
+
+    if ((trim(options(i))=="-ws" .or. trim(options(i))=="--wavelength-scaling")) then
+      if ((i+1) .le. Narg) then
+        read (options(i+1),*) wavelengthscaling
+        options(i:i+1)=""
+        if (popsize .lt. 0.d0) then
+          print *,gettime(),"error: invalid value given for wavelengthscaling"
+          call exit(1)
+        endif
+      else
+        print *,gettime(),"error: no value specified for ",trim(options(i))
+        call exit(1)
+      endif
+    endif
+
   ! to implement:
   !   continuum window and percentile
   enddo

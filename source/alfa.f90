@@ -204,7 +204,7 @@ elseif (allocated(spectrum_2d)) then !fit 2D data
     deallocate(continuum)
     if (allocated(skyspectrum)) deallocate(skyspectrum)
 
-    print "(X,A,A,I2,A,"//filenameformat(1)//",A,F6.1,A,F5.0)",gettime(),"(thread ",tid,") : finished row ",rss_i,". approx velocity and resolution ",c*(redshiftguess_overall-1.d0),", ",fittedlines(1)%resolution
+    print "(X,A,A,I2,A,"//filenameformat(1)//",A,F6.1,A,F6.0)",gettime(),"(thread ",tid,") : finished row ",rss_i,". approx velocity and resolution ",c*(redshiftguess_overall-1.d0),", ",fittedlines(1)%resolution
 
   enddo
 

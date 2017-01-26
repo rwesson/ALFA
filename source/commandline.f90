@@ -6,12 +6,12 @@ use mod_routines
 
 contains
 
-subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,resolutionguess,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits,wavelengthscaling)
+subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_initial,resolutionguess_initial,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits,wavelengthscaling)
 
   implicit none
 
   logical :: normalise
-  real :: normalisation,redshiftguess,resolutionguess,vtol1,vtol2,rtol1,rtol2,baddata,pressure,c,wavelengthscaling
+  real :: normalisation,redshiftguess_initial,resolutionguess_initial,vtol1,vtol2,rtol1,rtol2,baddata,pressure,c,wavelengthscaling
   character(len=2048) :: commandline
   character(len=512), dimension(:), allocatable :: options
   character(len=512),intent(out) :: spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile
@@ -64,7 +64,7 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
 
     if ((trim(options(i))=="-vg" .or. trim(options(i))=="--velocity-guess")) then
       if ((i+1) .le. Narg) then
-        read (options(i+1),*) redshiftguess
+        read (options(i+1),*) redshiftguess_initial
         options(i:i+1)=""
       else
         print *,gettime(),"error: no value specified for ",trim(options(i))
@@ -74,10 +74,10 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
 
     if ((trim(options(i))=="-rg" .or. trim(options(i))=="--resolution-guess")) then
       if ((i+1) .le. Narg) then
-        read (options(i+1),*) resolutionguess
+        read (options(i+1),*) resolutionguess_initial
         resolution_estimated=.true.
         options(i:i+1)=""
-        if (resolutionguess .lt. 0.) then
+        if (resolutionguess_initial .lt. 0.) then
           print *,gettime(),"error: invalid value given for resolution guess"
           call exit(1)
         endif
@@ -349,8 +349,8 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess,res
   endif
   endif
   print *,"             spectrum fitted if max value >    ",baddata
-  print *,"             velocity guess:                   ",redshiftguess
-  print *,"             resolution guess:                 ",resolutionguess
+  print *,"             velocity guess:                   ",redshiftguess_initial
+  print *,"             resolution guess:                 ",resolutionguess_initial
   print *,"             first pass velocity tolerance:    ",vtol1*c
   print *,"             second pass velocity tolerance:   ",vtol2*c
   print *,"             first pass resolution tolerance:  ",rtol1

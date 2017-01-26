@@ -45,7 +45,8 @@ real :: wavelengthscaling ! default is 1.0 which is for wavelengths in A.  subro
 
 CHARACTER(len=2048) :: commandline
 
-real :: redshiftguess, resolutionguess, redshiftguess_overall
+real :: redshiftguess, redshiftguess_initial, redshiftguess_overall ! redshiftguess_initial is the user-specified value, used in the initial fit which determines redshiftguess_overall.  that is then used in the chunks to find redshift
+real :: resolutionguess, resolutionguess_initial ! resolutionguess_initial is the user-specified value, used in the initial fit to determine resolutionguess.
 real :: vtol1, vtol2, rtol1, rtol2
 real :: blendpeak
 real :: normalisation, hbetaflux
@@ -107,11 +108,11 @@ call init_random_seed()
 
 ! read command line
 
-call readcommandline(commandline,normalise,normalisation,redshiftguess,resolutionguess,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits,wavelengthscaling)
+call readcommandline(commandline,normalise,normalisation,redshiftguess_initial,resolutionguess_initial,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits,wavelengthscaling)
 
 ! convert from velocity to redshift
 
-redshiftguess=1.+(redshiftguess/c)
+redshiftguess_initial=1.+(redshiftguess_initial/c)
 
 ! read in spectrum to fit and line list
 
@@ -160,7 +161,7 @@ elseif (allocated(spectrum_2d)) then !fit 2D data
 
   write (filenameformat,"(A,I1,A,I1)") "I",floor(log10(real(axes(2))))+1,".",floor(log10(real(axes(2))))+1
 
-!$OMP PARALLEL private(outputbasename,realspec,fittedspectrum,spectrumlength,continuum,nlines,spectrumchunk,linearraypos,overlap,startpos,startwlen,endpos,endwlen,skylines,skylines_section,stronglines,fittedlines,fittedlines_section,blendpeak,hbetaflux,totallines,skyspectrum,redshiftguess_overall,rss_i,tid) firstprivate(redshiftguess,resolutionguess) shared(skylines_catalogue,stronglines_catalogue,deeplines_catalogue,axes,spectrumfile)
+!$OMP PARALLEL private(outputbasename,realspec,fittedspectrum,spectrumlength,continuum,nlines,spectrumchunk,linearraypos,overlap,startpos,startwlen,endpos,endwlen,skylines,skylines_section,stronglines,fittedlines,fittedlines_section,blendpeak,hbetaflux,totallines,skyspectrum,redshiftguess_overall,rss_i,tid,redshiftguess,resolutionguess,file_exists) shared(skylines_catalogue,stronglines_catalogue,deeplines_catalogue,axes,spectrumfile,redshiftguess_initial,resolutionguess_initial)
 !$OMP MASTER
   if (omp_get_num_threads().gt.1) then
     print "(X,A9,X,A,I2,A)",gettime(),"using ",omp_get_num_threads()," processors"
@@ -178,6 +179,8 @@ elseif (allocated(spectrum_2d)) then !fit 2D data
     spectrumlength=axes(1)
     realspec%wavelength = wavelengths
     realspec%flux=spectrum_2d(:,rss_i)
+    redshiftguess=redshiftguess_initial
+    resolutionguess=resolutionguess_initial
 
 !check for valid data
 !ultra crude at the moment
@@ -189,6 +192,8 @@ elseif (allocated(spectrum_2d)) then !fit 2D data
       deallocate(realspec)
       cycle
     endif
+
+    print *,gettime(),"fitting row ",rss_i
 
     allocate (fittedspectrum(spectrumlength))
     fittedspectrum%wavelength=realspec%wavelength
@@ -216,9 +221,9 @@ elseif (allocated(spectrum_2d)) then !fit 2D data
   deallocate(spectrum_2d)
 
 elseif (allocated(spectrum_3d)) then !fit 3D data
-!process cube
+
   print *,gettime(),"processing cube"
-!$OMP PARALLEL private(outputbasename,realspec,fittedspectrum,spectrumlength,continuum,nlines,spectrumchunk,linearraypos,overlap,startpos,startwlen,endpos,endwlen,skylines,skylines_section,stronglines,fittedlines,fittedlines_section,blendpeak,hbetaflux,totallines,skyspectrum,redshiftguess_overall,cube_i,cube_j,tid) firstprivate(redshiftguess,resolutionguess) shared(skylines_catalogue,stronglines_catalogue,deeplines_catalogue,axes,spectrumfile)
+!$OMP PARALLEL private(outputbasename,realspec,fittedspectrum,spectrumlength,continuum,nlines,spectrumchunk,linearraypos,overlap,startpos,startwlen,endpos,endwlen,skylines,skylines_section,stronglines,fittedlines,fittedlines_section,blendpeak,hbetaflux,totallines,skyspectrum,redshiftguess_overall,cube_i,cube_j,tid,redshiftguess,resolutionguess,file_exists) shared(skylines_catalogue,stronglines_catalogue,deeplines_catalogue,axes,spectrumfile,redshiftguess_initial,resolutionguess_initial)
 
 !$OMP MASTER
   if (omp_get_num_threads().gt.1) then
@@ -240,6 +245,8 @@ elseif (allocated(spectrum_3d)) then !fit 3D data
       spectrumlength=axes(3)
       realspec%flux=spectrum_3d(cube_i,cube_j,:)
       realspec%wavelength=wavelengths
+      redshiftguess=redshiftguess_initial
+      resolutionguess=resolutionguess_initial
 
 !check for valid data
 !ultra crude at the moment

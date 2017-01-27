@@ -38,9 +38,9 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
 #endif
 
   !is the file a FITS file?
-  !if it ends with .fit, .FIT, .fits or .FITS, assume that it is.
+  !if it contains the string .fit or .FIT, assume that it is.
 
-  if (index(spectrumfile,".fit").ge.len_trim(spectrumfile)-4 .or. index(spectrumfile,".FIT").ge.len_trim(spectrumfile)-4) then !read header
+  if (index(spectrumfile,".fit").ge.0 .or. index(spectrumfile,".FIT").ge.0) then !read header
 
     status=0
     !  Get an unused Logical Unit Number to use to open the FITS file.

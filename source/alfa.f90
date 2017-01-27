@@ -143,6 +143,8 @@ if (allocated(spectrum_1d)) then !1d spectrum
   realspec%wavelength = wavelengths
   realspec%flux = spectrum_1d
   realspec%uncertainty = 0.d0
+  redshiftguess=redshiftguess_initial
+  resolutionguess=resolutionguess_initial
 
   fittedspectrum%wavelength=realspec%wavelength
   fittedspectrum%flux=0.d0

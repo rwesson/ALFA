@@ -175,7 +175,7 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_ini
       options(i:i+1)=""
     endif
 
-    if (trim(options(i))=="-skycat") then
+    if (trim(options(i))=="--sky-catalogue" .or. trim(options(i))=="-skyc" .or. trim(options(i))=="-skycat") then
       if ((i+1) .le. Narg) then
         read (options(i+1),"(A)") skylinelistfile
         options(i:i+1)=""
@@ -185,7 +185,7 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_ini
       endif
     endif
 
-    if (trim(options(i))=="-strongcat") then
+    if (trim(options(i))=="--strong-catalogue" .or. trim(options(i))=="-sc" .or. trim(options(i))=="-strongcat") then
       if ((i+1) .le. Narg) then
         read (options(i+1),"(A)") stronglinelistfile
         options(i:i+1)=""
@@ -195,7 +195,7 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_ini
       endif
     endif
 
-    if (trim(options(i))=="-deepcat") then
+    if (trim(options(i))=="--deep-catalogue" .or. trim(options(i))=="-dc" .or. trim(options(i))=="-deepcat") then
       if ((i+1) .le. Narg) then
         read (options(i+1),"(A)") deeplinelistfile
         options(i:i+1)=""

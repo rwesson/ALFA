@@ -8,14 +8,14 @@ _alfa()
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
-    opts="-n --normalise -vg --velocity-guess -rg --resolution-guess -vtol1 --velocity-tolerance-1 -vtol2 --velocity-tolerance-2 -rtol1 --resolution-tolerance-1 -rtol2 --resolution-tolerance-2 -ss --subtract-sky -o --output-dir -skycat -strongcat -deepcat -g --generations -ps --populationsize -pr --pressure -b --bad-data -ul --upper-limits --citation -ws --wavelength-scaling"
+    opts="-n --normalise -vg --velocity-guess -rg --resolution-guess -vtol1 --velocity-tolerance-1 -vtol2 --velocity-tolerance-2 -rtol1 --resolution-tolerance-1 -rtol2 --resolution-tolerance-2 -ss --subtract-sky -o --output-dir --sky-catalogue --strong-catalogue --deep-catalogue -skyc -sc -dc -g --generations -ps --populationsize -pr --pressure -b --bad-data -ul --upper-limits --citation -ws --wavelength-scaling"
 
     if [[ "$cur" == -* ]]; then
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
     fi
 
     case "${prev}" in
-        -deepcat|-strongcat|-skycat)
+        --sky-catalogue|--strong-catalogue|--deep-catalogue|-skyc|-sc|-dc)
             _filedir
             return 0
             ;;

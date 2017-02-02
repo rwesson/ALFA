@@ -40,8 +40,8 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
   !is the file a FITS file?
   !if it contains the string .fit or .FIT, assume that it is.
 
-  if (index(spectrumfile,".fit").gt.0 .or. index(spectrumfile,".FIT").gt.0) then !read header
-    print *,"looks like a FITS file"
+  if (index(spectrumfile,".fit").gt.2 .or. index(spectrumfile,".FIT").gt.2) then !filename contains at least 1 character followed by .fit or .FIT
+    print *,gettime(),"this looks like a FITS file (.fit or .FIT appear in the the filename)"
     status=0
     !  Get an unused Logical Unit Number to use to open the FITS file.
     call ftgiou(unit,status)
@@ -236,6 +236,8 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
     endif
 
   else ! end of FITS file loop. if we are here, assume file is 1D ascii with wavelength and flux columns.
+
+    print *,gettime(),"filename does not contain .fit or .FIT, so assuming plain text format"
 
     allocate(axes(1))
 

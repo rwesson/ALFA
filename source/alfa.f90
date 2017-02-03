@@ -61,6 +61,7 @@ logical :: subtractsky=.false. !attempt to fit night sky emission lines
 logical :: upperlimits=.false. !if true, code reports 3 sigma limit for undetected lines
 logical :: file_exists
 
+logical :: collapse !if true, 2D or 3D data is summed into a single spectrum
 logical :: messages
 
 character(len=12) :: fluxformat !for writing out the line list
@@ -88,6 +89,7 @@ skylinelistfile=trim(PREFIX)//"/share/alfa/sky.cat"
 outputdirectory="./"
 imagesection=""
 
+collapse=.false.
 messages=.false.
 
 popsize=30
@@ -108,7 +110,7 @@ call init_random_seed()
 
 ! read command line
 
-call readcommandline(commandline,normalise,normalisation,redshiftguess_initial,resolutionguess_initial,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits,wavelengthscaling)
+call readcommandline(commandline,normalise,normalisation,redshiftguess_initial,resolutionguess_initial,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits,wavelengthscaling,collapse)
 
 ! convert from velocity to redshift
 
@@ -125,6 +127,38 @@ call readdata(trim(spectrumfile)//trim(imagesection), spectrum_1d, spectrum_2d, 
 minimumwavelength = wavelengths(1)
 maximumwavelength = wavelengths(size(wavelengths))
 spectrumlength = size(wavelengths)
+
+! collapse data to 1D if requested
+
+if (collapse) then
+  if (allocated(spectrum_2d)) then
+
+    print *,gettime(),"summing rows in 2D spectrum"
+    allocate(spectrum_1d(spectrumlength))
+    spectrum_1d = 0.d0
+
+    do rss_i = 1,axes(2)
+      spectrum_1d = spectrum_1d + spectrum_2d(:,rss_i)
+    enddo
+
+    deallocate(spectrum_2d)
+
+  elseif (allocated(spectrum_3d)) then
+
+    print *,gettime(),"summing pixels in 3D spectrum"
+    allocate(spectrum_1d(spectrumlength))
+    spectrum_1d = 0.d0
+
+    do cube_i = 1,axes(1)
+      do cube_j = 1,axes(2)
+        spectrum_1d = spectrum_1d + spectrum_3d(cube_i,cube_j,:)
+      enddo
+    enddo
+
+    deallocate(spectrum_3d)
+
+  endif
+endif
 
 !now we have all the flux values in an array and can fit the spectra
 

@@ -6,11 +6,11 @@ use mod_routines
 
 contains
 
-subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_initial,resolutionguess_initial,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits,wavelengthscaling)
+subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_initial,resolutionguess_initial,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits,wavelengthscaling,collapse)
 
   implicit none
 
-  logical :: normalise
+  logical :: normalise,collapse
   real :: normalisation,redshiftguess_initial,resolutionguess_initial,vtol1,vtol2,rtol1,rtol2,baddata,pressure,c,wavelengthscaling
   character(len=2048) :: commandline
   character(len=512), dimension(:), allocatable :: options
@@ -252,6 +252,11 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_ini
       options(i)=""
     endif
 
+    if ((trim(options(i))=="--collapse")) then
+      collapse=.true.
+      options(i)=""
+    endif
+
     if (trim(options(i))=="--citation") then
       print *
       print *,"ALFA was described in Wesson, 2016, MNRAS, 456, 3774.  The bibtex data for the paper is:"
@@ -349,6 +354,12 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_ini
   endif
   endif
   print *,"             spectrum fitted if max value >    ",baddata
+  print *,"             Angstroms per wavelength unit:    ",wavelengthscaling
+  if (collapse) then
+    print *,"             multiple spectra:                  collapsed to 1D"
+  else
+    print *,"             multiple spectra:                  fitted individually"
+  endif
   print *,"             velocity guess:                   ",redshiftguess_initial
   print *,"             resolution guess:                 ",resolutionguess_initial
   print *,"             first pass velocity tolerance:    ",vtol1*c

@@ -6,7 +6,7 @@ use mod_routines
 
 contains
 
-subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_initial,resolutionguess_initial,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits,wavelengthscaling,collapse)
+subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_initial,resolutionguess_initial,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits,wavelengthscaling,collapse,exclusions)
 
   implicit none
 
@@ -19,6 +19,9 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_ini
   integer,intent(out) :: generations,popsize
   integer :: Narg,nargused,i
   logical,intent(out) :: subtractsky,resolution_estimated,file_exists,upperlimits
+  real, dimension(:), allocatable :: exclusions
+  real :: excludewavelength
+  integer :: exclusioncount
 
 #ifdef CO
   print *,"subroutine: readcommandline"
@@ -31,6 +34,7 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_ini
   narg = 0
   nargused = 0 !to count options specified
   narg = IARGC() !count input arguments
+  exclusioncount = 0 !to count lines excluded
 
   if (narg .eq. 0) then
     print *,"Usage: alfa [options] [file]"
@@ -45,9 +49,21 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_ini
   options=""
   print *,gettime(),"command line: ",trim(commandline)
 
+! read command line options into array, counting how many times the exclude line option is present
+
   do i=1,Narg
     call get_command_argument(i,options(i))
+    if (trim(options(i)).eq."-el" .or. trim(options(i)).eq."--exclude-line") then
+      exclusioncount = exclusioncount + 1
+    endif
   enddo
+
+  allocate(exclusions(exclusioncount))
+  if (exclusioncount .gt. 0) then
+    exclusioncount = 1 !now repurposing this variable to be an index for the array
+  endif
+
+! process the options
 
   do i=1,narg
 
@@ -285,10 +301,22 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_ini
       if ((i+1) .le. Narg) then
         read (options(i+1),*) wavelengthscaling
         options(i:i+1)=""
-        if (popsize .lt. 0.d0) then
+        if (wavelengthscaling .lt. 0.d0) then
           print *,gettime(),"error: invalid value given for wavelengthscaling"
           call exit(1)
         endif
+      else
+        print *,gettime(),"error: no value specified for ",trim(options(i))
+        call exit(1)
+      endif
+    endif
+
+    if ((trim(options(i))=="-el" .or. trim(options(i))=="--exclude-line")) then
+      if ((i+1) .le. Narg) then
+        read (options(i+1),*) excludewavelength
+        options(i:i+1)=""
+        exclusions(exclusioncount) = excludewavelength
+        exclusioncount = exclusioncount + 1
       else
         print *,gettime(),"error: no value specified for ",trim(options(i))
         call exit(1)
@@ -376,6 +404,9 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_ini
   endif
   print *,"             strong line catalogue:            ",trim(stronglinelistfile)
   print *,"             deep line catalogue:              ",trim(deeplinelistfile)
+  if (exclusioncount .gt. 0) then
+  print *,"             lines excluded from fitting:      ",exclusions
+  endif
   print *,"             number of generations:            ",generations
   print *,"             population size:                  ",popsize
   print *,"             pressure factor:                  ",pressure

@@ -64,6 +64,8 @@ logical :: file_exists
 logical :: collapse !if true, 2D or 3D data is summed into a single spectrum
 logical :: messages
 
+real, dimension(:), allocatable :: exclusions ! lines to be ignored when reading in catalogues
+
 character(len=12) :: fluxformat !for writing out the line list
 character(len=4),dimension(2) :: filenameformat !variable format to give suitable file names for 2D and 3D outputs
 
@@ -110,7 +112,7 @@ call init_random_seed()
 
 ! read command line
 
-call readcommandline(commandline,normalise,normalisation,redshiftguess_initial,resolutionguess_initial,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits,wavelengthscaling,collapse)
+call readcommandline(commandline,normalise,normalisation,redshiftguess_initial,resolutionguess_initial,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits,wavelengthscaling,collapse,exclusions)
 
 ! convert from velocity to redshift
 
@@ -165,9 +167,9 @@ endif
 !read in the line catalogues
 
 print *,gettime(),"reading in line catalogues"
-call readlinelist(skylinelistfile, skylines_catalogue, nlines,minimumwavelength,maximumwavelength)
-call readlinelist(stronglinelistfile, stronglines_catalogue, nlines,minimumwavelength,maximumwavelength)
-call readlinelist(deeplinelistfile, deeplines_catalogue, nlines,minimumwavelength,maximumwavelength)
+call readlinelist(skylinelistfile, skylines_catalogue, nlines,minimumwavelength,maximumwavelength,exclusions)
+call readlinelist(stronglinelistfile, stronglines_catalogue, nlines,minimumwavelength,maximumwavelength,exclusions)
+call readlinelist(deeplinelistfile, deeplines_catalogue, nlines,minimumwavelength,maximumwavelength,exclusions)
 
 if (allocated(spectrum_1d)) then !1d spectrum
 

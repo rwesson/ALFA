@@ -23,6 +23,10 @@ Prints out the bibliographic details of the paper to cite if you use \fBalfa\fR 
 Sums all spectra in multi-dimensional FITS files into a single spectrum.  Has no effect on 1D data.
 
 .TP
+.B \-el, \-\-exclude-line [REAL]
+When reading in the line catalogues, any wavelengths indicated with this option will be ignored.  For example, if H alpha were saturated, it could be excluded from the fit with --exclude-line 6562.77.  Any number of lines can be excluded by repeating the option with the appropriate wavelenths.
+
+.TP
 .B \-g, \-\-generations [INTEGER]
 The number of generations used in the genetic algorithm. Default: 500
 
@@ -56,7 +60,7 @@ Variation allowed in resolution in second pass. Default: 500.
 
 .TP
 .B \-skyc, --sky-catalogue; \-sc, --strong-catalogue; \-dc, --deep-catalogue [FILENAME]
-The files containing the line catalogues to be used for the removal of sky lines, the estimation of velocity and resolution, and the full line fitting.  The default catalogues are stored in /usr/share/alfa .  If you wish to create your own catalogue, the required format is that each line should be 85 characters wide, with a wavelength in the first column, and the rest of the characters are not used by the code but are transferred to the output files.  They can thus be used, as in the supplied catalogues, for line transition data.
+The files containing the line catalogues to be used for the removal of sky lines, the estimation of velocity and resolution, and the full line fitting.  The default catalogues are stored in /usr/share/alfa .  If you wish to create your own catalogue, the required format is that each line should be 85 characters wide, with a wavelength in the first column, and the rest of the characters are not used by the code but are transferred to the output files.  They can thus be used, as in the supplied catalogues, for line transition data.  To use the default catalogues but exclude some lines, the \fB--exclude-line\fR option can be used.
 
 .TP
 .B \-ss, \-\-subtract\-sky

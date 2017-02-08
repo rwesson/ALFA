@@ -279,12 +279,13 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
 
 end subroutine readdata
 
-subroutine readlinelist(linelistfile,referencelinelist,nlines,wavelength1, wavelength2)
+subroutine readlinelist(linelistfile,referencelinelist,nlines,wavelength1,wavelength2,exclusions)
 !this subroutine reads in the line catalogue
 ! - linelistfile is the name of the line catalogue file
 ! - referencelinelist is the array into which the values are read
 ! - nlines is the number of lines successfully read into the array
 ! - wavelength1 and wavelength2 define the range of wavelenths to be read in
+! - exclusions is an array of wavelengths to be skipped if found in the input catalogue
 
   implicit none
   character (len=512) :: linelistfile
@@ -293,6 +294,7 @@ subroutine readlinelist(linelistfile,referencelinelist,nlines,wavelength1, wavel
   real :: input1, wavelength1, wavelength2
   integer :: io, nlines
   logical :: file_exists
+  real, dimension(:) :: exclusions
 
   type(linelist), dimension(:), allocatable :: referencelinelist
 
@@ -318,8 +320,8 @@ subroutine readlinelist(linelistfile,referencelinelist,nlines,wavelength1, wavel
     OPEN(199, file=linelistfile, iostat=IO, status='old')
     DO WHILE (IO >= 0)
       READ(199,*,end=110) input1
-      if (input1 .ge. wavelength1 .and. input1 .le.  wavelength2) then
-      !only read in lines that lie within the observed wavelength range
+      if (input1 .ge. wavelength1 .and. input1 .le.  wavelength2 .and. .not. (any(exclusions.eq.input1))) then
+      !only read in lines that lie within the observed wavelength range, and are not in the line exclusions array
         I = I + 1
       endif
     END DO
@@ -334,7 +336,7 @@ subroutine readlinelist(linelistfile,referencelinelist,nlines,wavelength1, wavel
   I=1
   do while (i .le. nlines)
     READ(199,'(F7.3,A)') input1, linedatainput
-    if (input1 .ge. wavelength1 .and. input1 .le. wavelength2) then
+    if (input1 .ge. wavelength1 .and. input1 .le. wavelength2 .and. .not. (any(exclusions.eq.input1))) then
       referencelinelist(i)%wavelength = input1
       referencelinelist(i)%peak=1000.
 !formerly abs(realspec(minloc((realspec%wavelength-input1)**2,1))%flux) but in case of weak lines near to negative flux values this prevented them being fitted. it makes a negligible difference to the running time

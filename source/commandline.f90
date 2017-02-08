@@ -344,6 +344,8 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_ini
 !display the settings
 
   print *,gettime(),"ALFA is running with the following settings:"
+  print *,"              file:                            ",trim(spectrumfile)
+  if (len(trim(imagesection)).gt.0) print *,"                fitting section:               ",imagesection
   if (.not.normalise) then
     print *,"             normalisation:                    using measured value of Hb"
   else

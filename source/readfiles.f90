@@ -152,7 +152,7 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
     ! get units of wavelength
     ! current assumption is it will be A or nm
 
-    if (wavelengthscaling .ne. 0.d0) then
+    if (wavelengthscaling .ne. 1.d0) then
       print *,gettime(),"  wavelength units: set by user. Angstroms per wavelength unit = ",wavelengthscaling
     else
       call ftgkys(unit,key_cunit,cunit,"",status)

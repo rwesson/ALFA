@@ -82,7 +82,7 @@ rtol2=500. !second pass
 vtol1=0.003 !variation allowed in velocity (expressed as redshift) on first pass. 0.003 = 900 km/s
 vtol2=0.0002 !second pass. 0.0002 = 60 km/s
 baddata=0.d0
-wavelengthscaling=0.d0
+wavelengthscaling=1.d0
 
 stronglinelistfile=trim(PREFIX)//"/share/alfa/strong.cat"
 deeplinelistfile=trim(PREFIX)//"/share/alfa/deep.cat"

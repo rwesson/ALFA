@@ -76,7 +76,9 @@ integer :: tid, omp_get_thread_num, omp_get_num_threads
 c=299792.458 !km/s
 !default values in absence of user specificed guess
 redshiftguess=0.0 !km/s
+redshiftguess_initial=0.0
 resolutionguess=0.0 !lambda/deltalambda, determined assuming nyquist sampling if not specified
+resolutionguess_initial=0.0
 rtol1=0.d0 !variation allowed in resolution on first pass.  determined later, either from user input, or to be equal to resolution guess.
 rtol2=500. !second pass
 vtol1=0.003 !variation allowed in velocity (expressed as redshift) on first pass. 0.003 = 900 km/s

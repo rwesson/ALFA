@@ -37,6 +37,9 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
   print *,"subroutine: readdata"
 #endif
 
+  cunit=""
+  ctype=""
+
   !is the file a FITS file?
   !if it contains the string .fit or .FIT, assume that it is.
 

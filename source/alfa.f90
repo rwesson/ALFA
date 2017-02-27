@@ -312,7 +312,7 @@ elseif (allocated(spectrum_3d)) then !fit 3D data
       deallocate(continuum)
       if (allocated(skyspectrum)) deallocate(skyspectrum)
 
-      print "(X,A,A,I2,A,"//filenameformat(1)//",A,"//filenameformat(2)//"A,F6.1,A,F5.0)",gettime(),"(thread ",tid,") : finished pixel ",cube_i,",",cube_j,". approx velocity and resolution ",c*(redshiftguess_overall-1.d0),", ",fittedlines(1)%resolution
+      print "(X,A,A,I2,A,"//filenameformat(1)//",A,"//filenameformat(2)//",A,F6.1,A,F5.0)",gettime(),"(thread ",tid,") : finished pixel ",cube_i,",",cube_j,". approx velocity and resolution ",c*(redshiftguess_overall-1.d0),", ",fittedlines(1)%resolution
 
     enddo
   enddo

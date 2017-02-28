@@ -340,6 +340,11 @@ endif
 
 if (allocated(spectrum_2d)) deallocate(spectrum_2d)
 if (allocated(spectrum_3d)) deallocate(spectrum_3d)
+if (allocated(axes)) deallocate(axes)
+if (allocated(wavelengths)) deallocate(wavelengths)
+if (allocated(skylines_catalogue)) deallocate(skylines_catalogue)
+if (allocated(stronglines_catalogue)) deallocate(stronglines_catalogue)
+if (allocated(deeplines_catalogue)) deallocate(deeplines_catalogue)
 
 print *,gettime(),"all done"
 print *

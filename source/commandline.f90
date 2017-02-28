@@ -61,6 +61,8 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_ini
   allocate(exclusions(exclusioncount))
   if (exclusioncount .gt. 0) then
     exclusioncount = 1 !now repurposing this variable to be an index for the array
+  else
+    deallocate(exclusions)
   endif
 
 ! process the options

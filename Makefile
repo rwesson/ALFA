@@ -63,7 +63,7 @@ ifeq ($(FC),ifort)
   else ifeq ($(CO),pedantic)
     FFLAGS += -pg -g -check bounds -check uninit -warn all -warn nodeclarations -WB -zero -traceback -std -DCO=\"$(CO)\"
   else
-    FFLAGS += -axavx -msse3 -O3 -ip -ipo # for today's CPUs
+    FFLAGS += -O3 -ip -ipo # for today's CPUs
 #    FFLAGS = -fast -tune pn4 # for older pentium 4
   endif
 endif

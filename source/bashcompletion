@@ -8,7 +8,7 @@ _alfa()
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
-    opts="-n --normalise -vg --velocity-guess -rg --resolution-guess -vtol1 --velocity-tolerance-1 -vtol2 --velocity-tolerance-2 -rtol1 --resolution-tolerance-1 -rtol2 --resolution-tolerance-2 -ss --subtract-sky -o --output-dir --sky-catalogue --strong-catalogue --deep-catalogue -skyc -sc -dc -g --generations -ps --populationsize -pr --pressure -b --bad-data -ul --upper-limits --citation -ws --wavelength-scaling --collapse -el --exclude-line"
+    opts="-n --normalise -vg --velocity-guess -rg --resolution-guess -vtol1 --velocity-tolerance-1 -vtol2 --velocity-tolerance-2 -rtol1 --resolution-tolerance-1 -rtol2 --resolution-tolerance-2 -ss --subtract-sky -o --output-dir --sky-catalogue --strong-catalogue --deep-catalogue -skyc -sc -dc -g --generations -ps --populationsize -pr --pressure -b --bad-data -ul --upper-limits --citation -ws --wavelength-scaling --collapse -el --exclude-line -dl --detection-limit"
 
     if [[ "$cur" == -* ]]; then
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
@@ -23,7 +23,7 @@ _alfa()
             _filedir -d
             return 0
             ;;
-        --pressure|-g|-ps|--generations|--resolution-guess|-n|--resolution-tolerance-1|--velocity-guess|--normalise|--resolution-tolerance-2|--velocity-tolerance-1|-rg|--velocity-tolerance-2|-rtol1|-vg|--populationsize|-rtol2|-vtol1|-pr|-vtol2|-b|--bad-data|-ul|--upper-limits|--citation|-ws|--wavelength-scaling|-el|--exclude-line)
+        --pressure|-g|-ps|--generations|--resolution-guess|-n|--resolution-tolerance-1|--velocity-guess|--normalise|--resolution-tolerance-2|--velocity-tolerance-1|-rg|--velocity-tolerance-2|-rtol1|-vg|--populationsize|-rtol2|-vtol1|-pr|-vtol2|-b|--bad-data|-ws|--wavelength-scaling|-el|--exclude-line|-dl|--detection-limit)
             COMPREPLY=()
             return 0
             ;;

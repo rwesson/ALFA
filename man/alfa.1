@@ -23,6 +23,10 @@ Prints out the bibliographic details of the paper to cite if you use \fBalfa\fR 
 Sums all spectra in multi-dimensional FITS files into a single spectrum.  Has no effect on 1D data.
 
 .TP
+.B \-dl, \-\-detection-limit
+Sets the factor by which a line's flux must exceed the locally estimated noise level for it to be considered a detection.  Default: 3.0
+
+.TP
 .B \-el, \-\-exclude-line [REAL]
 When reading in the line catalogues, any wavelengths indicated with this option will be ignored.  For example, if H alpha were saturated, it could be excluded from the fit with --exclude-line 6562.77.  Any number of lines can be excluded by repeating the option with the appropriate wavelengths.
 

@@ -6,7 +6,7 @@ use mod_routines
 
 contains
 
-subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_initial,resolutionguess_initial,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits,wavelengthscaling,collapse,exclusions)
+subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_initial,resolutionguess_initial,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits,wavelengthscaling,collapse,exclusions,detectionlimit)
 
   implicit none
 
@@ -21,6 +21,7 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_ini
   logical,intent(out) :: subtractsky,resolution_estimated,file_exists,upperlimits
   real, dimension(:), allocatable :: exclusions
   real :: excludewavelength
+  real :: detectionlimit
   integer :: exclusioncount
 
 #ifdef CO
@@ -319,6 +320,20 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_ini
         options(i:i+1)=""
         exclusions(exclusioncount) = excludewavelength
         exclusioncount = exclusioncount + 1
+      else
+        print *,gettime(),"error: no value specified for ",trim(options(i))
+        call exit(1)
+      endif
+    endif
+
+    if ((trim(options(i))=="-dl" .or. trim(options(i))=="--detection-limit")) then
+      if ((i+1) .le. Narg) then
+        read (options(i+1),*) detectionlimit
+        options(i:i+1)=""
+        if (detectionlimit .lt. 0) then
+          detectionlimit = 0.d0
+          print *,gettime(),"warning: negative sigma detection limit specified - has been reset to zero"
+        endif
       else
         print *,gettime(),"error: no value specified for ",trim(options(i))
         call exit(1)

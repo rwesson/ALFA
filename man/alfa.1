@@ -20,7 +20,7 @@ Prints out the bibliographic details of the paper to cite if you use \fBalfa\fR 
 
 .TP
 .B \-\-collapse
-Sums all spectra in multi-dimensional FITS files into a single spectrum.  Has no effect on 1D data.
+Sums all spectra in multi-dimensional FITS files into a single spectrum.  Spectra whose peak value is below any value specified with the \fB--bad-data\fR option are excluded.  \fB--collapse\fR has no effect on 1D data.
 
 .TP
 .B \-dl, \-\-detection-limit

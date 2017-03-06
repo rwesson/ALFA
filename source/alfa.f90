@@ -135,6 +135,7 @@ maximumwavelength = wavelengths(size(wavelengths))
 spectrumlength = size(wavelengths)
 
 ! collapse data to 1D if requested
+! apply baddata to sum only pixels with good data in
 
 if (collapse) then
   if (allocated(spectrum_2d)) then
@@ -144,7 +145,9 @@ if (collapse) then
     spectrum_1d = 0.d0
 
     do rss_i = 1,axes(2)
-      spectrum_1d = spectrum_1d + spectrum_2d(:,rss_i)
+      if (maxval(spectrum_2d(:,rss_i)).gt. baddata) then
+        spectrum_1d = spectrum_1d + spectrum_2d(:,rss_i)
+      endif
     enddo
 
     deallocate(spectrum_2d)
@@ -157,7 +160,9 @@ if (collapse) then
 
     do cube_i = 1,axes(1)
       do cube_j = 1,axes(2)
-        spectrum_1d = spectrum_1d + spectrum_3d(cube_i,cube_j,:)
+        if (maxval(spectrum_3d(cube_i,cube_j,:)) .gt. baddata) then
+          spectrum_1d = spectrum_1d + spectrum_3d(cube_i,cube_j,:)
+        endif
       enddo
     enddo
 

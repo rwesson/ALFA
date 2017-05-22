@@ -174,7 +174,7 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
     !now we have the information we need to read in the data
 
     group=1
-    nullval=-999
+    nullval=-1.e-27
 
     if (dimensions.eq.1) then
 

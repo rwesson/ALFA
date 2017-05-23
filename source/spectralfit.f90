@@ -311,24 +311,24 @@ enddo
 
 !Balmer
 if (minval(abs(continuum%wavelength-3630.)) .lt. 3630./fittedlines(1)%resolution) then
-  if (messages) write (100+tid,"(F9.2,' &          & ',"//fluxformat//",' & ',"//fluxformat//",' & Balmer jump-\\')") 3645.5, continuum(minloc(abs(continuum%wavelength-3630.)))%flux, realspec(minloc(abs(continuum%wavelength-3630.)))%uncertainty
+  if (messages) write (100+tid,"(F9.2,' &           & ',"//fluxformat//",' & ',"//fluxformat//",' & Balmer jump-\\')") 3645.5, continuum(minloc(abs(continuum%wavelength-3630.)))%flux, realspec(minloc(abs(continuum%wavelength-3630.)))%uncertainty
   write (200+tid,"(2(F9.2),"//fluxformat//","//fluxformat//")") 3645.5, 3645.5, continuum(minloc(abs(continuum%wavelength-3630.)))%flux, realspec(minloc(abs(continuum%wavelength-3630.)))%uncertainty
 endif
 
 if (minval(abs(continuum%wavelength-3700.)) .lt. 3700./fittedlines(1)%resolution) then
-  if (messages) write (100+tid,"(F9.2,' &          & ',"//fluxformat//",' & ',"//fluxformat//",' & Balmer jump+\\')") 3646.5, continuum(minloc(abs(continuum%wavelength-3700.)))%flux, realspec(minloc(abs(continuum%wavelength-3700.          )))%uncertainty
+  if (messages) write (100+tid,"(F9.2,' &           & ',"//fluxformat//",' & ',"//fluxformat//",' & Balmer jump+\\')") 3646.5, continuum(minloc(abs(continuum%wavelength-3700.)))%flux, realspec(minloc(abs(continuum%wavelength-3700.)))%uncertainty
   write (200+tid,"(2(F9.2),"//fluxformat//","//fluxformat//")") 3646.5, 3646.5, continuum(minloc(abs(continuum%wavelength-3700.)))%flux, realspec(minloc(abs(continuum%wavelength-3700.)))%uncertainty
 endif
 
 !paschen
 
 if (minval(abs(continuum%wavelength-8100.)) .lt. 8100./fittedlines(1)%resolution) then
-  if (messages) write (100+tid,"(F9.2,' &          & ',"//fluxformat//",' & ',"//fluxformat//",' & Paschen jump-\\')") 8100.0, continuum(minloc(abs(continuum%wavelength-8100.)))%flux, realspec(minloc(abs(continuum%wavelength-8100.          )))%uncertainty
+  if (messages) write (100+tid,"(F9.2,' &           & ',"//fluxformat//",' & ',"//fluxformat//",' & Paschen jump-\\')") 8100.0, continuum(minloc(abs(continuum%wavelength-8100.)))%flux, realspec(minloc(abs(continuum%wavelength-8100.)))%uncertainty
   write (200+tid,"(2(F9.2),"//fluxformat//","//fluxformat//")") 8100.0, 8100.0, continuum(minloc(abs(continuum%wavelength-8100.)))%flux, realspec(minloc(abs(continuum%wavelength-8100.)))%uncertainty
 endif
 
 if (minval(abs(continuum%wavelength-8400.)) .lt. 8400./fittedlines(1)%resolution) then
-  if (messages) write (100+tid,"(F9.2,' &          & ',"//fluxformat//",' & ',"//fluxformat//",' & Paschen jump+\\')") 8400.0, continuum(minloc(abs(continuum%wavelength-8400.)))%flux, realspec(minloc(abs(continuum%wavelength-8400.          )))%uncertainty
+  if (messages) write (100+tid,"(F9.2,' &           & ',"//fluxformat//",' & ',"//fluxformat//",' & Paschen jump+\\')") 8400.0, continuum(minloc(abs(continuum%wavelength-8400.)))%flux, realspec(minloc(abs(continuum%wavelength-8400.)))%uncertainty
   write (200+tid,"(2(F9.2),"//fluxformat//","//fluxformat//")") 8400.0, 8400.0, continuum(minloc(abs(continuum%wavelength-8400.)))%flux, realspec(minloc(abs(continuum%wavelength-8400.)))%uncertainty
 endif
 

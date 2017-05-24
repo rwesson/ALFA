@@ -16,6 +16,7 @@ _alfa()
 
     case "${prev}" in
         --sky-catalogue|--strong-catalogue|--deep-catalogue|-skyc|-sc|-dc)
+            COMPREPLY=( $(compgen -W "$(/bin/ls /usr/share/alfa/)" -- $cur) )
             _filedir
             return 0
             ;;

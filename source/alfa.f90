@@ -74,6 +74,10 @@ character(len=4),dimension(2) :: filenameformat !variable format to give suitabl
 
 integer :: tid, omp_get_thread_num, omp_get_num_threads
 
+! switches for writing out continuum fluxes
+
+integer :: writeb1, writeb2, writep1, writep2
+
 c=299792.458 !km/s
 !default values in absence of user specificed guess
 redshiftguess=0.0 !km/s

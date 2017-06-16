@@ -27,7 +27,7 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
 
   !cfitsio variables
 
-  integer :: status,unit,readwrite,blocksize,hdutype,group
+  integer :: status,unit,readwrite,blocksize,hdutype,group,numberofhdus
   character(len=80) :: key_cunit, key_ctype, key_crpix, key_crval, key_cdelt, key_cd
   character(len=80) :: cunit,ctype
   real :: nullval
@@ -57,15 +57,22 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
       call exit(1)
     endif
 
+    ! find number of HDUs
+
+    call ftthdu(unit,numberofhdus,status)
+
     ! get number of axes
     dimensions=0
-    call ftgidm(unit,dimensions,status)
-    do while (dimensions .eq. 0) ! if no axes found in first extension, advance and check again
-      call ftmrhd(unit,1,hdutype,status)
+
+    do i=1,numberofhdus
       call ftgidm(unit,dimensions,status)
+      if (dimensions .ne. 0) exit ! found dimensions in this HDU so leave the loop
+      call ftmrhd(unit,1,hdutype,status) ! otherwise, advance to next HDU and search there
     enddo
+
     if (dimensions .eq. 0) then ! still no axes found
       print *,gettime(),"error : no axes found in ",trim(spectrumfile)
+      print *,gettime(),"        (number of extensions searched: ",numberofhdus,")"
       call exit(1)
     elseif (dimensions .gt. 3) then ! can't imagine what a 4D fits file would actually be, but alfa definitely can't handle it
       print *,gettime(),"error : more than 3 axes found in ",trim(spectrumfile)

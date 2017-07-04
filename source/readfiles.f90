@@ -27,15 +27,17 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
 
   !cfitsio variables
 
-  integer :: status,unit,readwrite,blocksize,hdutype,group,numberofhdus
+  integer :: status,unit,readwrite,blocksize,hdutype,group,numberofhdus,nrows
   character(len=80) :: key_cunit, key_ctype, key_crpix, key_crval, key_cdelt, key_cd
   character(len=80) :: cunit,ctype
   real :: nullval
-  logical :: anynull
+  logical :: anynull,datafound
 
 #ifdef CO
   print *,"subroutine: readdata"
 #endif
+
+  datafound=.false.
 
   cunit=""
   ctype=""
@@ -61,16 +63,58 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
 
     call ftthdu(unit,numberofhdus,status)
 
+    print *,gettime(),"FITS file has ",numberofhdus," extensions"
+
     ! get number of axes
     dimensions=0
 
+    ! examine HDUs. if dimensions are found, treat as image. otherwise, look for table data
+
     do i=1,numberofhdus
-      call ftgidm(unit,dimensions,status)
-      if (dimensions .ne. 0) exit ! found dimensions in this HDU so leave the loop
+      call ftghdt(unit,hdutype,status) ! get header type
+      if (hdutype.eq.0) then
+        print *,gettime(),"extension ",i," contains image data."
+        call ftgidm(unit,dimensions,status)
+        if (dimensions .ne. 0) then !extension has dimensions, now check if they look like actual data
+          allocate(axes(dimensions))
+          call ftgisz(unit,dimensions,axes,status)
+          if (any(axes.gt.1)) then !at least one axis has more than one data point.
+            print *,"reading in data"
+            exit ! found dimensions in this HDU so leave the loop
+          endif
+          deallocate(axes)
+        endif
+        print *,gettime(),"no axes found, trying next extension"
+      endif
+
+      if (hdutype.eq.1.or.hdutype.eq.2) then
+        if (hdutype.eq.1) print *,gettime(),"extension ",i," contains an ASCII table"
+        if (hdutype.eq.2) print *,gettime(),"extension ",i," contains a binary table"
+        call ftgnrw(unit,nrows,status) !
+        print *,gettime(),nrows," rows found"
+
+! check for crappy ESO format which puts everything in one row
+! look for header keyword nelem
+
+        if (nrows.eq.1) then
+          call ftgkyj(unit,"NELEM",nrows,"",status)
+          print *,gettime(),"only one row so looked for NELEM keyword instead and found ",nrows," rows"
+        endif
+
+        allocate(spectrum_1d(nrows))
+        allocate(wavelengths(nrows))
+! assume first column is wavelength, second is flux. todo: might not always be so. either intelligently handle it within code or allow user to specify.
+        call ftgcve(unit,1,1,1,nrows,0.,wavelengths,anynull,status)
+        call ftgcve(unit,2,1,1,nrows,0.,spectrum_1d,anynull,status)
+        datafound=.true.
+        goto 888 ! skip the subsequent file reading routines. todo: change this to a part of the if condition
+        exit
+      endif
+
       call ftmrhd(unit,1,hdutype,status) ! otherwise, advance to next HDU and search there
     enddo
 
-    if (dimensions .eq. 0) then ! still no axes found
+    if (dimensions .eq. 0 .and. .not. datafound) then ! no axes found, no table data read
       print *,gettime(),"error : no axes found in ",trim(spectrumfile)
       print *,gettime(),"        (number of extensions searched: ",numberofhdus,")"
       call exit(1)
@@ -83,7 +127,7 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
 
     ! now get the dimensions of the axis
 
-    allocate(axes(dimensions))
+!    allocate(axes(dimensions)) already allocated
     call ftgisz(unit,dimensions,axes,status)
 
     ! set up array for wavelengths
@@ -284,6 +328,7 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
 
   endif
 
+888 continue ! fix this ugly code at some point
   print *,gettime(),"wavelength range: ",wavelengths(1),wavelengths(size(wavelengths))
   print *
 

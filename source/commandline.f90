@@ -6,7 +6,7 @@ use mod_routines
 
 contains
 
-subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_initial,resolutionguess_initial,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits,wavelengthscaling,collapse,exclusions,detectionlimit)
+subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_initial,resolutionguess_initial,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits,wavelengthscaling,collapse,exclusions,detectionlimit,rebinfactor)
 
   implicit none
 
@@ -22,7 +22,7 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_ini
   real, dimension(:), allocatable :: exclusions
   real :: excludewavelength
   real :: detectionlimit
-  integer :: exclusioncount
+  integer :: exclusioncount,rebinfactor
 
 #ifdef CO
   print *,"subroutine: readcommandline"
@@ -340,6 +340,19 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_ini
       endif
     endif
 
+    if ((trim(options(i))=="-rb" .or. trim(options(i))=="--rebin")) then
+      if ((i+1) .le. Narg) then
+        read (options(i+1),*) rebinfactor
+        options(i:i+1)=""
+        if (rebinfactor<1) then
+          print *,gettime(),"error: impossible rebin factor specified: ",rebinfactor
+          call exit(1)
+        endif
+      else
+        print *,gettime(),"error: no value specified for ",trim(options(i))
+      endif
+    endif
+
   ! to implement:
   !   continuum window and percentile
   enddo
@@ -423,6 +436,9 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_ini
   print *,"             deep line catalogue:              ",trim(deeplinelistfile)
   if (exclusioncount .gt. 0) then
   print *,"             lines excluded from fitting:      ",exclusions
+  endif
+  if (rebinfactor .gt. 1) then
+  print *,"             spectra rebinned by factor of:    ",rebinfactor
   endif
   print *,"             number of generations:            ",generations
   print *,"             population size:                  ",popsize

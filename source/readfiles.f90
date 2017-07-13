@@ -7,7 +7,7 @@ use mod_routines
 
 contains
 
-subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelengths, wavelengthscaling, axes)
+subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelengths, wavelengthscaling, axes, rebinfactor)
 !take the filename, check if it's FITS or plain text
 !if FITS, then read the necessary keywords to set the wavelength scale, allocate the data array according to the number of dimensions found, and fill it
 !if plain text, read two columns for wavelength and flux, return.
@@ -15,15 +15,22 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
   implicit none
   character (len=*), intent(in) :: spectrumfile !input file name
   real, dimension(:), allocatable :: wavelengths !wavelength array
+
   real, dimension(:), allocatable :: spectrum_1d !array for 1d data
   real, dimension(:,:), allocatable :: spectrum_2d !array for 2d data
   real, dimension(:,:,:), allocatable :: spectrum_3d !array for 3d data
+
+  real, dimension(:), allocatable :: spectrum_1d_rebinned !array for rebinned 1d data
+  real, dimension(:,:), allocatable :: spectrum_2d_rebinned !array for rebinned 2d data
+  real, dimension(:,:,:), allocatable :: spectrum_3d_rebinned !array for rebinned 3d data
+
   real :: wavelength, dispersion, referencepixel
   real :: wavelengthscaling !factor to convert wavelengths into Angstroms
   logical :: loglambda !is the spectrum logarithmically sampled?
   integer :: dimensions !number of dimensions
   integer, dimension(:), allocatable :: axes !number of pixels in each dimension
   integer :: i, io !counter and io status for file reading
+  integer, intent(in) :: rebinfactor
 
   !cfitsio variables
 
@@ -91,7 +98,7 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
         if (hdutype.eq.1) print *,gettime(),"extension ",i," contains an ASCII table"
         if (hdutype.eq.2) print *,gettime(),"extension ",i," contains a binary table"
         call ftgnrw(unit,nrows,status) !
-        print *,gettime(),nrows," rows found"
+        print *,gettime(),"table contains ",nrows," rows"
 
 ! check for crappy ESO format which puts everything in one row
 ! look for header keyword nelem
@@ -342,7 +349,7 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
 
 888 continue ! fix this ugly code at some point
 
-! wavelength scaling here
+! wavelength scaling
 
   if (wavelengthscaling .eq. 0.d0) then
     print *,gettime(),"  wavelength units: assumed to be Angstroms"
@@ -353,11 +360,54 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
 
   wavelengths = wavelengths * wavelengthscaling
 
-
   print *,gettime(),"wavelength range: ",wavelengths(1),wavelengths(size(wavelengths))
   print *
 
+! rebinning
+
+  if (rebinfactor .gt. 1) then
+    if (allocated(spectrum_1d)) then
+      print *,gettime(),"rebinned spectrum by factor of ",rebinfactor
+      call rebinarray(wavelengths,rebinfactor)
+      call rebinarray(spectrum_1d,rebinfactor)
+    else
+      print *,gettime(),"warning: can't rebin 2d or 3d spectra yet, left as is"
+    endif
+  endif
+
+! todo: make this work for 2d and 3d data
+
 end subroutine readdata
+
+subroutine rebinarray(array,rebinfactor)
+
+  implicit none
+  real, dimension(:), allocatable :: array, array_temp
+  integer :: rebinfactor, i, newsize, endbit, s1, s2
+
+  newsize=size(array)/rebinfactor
+  endbit=mod(size(array),rebinfactor)
+
+  if (endbit .gt. 0) then
+    newsize=newsize+1
+  endif
+
+  allocate(array_temp(newsize))
+
+  do i = 1,newsize
+    s1=(i-1)*rebinfactor + 1
+    s2=i*rebinfactor
+    array_temp(i)=sum(array(s1:s2)) / rebinfactor
+  enddo
+
+  if (endbit .ne. 0) then ! fill in last element
+    array_temp(newsize) = sum(array(size(array)-endbit+1:size(array)))/endbit
+  endif
+
+  deallocate(array)
+  array=array_temp
+
+end subroutine rebinarray
 
 subroutine readlinelist(linelistfile,referencelinelist,nlines,wavelength1,wavelength2,exclusions)
 !this subroutine reads in the line catalogue

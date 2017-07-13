@@ -70,6 +70,8 @@ real :: detectionlimit ! sigma required to consider a line detected. default is 
 character(len=12) :: fluxformat !for writing out the line list
 character(len=4),dimension(2) :: filenameformat !variable format to give suitable file names for 2D and 3D outputs
 
+integer :: rebinfactor
+
 ! openmp variables
 
 integer :: tid, omp_get_thread_num, omp_get_num_threads
@@ -91,6 +93,7 @@ vtol2=0.0002 !second pass. 0.0002 = 60 km/s
 baddata=0.d0
 wavelengthscaling=1.d0
 detectionlimit=3.0
+rebinfactor=1
 
 stronglinelistfile=trim(PREFIX)//"/share/alfa/strong.cat"
 deeplinelistfile=trim(PREFIX)//"/share/alfa/deep.cat"
@@ -120,7 +123,7 @@ call init_random_seed()
 
 ! read command line
 
-call readcommandline(commandline,normalise,normalisation,redshiftguess_initial,resolutionguess_initial,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits,wavelengthscaling,collapse,exclusions,detectionlimit)
+call readcommandline(commandline,normalise,normalisation,redshiftguess_initial,resolutionguess_initial,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits,wavelengthscaling,collapse,exclusions,detectionlimit,rebinfactor)
 
 ! convert from velocity to redshift
 
@@ -132,7 +135,7 @@ print *
 print *,gettime(),"reading in file ",trim(spectrumfile),":"
 
 !call subroutine to read in the data.  input is filename, output is 3D array containing data, length of dimensions dependent on whether file was 1D, 2D or 3D.
-call readdata(trim(spectrumfile)//trim(imagesection), spectrum_1d, spectrum_2d, spectrum_3d, wavelengths, wavelengthscaling, axes)
+call readdata(trim(spectrumfile)//trim(imagesection), spectrum_1d, spectrum_2d, spectrum_3d, wavelengths, wavelengthscaling, axes, rebinfactor)
 
 minimumwavelength = wavelengths(1)
 maximumwavelength = wavelengths(size(wavelengths))

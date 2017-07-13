@@ -107,6 +107,27 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
         call ftgcve(unit,1,1,1,nrows,0.,wavelengths,anynull,status)
         call ftgcve(unit,2,1,1,nrows,0.,spectrum_1d,anynull,status)
         datafound=.true.
+
+    ! get units of wavelength
+    ! current assumption is it will be A or nm
+
+        if (wavelengthscaling .ne. 1.d0) then
+          print *,gettime(),"  wavelength units: set by user. Angstroms per wavelength unit = ",wavelengthscaling
+        else
+          key_cunit="TUNIT1"
+          call ftgkys(unit,key_cunit,cunit,"",status)
+          if (trim(cunit) .eq. "nm" .or. trim(cunit) .eq. "NM") then
+            wavelengthscaling=10.d0 ! convert to Angstroms if it's in nm
+            print *,gettime(),"  wavelength units: nm.  Will convert to A."
+          elseif (trim(cunit).eq."Angstrom" .or. trim(cunit).eq."Angstroms") then
+            print *,gettime(),"  wavelength units: Angstroms"
+            wavelengthscaling = 1.d0
+          else
+           print *,gettime(),"  wavelength units: not recognised - will assume A.  Set the --wavelength-scaling if this is not correct"
+            wavelengthscaling = 1.d0
+          endif
+        endif
+
         goto 888 ! skip the subsequent file reading routines. todo: change this to a part of the if condition
         exit
       endif
@@ -209,7 +230,7 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
     if (wavelengthscaling .ne. 1.d0) then
       print *,gettime(),"  wavelength units: set by user. Angstroms per wavelength unit = ",wavelengthscaling
     else
-      call ftgkys(unit,key_cunit,cunit,"",status)
+      call ftgkey(unit,key_cunit,cunit,"",status)
       if (trim(cunit) .eq. "nm" .or. trim(cunit) .eq. "NM") then
         wavelengthscaling=10.d0 ! convert to Angstroms if it's in nm
         print *,gettime(),"  wavelength units: nm.  Will convert to A."
@@ -281,11 +302,11 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
 
     if (loglambda) then !log-sampled case
       do i=1,size(wavelengths)
-        wavelengths(i) = wavelengthscaling * wavelength*exp((i-referencepixel)*dispersion/wavelength)
+        wavelengths(i) = wavelength*exp((i-referencepixel)*dispersion/wavelength)
       enddo
     else !linear case
       do i=1,size(wavelengths) 
-        wavelengths(i) = wavelengthscaling * (wavelength+(i-referencepixel)*dispersion)
+        wavelengths(i) = (wavelength+(i-referencepixel)*dispersion)
       enddo
     endif
 
@@ -317,18 +338,22 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
     enddo
     close(199)
 
-    if (wavelengthscaling .eq. 0.d0) then
-      print *,gettime(),"  wavelength units: assumed to be Angstroms"
-      wavelengthscaling = 1.d0
-    else
-      print *,gettime(),"  wavelength units: set by user. Angstroms per wavelength unit = ",wavelengthscaling
-    endif
-
-    wavelengths = wavelengths * wavelengthscaling
-
   endif
 
 888 continue ! fix this ugly code at some point
+
+! wavelength scaling here
+
+  if (wavelengthscaling .eq. 0.d0) then
+    print *,gettime(),"  wavelength units: assumed to be Angstroms"
+    wavelengthscaling = 1.d0
+  else
+    print *,gettime(),"  wavelength units: set by user. Angstroms per wavelength unit = ",wavelengthscaling
+  endif
+
+  wavelengths = wavelengths * wavelengthscaling
+
+
   print *,gettime(),"wavelength range: ",wavelengths(1),wavelengths(size(wavelengths))
   print *
 

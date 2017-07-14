@@ -405,6 +405,7 @@ subroutine rebinarray(array,rebinfactor)
   endif
 
   deallocate(array)
+  allocate(array(newsize))
   array=array_temp
 
 end subroutine rebinarray

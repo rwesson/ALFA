@@ -51,6 +51,10 @@ The fraction of the population retained from each generation. The product of the
 The size of the population used in the genetic algorithm. Default: 30
 
 .TP
+.B \-rp, \-\-rebin [INTEGER]
+Rebin the input spectrum by the specified factor. Useful for high resolution spectra where line profiles are not instrumental but kinematic.
+
+.TP
 .B \-rg, \-\-resolution\-guess [VALUE]
 Initial guess for the resolution [lambda/delta lambda]. Default: estimated using the sampling of the input spectrum, assuming that it is Nyquist sampled.
 

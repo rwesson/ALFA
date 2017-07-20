@@ -24,6 +24,9 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
   real, dimension(:,:), allocatable :: spectrum_2d_rebinned !array for rebinned 2d data
   real, dimension(:,:,:), allocatable :: spectrum_3d_rebinned !array for rebinned 3d data
 
+  character(len=1) :: checkrow ! for use in ignoring comment rows
+  character(len=512) :: rowdata ! rows read into this variable then split into wavelength and flux
+
   real :: wavelength, dispersion, referencepixel
   real :: wavelengthscaling !factor to convert wavelengths into Angstroms
   logical :: loglambda !is the spectrum logarithmically sampled?
@@ -328,8 +331,8 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
     i = 0
     open(199, file=spectrumfile, iostat=IO, status='old')
       do while (IO >= 0)
-      read(199,*,end=112)
-      i = i + 1
+      read(199,*,end=112) checkrow
+      if (checkrow .ne. "#") i = i + 1
     enddo
     112 axes(1) = i
     print *,gettime(),"  number of data points: ",axes(1)
@@ -340,8 +343,13 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
     allocate(wavelengths(axes(1)))
 
     rewind (199)
-    do i=1,axes(1)
-      read(199,*) wavelengths(i), spectrum_1d(i)
+    i=1
+    do while (i<=axes(1))
+      read(199,"(A)") rowdata
+      if (index(rowdata,"#") .ne. 1) then
+        read (rowdata,*) wavelengths(i), spectrum_1d(i)
+        i=i+1
+      endif
     enddo
     close(199)
 

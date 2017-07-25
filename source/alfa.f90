@@ -92,7 +92,7 @@ vtol1=0.003 !variation allowed in velocity (expressed as redshift) on first pass
 vtol2=0.0002 !second pass. 0.0002 = 60 km/s
 baddata=0.d0
 wavelengthscaling=1.d0
-detectionlimit=3.0
+detectionlimit=1.0
 rebinfactor=1
 
 stronglinelistfile=trim(PREFIX)//"/share/alfa/strong.cat"
@@ -112,7 +112,7 @@ generations=500
 ! start
 
 print *,"ALFA, the Automated Line Fitting Algorithm"
-print *,"version ",VERSION
+print *,"version ",VERSION," (jwst mod)"
 
 print *
 print *,gettime(),"starting code"

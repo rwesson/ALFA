@@ -20,10 +20,6 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
   real, dimension(:,:), allocatable :: spectrum_2d !array for 2d data
   real, dimension(:,:,:), allocatable :: spectrum_3d !array for 3d data
 
-  real, dimension(:), allocatable :: spectrum_1d_rebinned !array for rebinned 1d data
-  real, dimension(:,:), allocatable :: spectrum_2d_rebinned !array for rebinned 2d data
-  real, dimension(:,:,:), allocatable :: spectrum_3d_rebinned !array for rebinned 3d data
-
   character(len=1) :: checkrow ! for use in ignoring comment rows
   character(len=512) :: rowdata ! rows read into this variable then split into wavelength and flux
 
@@ -458,7 +454,7 @@ subroutine readlinelist(linelistfile,referencelinelist,nlines,wavelength1,wavele
       print *,gettime(),"error: line catalogue not found: ",trim(linelistfile)," does not exist in current directory or in ",PREFIX,"/share/alfa"
       call exit(1)
     else
-      linelistfile=PREFIX//"/share/alfa/"//linelistfile
+      linelistfile=PREFIX//"/share/alfa/"//trim(linelistfile)
     endif
 
   endif

@@ -6,8 +6,8 @@
 
 ! subtract the continuum
 
-if (messages) print *,gettime(),"fitting continuum"
-call fit_continuum(realspec,spectrumlength, continuum)
+if (messages .and. subtractcontinuum) print *,gettime(),"fitting continuum"
+call fit_continuum(realspec,spectrumlength, continuum, continuumwindow, subtractcontinuum)
 
 ! now do the fitting
 ! first get guesses for the redshift and resolution
@@ -127,7 +127,8 @@ if (messages) print *, gettime(),"fitting full spectrum with ",totallines," line
 
 do i=1,spectrumlength,400
 
-  overlap=nint(2*vtol2/(1-realspec(i)%wavelength/realspec(i+1)%wavelength))
+! overlap=nint(2*vtol2/(1-realspec(i)%wavelength/realspec(i+1)%wavelength)) ! this needs fixing, i+1 can be out of bounds
+  overlap=20
 
   if (i .eq. 1) then
     startpos=1

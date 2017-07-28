@@ -23,7 +23,11 @@ Prints out the bibliographic details of the paper to cite if you use \fBalfa\fR 
 Sums all spectra in multi-dimensional FITS files into a single spectrum.  Spectra whose peak value is below any value specified with the \fB--bad-data\fR option are excluded.  \fB--collapse\fR has no effect on 1D data.
 
 .TP
-.B \-dl, \-\-detection-limit
+.B \-cw, \-\-continuum\-window [INTEGER]
+ALFA's continuum fitting takes the 25th percentile of flux values in a moving window as representative of the continuum level. This option can be used to set the size of the window. The value must be an odd integer. Default: 101
+
+.TP
+.B \-dl, \-\-detection-limit [REAL]
 Sets the factor by which a line's flux must exceed the locally estimated noise level for it to be considered a detection.  Default: 3.0
 
 .TP
@@ -38,6 +42,9 @@ The number of generations used in the genetic algorithm. Default: 500
 .B \-n, \-\-normalise [VALUE]
 Normalise to Hb=100 assuming that F(Hb)=\fIVALUE\fR.  If \fIVALUE\fR is zero, no normalisation is applied.  If this option is not specified, fluxes are normalised using the measured value of Hb if it is detected, and not normalised otherwise.
 
+.TP
+.B \-nc, \-\-no\-continuum
+In case the spectrum you are fitting is already continuum subtracted, setting this option skips \fBalfa\fR's continuum fitting.
 .TP
 .B \-o, \-\-output\-dir [DIRECTORY]
 The directory in which to put the output files. Default: current working directory.

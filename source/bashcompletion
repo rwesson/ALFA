@@ -1,14 +1,14 @@
-# alfa(1) completion
+# alfa.jwst(1) completion
 # rw@nebulousresearch.org
 
-_alfa()
+_alfa.jwst()
 {
     local cur prev opts words cword
     _init_completion || return
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
-    opts="-n --normalise -vg --velocity-guess -rg --resolution-guess -vtol1 --velocity-tolerance-1 -vtol2 --velocity-tolerance-2 -rtol1 --resolution-tolerance-1 -rtol2 --resolution-tolerance-2 -ss --subtract-sky -o --output-dir --sky-catalogue --strong-catalogue --deep-catalogue -skyc -sc -dc -g --generations -ps --populationsize -pr --pressure -b --bad-data -ul --upper-limits --citation -ws --wavelength-scaling --collapse -el --exclude-line -dl --detection-limit -rb --rebin"
+    opts="-n --normalise -vg --velocity-guess -rg --resolution-guess -vtol1 --velocity-tolerance-1 -vtol2 --velocity-tolerance-2 -rtol1 --resolution-tolerance-1 -rtol2 --resolution-tolerance-2 -ss --subtract-sky -o --output-dir --sky-catalogue --strong-catalogue --deep-catalogue -skyc -sc -dc -g --generations -ps --populationsize -pr --pressure -b --bad-data -ul --upper-limits --citation -ws --wavelength-scaling --collapse -el --exclude-line -dl --detection-limit -rb --rebin -nc --no-continuum -cw --continuum-window"
 
     if [[ "$cur" == -* ]]; then
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
@@ -24,7 +24,7 @@ _alfa()
             _filedir -d
             return 0
             ;;
-        --pressure|-g|-ps|--generations|--resolution-guess|-n|--resolution-tolerance-1|--velocity-guess|--normalise|--resolution-tolerance-2|--velocity-tolerance-1|-rg|--velocity-tolerance-2|-rtol1|-vg|--populationsize|-rtol2|-vtol1|-pr|-vtol2|-b|--bad-data|-ws|--wavelength-scaling|-el|--exclude-line|-dl|--detection-limit|-rb|--rebin)
+        --pressure|-g|-ps|--generations|--resolution-guess|-n|--resolution-tolerance-1|--velocity-guess|--normalise|--resolution-tolerance-2|--velocity-tolerance-1|-rg|--velocity-tolerance-2|-rtol1|-vg|--populationsize|-rtol2|-vtol1|-pr|-vtol2|-b|--bad-data|-ws|--wavelength-scaling|-el|--exclude-line|-dl|--detection-limit|-rb|--rebin|-nc|--no-continuum|-cw|--continuum-window)
             COMPREPLY=()
             return 0
             ;;
@@ -32,4 +32,4 @@ _alfa()
 
     _filedir '@(fit?(s)|ascii|dat|txt)'
 }
-complete -F _alfa alfa
+complete -F _alfa.jwst alfa.jwst

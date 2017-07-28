@@ -6,11 +6,10 @@ use mod_routines
 
 contains
 
-subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_initial,resolutionguess_initial,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits,wavelengthscaling,collapse,exclusions,detectionlimit,rebinfactor)
+subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_initial,resolutionguess_initial,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits,wavelengthscaling,collapse,exclusions,detectionlimit,rebinfactor,subtractcontinuum,continuumwindow)
 
   implicit none
 
-  logical :: normalise,collapse
   real :: normalisation,redshiftguess_initial,resolutionguess_initial,vtol1,vtol2,rtol1,rtol2,baddata,pressure,c,wavelengthscaling
   character(len=2048) :: commandline
   character(len=512), dimension(:), allocatable :: options
@@ -18,11 +17,11 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_ini
   character(len=32) :: imagesection
   integer,intent(out) :: generations,popsize
   integer :: Narg,nargused,i
-  logical,intent(out) :: subtractsky,resolution_estimated,file_exists,upperlimits
+  logical :: subtractsky,resolution_estimated,file_exists,upperlimits,normalise,collapse,subtractcontinuum
   real, dimension(:), allocatable :: exclusions
   real :: excludewavelength
   real :: detectionlimit
-  integer :: exclusioncount,rebinfactor
+  integer :: exclusioncount,rebinfactor,continuumwindow
 
 #ifdef CO
   print *,"subroutine: readcommandline"
@@ -36,6 +35,7 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_ini
   nargused = 0 !to count options specified
   narg = IARGC() !count input arguments
   exclusioncount = 0 !to count lines excluded
+  subtractcontinuum = .true.
 
   if (narg .eq. 0) then
     print *,"Usage: alfa [options] [file]"
@@ -353,6 +353,29 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_ini
       endif
     endif
 
+    if ((trim(options(i))=="-nc" .or. trim(options(i))=="--no-continuum")) then
+      subtractcontinuum=.false.
+      options(i)=""
+    endif
+
+    if ((trim(options(i))=="-cw" .or. trim(options(i))=="--continuum-window")) then
+      if ((i+1) .le. Narg) then
+        read (options(i+1),*) continuumwindow
+        options(i:i+1)=""
+        if (continuumwindow .lt. 1) then
+          print *,gettime(),"error: invalid value given for continuum window"
+          call exit(1)
+        endif
+        if (mod(continuumwindow,2).eq.1) then
+          continuumwindow=continuumwindow+1
+          print *,gettime(),"warning: continuum window has to be an odd number. incremented by one so it's now ",continuumwindow
+        endif
+      else
+        print *,gettime(),"error: no value specified for ",trim(options(i))
+        call exit(1)
+      endif
+    endif
+
   ! to implement:
   !   continuum window and percentile
   enddo
@@ -407,11 +430,17 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_ini
   if (.not.normalise) then
     print *,"             normalisation:                    using measured value of Hb"
   else
-  if (normalisation.eq.0.d0) then
-    print *,"             normalisation:                    no normalisation"
-  else
-    print *,"             normalisation:                    to Hb=",normalisation
+    if (normalisation.eq.0.d0) then
+      print *,"             normalisation:                    no normalisation"
+    else
+      print *,"             normalisation:                    to Hb=",normalisation
+    endif
   endif
+  if (subtractcontinuum) then
+    print *,"             continuum fitting:                enabled"
+    print *,"             continuum window:                 ",continuumwindow
+  else
+    print *,"             continuum fitting:                disabled"
   endif
   print *,"             spectrum fitted if max value >    ",baddata
   print *,"             Angstroms per wavelength unit:    ",wavelengthscaling

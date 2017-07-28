@@ -59,6 +59,7 @@ logical :: normalise=.false. !false means spectrum normalised to whatever H beta
 logical :: resolution_estimated=.false. !true means user specified a value, false means estimate from sampling
 logical :: subtractsky=.false. !attempt to fit night sky emission lines
 logical :: upperlimits=.false. !if true, code reports 3 sigma limit for undetected lines
+logical :: subtractcontinuum=.true. !can be set to false if continuum is already subtracted
 logical :: file_exists
 
 logical :: collapse !if true, 2D or 3D data is summed into a single spectrum
@@ -70,7 +71,7 @@ real :: detectionlimit ! sigma required to consider a line detected. default is 
 character(len=12) :: fluxformat !for writing out the line list
 character(len=4),dimension(2) :: filenameformat !variable format to give suitable file names for 2D and 3D outputs
 
-integer :: rebinfactor
+integer :: rebinfactor,continuumwindow
 
 ! openmp variables
 
@@ -94,6 +95,7 @@ baddata=0.d0
 wavelengthscaling=1.d0
 detectionlimit=1.0
 rebinfactor=1
+continuumwindow=101
 
 stronglinelistfile=trim(PREFIX)//"/share/alfa/strong.cat"
 deeplinelistfile=trim(PREFIX)//"/share/alfa/deep.cat"
@@ -123,7 +125,7 @@ call init_random_seed()
 
 ! read command line
 
-call readcommandline(commandline,normalise,normalisation,redshiftguess_initial,resolutionguess_initial,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits,wavelengthscaling,collapse,exclusions,detectionlimit,rebinfactor)
+call readcommandline(commandline,normalise,normalisation,redshiftguess_initial,resolutionguess_initial,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits,wavelengthscaling,collapse,exclusions,detectionlimit,rebinfactor,subtractcontinuum,continuumwindow)
 
 ! convert from velocity to redshift
 

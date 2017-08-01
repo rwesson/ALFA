@@ -1,7 +1,7 @@
-# alfa.jwst(1) completion
+# alfa(1) completion
 # rw@nebulousresearch.org
 
-_alfa.jwst()
+_alfa()
 {
     local cur prev opts words cword
     _init_completion || return
@@ -32,4 +32,4 @@ _alfa.jwst()
 
     _filedir '@(fit?(s)|ascii|dat|txt)'
 }
-complete -F _alfa.jwst alfa.jwst
+complete -F _alfa alfa

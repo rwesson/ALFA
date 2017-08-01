@@ -130,6 +130,10 @@ do i=1,spectrumlength,400
 ! overlap=nint(2*vtol2/(1-realspec(i)%wavelength/realspec(i+1)%wavelength)) ! this needs fixing, i+1 can be out of bounds
   overlap=20
 
+! avoid refitting final section. if spectrumlength%400<overlap, this would happen
+
+  if ((spectrumlength-i)<overlap) exit
+
   if (i .eq. 1) then
     startpos=1
     startwlen=realspec(1)%wavelength/redshiftguess_overall

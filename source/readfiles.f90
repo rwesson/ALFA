@@ -425,6 +425,8 @@ subroutine readlinelist(linelistfile,referencelinelist,nlines,wavelength1,wavele
   implicit none
   character (len=512) :: linelistfile
   character (len=85) :: linedatainput
+  character (len=2) :: informatnumber
+  character (len=20) :: informat
   integer :: i
   real :: input1, wavelength1, wavelength2
   integer :: io, nlines
@@ -470,6 +472,11 @@ subroutine readlinelist(linelistfile,referencelinelist,nlines,wavelength1,wavele
   END DO
   110     nlines=I
 
+!determine the format to use. ceiling of log gives number of sig figs before dp, add 3 for dp and 2 sig figs after
+
+  write (informatnumber,"(I2)") ceiling(log10(max(wavelength1,wavelength2)))+3
+  informat="(F"//trim(adjustl(informatnumber))//".2,A)"
+
 !then allocate and read
 
   allocate(referencelinelist(nlines))
@@ -477,7 +484,7 @@ subroutine readlinelist(linelistfile,referencelinelist,nlines,wavelength1,wavele
   REWIND (199)
   I=1
   do while (i .le. nlines)
-    READ(199,'(F10.2,A)') input1, linedatainput
+    READ(199,informat) input1, linedatainput
     if (input1 .ge. wavelength1 .and. input1 .le. wavelength2 .and. .not. (any(exclusions.eq.input1))) then
       referencelinelist(i)%wavelength = input1
       referencelinelist(i)%peak=1000.

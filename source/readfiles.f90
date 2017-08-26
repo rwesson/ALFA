@@ -477,7 +477,7 @@ subroutine readlinelist(linelistfile,referencelinelist,nlines,wavelength1,wavele
   REWIND (199)
   I=1
   do while (i .le. nlines)
-    READ(199,'(F10.2,A)') input1, linedatainput
+    READ(199,'(F7.2,A)') input1, linedatainput
     if (input1 .ge. wavelength1 .and. input1 .le. wavelength2 .and. .not. (any(exclusions.eq.input1))) then
       referencelinelist(i)%wavelength = input1
       referencelinelist(i)%peak=1000.

@@ -229,6 +229,7 @@ call get_uncertainties(fittedspectrum, realspec, fittedlines)
 
 open(100+tid,file=trim(outputdirectory)//trim(outputbasename)//"_fit")
 
+write (100+tid,*) "#fit generated using: ",trim(commandline)
 write (100+tid,*) "#""wavelength""  ""input spectrum ""  ""fitted spectrum""  ""cont-subbed orig"" ""continuum""  ""sky lines""  ""residuals""  ""uncertainty"""
 do i=1,spectrumlength
   write(100+tid,"(F9.2, 7(ES12.3))") fittedspectrum(i)%wavelength,realspec(i)%flux + continuum(i)%flux, fittedspectrum(i)%flux + continuum(i)%flux + skyspectrum(i)%flux, realspec(i)%flux, continuum(i)%flux, skyspectrum(i)%flux, realspec(i)%flux - fittedspectrum(i)%flux, realspec(i)%uncertainty

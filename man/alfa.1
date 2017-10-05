@@ -35,6 +35,10 @@ Sets the factor by which a line's flux must exceed the locally estimated noise l
 When reading in the line catalogues, any wavelengths indicated with this option will be ignored.  For example, if H alpha were saturated, it could be excluded from the fit with --exclude-line 6562.77.  Any number of lines can be excluded by repeating the option with the appropriate wavelengths.
 
 .TP
+.B \-fc, \-\-flux-column [INTEGER]
+When reading FITS tables, this option can be used to specify in which table column the flux values are. For any other file type it will have no effect. Default: 2
+
+.TP
 .B \-g, \-\-generations [INTEGER]
 The number of generations used in the genetic algorithm. Default: 500
 
@@ -96,6 +100,10 @@ Variation allowed in velocity in first pass of the fitting. Default: 900km/s
 .TP
 .B \-vtol2, \-\-velocity\-tolerance\-2 [VALUE]
 Variation allowed in velocity in second pass of the fitting. Default: 60km/s
+
+.TP
+.B \-fc, \-\-wavelength-column [INTEGER]
+When reading FITS tables, this option can be used to specify in which table column the wavelength values are. For any other file type it will have no effect. Default: 1
 
 .TP
 .B \-ws, \-\-wavelength\-scaling [VALUE]

@@ -6,7 +6,7 @@ use mod_routines
 
 contains
 
-subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_initial,resolutionguess_initial,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits,wavelengthscaling,collapse,exclusions,detectionlimit,rebinfactor,subtractcontinuum,continuumwindow)
+subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_initial,resolutionguess_initial,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits,wavelengthscaling,collapse,exclusions,detectionlimit,rebinfactor,subtractcontinuum,continuumwindow,tablewavelengthcolumn,tablefluxcolumn)
 
   implicit none
 
@@ -22,6 +22,7 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_ini
   real :: excludewavelength
   real :: detectionlimit
   integer :: exclusioncount,rebinfactor,continuumwindow
+  integer :: tablewavelengthcolumn,tablefluxcolumn
 
 #ifdef CO
   print *,"subroutine: readcommandline"
@@ -377,7 +378,34 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_ini
     endif
 
   ! to implement:
-  !   continuum window and percentile
+  !   continuum percentile
+
+    if ((trim(options(i))=="-wc" .or. trim(options(i))=="--wavelength-column")) then
+      if ((i+1) .le. Narg) then
+        read (options(i+1),*) tablewavelengthcolumn
+        options(i:i+1)=""
+        if (tablewavelengthcolumn .lt. 1) then
+          print *,gettime(),"error: invalid value given for table wavelength column"
+          call exit(1)
+        endif
+      else
+        print *,gettime(),"error: no value specified for ",trim(options(i))
+      endif
+    endif
+
+    if ((trim(options(i))=="-fc" .or. trim(options(i))=="--flux-column")) then
+      if ((i+1) .le. Narg) then
+        read (options(i+1),*) tablefluxcolumn
+        options(i:i+1)=""
+        if (tablefluxcolumn .lt. 1) then
+          print *,gettime(),"error: invalid value given for table flux column"
+          call exit(1)
+        endif
+      else
+        print *,gettime(),"error: no value specified for ",trim(options(i))
+      endif
+    endif
+
   enddo
 
   nargused=narg-count(options.ne."")
@@ -444,6 +472,12 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_ini
   endif
   print *,"             spectrum fitted if max value >    ",baddata
   print *,"             Angstroms per wavelength unit:    ",wavelengthscaling
+  if (tablewavelengthcolumn.ne.1) then
+  print *,"             table wavelength column:          ",tablewavelengthcolumn
+  endif
+  if (tablefluxcolumn.ne.2) then
+  print *,"             table flux column:                ",tablefluxcolumn
+  endif
   if (collapse) then
     print *,"             multiple spectra:                  collapsed to 1D"
   else

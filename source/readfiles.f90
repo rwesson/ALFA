@@ -7,7 +7,8 @@ use mod_routines
 
 contains
 
-subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelengths, wavelengthscaling, axes, rebinfactor)
+subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelengths, wavelengthscaling, axes, rebinfactor, tablewavelengthcolumn, tablefluxcolumn)
+
 !take the filename, check if it's FITS or plain text
 !if FITS, then read the necessary keywords to set the wavelength scale, allocate the data array according to the number of dimensions found, and fill it
 !if plain text, read two columns for wavelength and flux, return.
@@ -30,6 +31,7 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
   integer, dimension(:), allocatable :: axes !number of pixels in each dimension
   integer :: i, io !counter and io status for file reading
   integer, intent(in) :: rebinfactor
+  integer :: tablewavelengthcolumn,tablefluxcolumn
 
   !cfitsio variables
 
@@ -79,25 +81,25 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
     do i=1,numberofhdus
       call ftghdt(unit,hdutype,status) ! get header type
       if (hdutype.eq.0) then
-        print *,gettime(),"extension ",i," contains image data."
+        print *,gettime(),"extension ",i," contains image data:"
         call ftgidm(unit,dimensions,status)
         if (dimensions .ne. 0) then !extension has dimensions, now check if they look like actual data
           allocate(axes(dimensions))
           call ftgisz(unit,dimensions,axes,status)
           if (any(axes.gt.1)) then !at least one axis has more than one data point.
-            print *,"reading in data"
+            print *," reading in data"
             exit ! found dimensions in this HDU so leave the loop
           endif
           deallocate(axes)
         endif
-        print *,gettime(),"no axes found, trying next extension"
+        print *,gettime()," no axes found, trying next extension"
       endif
 
       if (hdutype.eq.1.or.hdutype.eq.2) then
-        if (hdutype.eq.1) print *,gettime(),"extension ",i," contains an ASCII table"
-        if (hdutype.eq.2) print *,gettime(),"extension ",i," contains a binary table"
+        if (hdutype.eq.1) print *,gettime(),"extension ",i," contains an ASCII table:"
+        if (hdutype.eq.2) print *,gettime(),"extension ",i," contains a binary table:"
         call ftgnrw(unit,nrows,status) !
-        print *,gettime(),"table contains ",nrows," rows"
+        print *,gettime()," table contains ",nrows," rows"
 
 ! check for crappy ESO format which puts everything in one row
 ! look for header keyword nelem
@@ -109,27 +111,30 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
 
         allocate(spectrum_1d(nrows))
         allocate(wavelengths(nrows))
-! assume first column is wavelength, second is flux. todo: might not always be so. either intelligently handle it within code or allow user to specify.
-        call ftgcve(unit,1,1,1,nrows,0.,wavelengths,anynull,status)
-        call ftgcve(unit,2,1,1,nrows,0.,spectrum_1d,anynull,status)
+
+        print *,gettime()," reading wavelengths from column ",tablewavelengthcolumn
+        print *,gettime()," reading fluxes from column ",tablefluxcolumn
+
+        call ftgcve(unit,tablewavelengthcolumn,1,1,nrows,0.,wavelengths,anynull,status)
+        call ftgcve(unit,tablefluxcolumn,1,1,nrows,0.,spectrum_1d,anynull,status)
         datafound=.true.
 
     ! get units of wavelength
     ! current assumption is it will be A or nm
 
         if (wavelengthscaling .ne. 1.d0) then
-          print *,gettime(),"  wavelength units: set by user. Angstroms per wavelength unit = ",wavelengthscaling
+          print *,gettime(),"  wavelength units: Angstroms per wavelength unit = ",wavelengthscaling
         else
-          key_cunit="TUNIT1"
+          write (key_cunit, "(A5,I1)") "TUNIT", tablewavelengthcolumn
           call ftgkys(unit,key_cunit,cunit,"",status)
           if (trim(cunit) .eq. "nm" .or. trim(cunit) .eq. "NM") then
             wavelengthscaling=10.d0 ! convert to Angstroms if it's in nm
-            print *,gettime(),"  wavelength units: nm.  Will convert to A."
+            print *,gettime()," wavelength units: nm.  Will convert to A."
           elseif (trim(cunit).eq."Angstrom" .or. trim(cunit).eq."Angstroms") then
-            print *,gettime(),"  wavelength units: Angstroms"
+            print *,gettime()," wavelength units: Angstroms"
             wavelengthscaling = 1.d0
           else
-           print *,gettime(),"  wavelength units: not recognised - will assume A.  Set the --wavelength-scaling if this is not correct"
+           print *,gettime()," wavelength units: not recognised - will assume A.  Set the --wavelength-scaling if this is not correct"
             wavelengthscaling = 1.d0
           endif
         endif
@@ -234,7 +239,7 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
     ! current assumption is it will be A or nm
 
     if (wavelengthscaling .ne. 1.d0) then
-      print *,gettime(),"  wavelength units: set by user. Angstroms per wavelength unit = ",wavelengthscaling
+      print *,gettime(),"  wavelength units: Angstroms per wavelength unit = ",wavelengthscaling
     else
       call ftgkey(unit,key_cunit,cunit,"",status)
       if (trim(cunit) .eq. "nm" .or. trim(cunit) .eq. "NM") then
@@ -311,7 +316,7 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
         wavelengths(i) = wavelength*exp((i-referencepixel)*dispersion/wavelength)
       enddo
     else !linear case
-      do i=1,size(wavelengths) 
+      do i=1,size(wavelengths)
         wavelengths(i) = (wavelength+(i-referencepixel)*dispersion)
       enddo
     endif
@@ -355,16 +360,9 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
 
 ! wavelength scaling
 
-  if (wavelengthscaling .eq. 0.d0) then
-    print *,gettime(),"  wavelength units: assumed to be Angstroms"
-    wavelengthscaling = 1.d0
-  else
-    print *,gettime(),"  wavelength units: set by user. Angstroms per wavelength unit = ",wavelengthscaling
-  endif
-
   wavelengths = wavelengths * wavelengthscaling
 
-  print *,gettime(),"wavelength range: ",wavelengths(1),wavelengths(size(wavelengths))
+  print *,gettime()," wavelength range: ",wavelengths(1),wavelengths(size(wavelengths))
   print *
 
 ! rebinning

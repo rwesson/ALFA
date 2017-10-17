@@ -17,7 +17,7 @@ type(spectrum), dimension(:,:), allocatable :: synthspec
 type(spectrum), dimension(:) :: inputspectrum
 integer :: popsize, i, spectrumlength, lineid, loc1, loc2, nlines, gencount, generations, popnumber
 real, dimension(:), allocatable :: sumsquares
-real :: random, pressure
+real :: random, r4_uni_01, pressure
 real :: resolutionguess, redshiftguess, redshifttolerance, resolutiontolerance
 real :: scalefactor
 
@@ -30,7 +30,7 @@ real :: scalefactor
   nlines=size(fittedlines%wavelength)
   spectrumlength=size(inputspectrum%wavelength)
 
-  call init_random_seed()
+!  call init_random_seed()
 
   scalefactor=1.d0
   if (maxval(inputspectrum%flux) .lt. 0.01) then
@@ -118,9 +118,9 @@ real :: scalefactor
   !Alternative approach could be to breed all adjacent pairs so that every model generates one offspring.
 
     do i=2,popsize
-      call random_number(random)
+      random=r4_uni_01()
       loc1=int(popsize*random*pressure)+1
-      call random_number(random)
+      random=r4_uni_01()
       loc2=int(popsize*random*pressure)+1
       population(i,:)%peak=(breed(loc1,:)%peak + breed(loc2,:)%peak)/2.0
       population(i,:)%resolution=(breed(loc1,:)%resolution + breed(loc2,:)%resolution)/2.0

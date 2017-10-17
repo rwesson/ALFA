@@ -125,7 +125,7 @@ print *,gettime(),"starting code"
 
 ! random seed
 
-call init_random_seed()
+call initialize()
 
 ! read command line
 

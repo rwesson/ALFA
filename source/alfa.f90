@@ -34,6 +34,7 @@ type(linelist), dimension(:), allocatable :: fittedlines, fittedlines_section, s
 type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum, spectrumchunk, skyspectrum, continuum, stronglines
 
 real :: baddata
+integer :: bdcount
 integer :: cube_i, cube_j, rss_i
 integer, dimension(:), allocatable :: axes
 real, dimension(:), allocatable :: wavelengths !wavelength array
@@ -93,6 +94,7 @@ rtol2=500. !second pass
 vtol1=0.003 !variation allowed in velocity (expressed as redshift) on first pass. 0.003 = 900 km/s
 vtol2=0.0002 !second pass. 0.0002 = 60 km/s
 baddata=0.d0
+bdcount=0
 wavelengthscaling=1.d0
 detectionlimit=3.0
 rebinfactor=1
@@ -162,10 +164,14 @@ if (collapse) then
       if (maxval(spectrum_2d(:,rss_i)).gt. baddata) then
         spectrum_1d = spectrum_1d + spectrum_2d(:,rss_i)
         i=i+1
+      else
+        bdcount=bdcount+1
       endif
     enddo
 
-    print *,gettime(),i," of ",axes(2)," rows co-added"
+    print *,gettime(),"co-added ",i," of ",axes(2)," rows"
+    if (bdcount .gt. 0) print *,gettime(),"omitted ",bdcount," rows where peak flux was less than baddata value of ",baddata
+    print *
 
     deallocate(spectrum_2d)
 
@@ -180,11 +186,15 @@ if (collapse) then
         if (maxval(spectrum_3d(cube_i,cube_j,:)) .gt. baddata) then
           spectrum_1d = spectrum_1d + spectrum_3d(cube_i,cube_j,:)
           i=i+1
+        else
+          bdcount=bdcount+1
         endif
       enddo
     enddo
 
-    print *,gettime(),i," of ",axes(1)*axes(2)," pixels co-added"
+    print *,gettime(),"co-added ",i," of ",axes(1)*axes(2)," pixels"
+    if (bdcount .gt. 0) print *,gettime(),"omitted ",bdcount," rows where peak flux was less than baddata value of ",baddata
+    print *
 
     deallocate(spectrum_3d)
 
@@ -192,6 +202,16 @@ if (collapse) then
 endif
 
 !now we have all the flux values in an array and can fit the spectra
+
+!rebin 1d spectra here
+
+if (rebinfactor .gt. 1) then
+  if (allocated(spectrum_1d)) then
+    call rebinarray(wavelengths,rebinfactor)
+    call rebinarray(spectrum_1d,rebinfactor)
+    spectrumlength=size(wavelengths)
+  endif
+endif
 
 !read in the line catalogues
 
@@ -222,6 +242,7 @@ if (allocated(spectrum_1d)) then !1d spectrum
 
   tid=0
   write (outputbasename,"(A)") spectrumfile(index(spectrumfile,"/",back=.true.)+1:len(trim(spectrumfile)))
+
   include "spectralfit.f90"
 
 elseif (allocated(spectrum_2d)) then !fit 2D data
@@ -246,6 +267,12 @@ elseif (allocated(spectrum_2d)) then !fit 2D data
     spectrumlength=axes(1)
     realspec%wavelength = wavelengths
     realspec%flux=spectrum_2d(:,rss_i)
+
+    if (rebinfactor>1) then
+      call rebinspectrum(realspec,rebinfactor)
+      spectrumlength=size(realspec)
+    endif
+
     redshiftguess=redshiftguess_initial
     resolutionguess=resolutionguess_initial
 
@@ -316,6 +343,12 @@ elseif (allocated(spectrum_3d)) then !fit 3D data
       spectrumlength=axes(3)
       realspec%flux=spectrum_3d(cube_i,cube_j,:)
       realspec%wavelength=wavelengths
+
+      if (rebinfactor>1) then
+        call rebinspectrum(realspec,rebinfactor)
+        spectrumlength=size(realspec)
+      endif
+
       redshiftguess=redshiftguess_initial
       resolutionguess=resolutionguess_initial
 

@@ -87,7 +87,6 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
           allocate(axes(dimensions))
           call ftgisz(unit,dimensions,axes,status)
           if (any(axes.gt.1)) then !at least one axis has more than one data point.
-            print *," reading in data"
             exit ! found dimensions in this HDU so leave the loop
           endif
           deallocate(axes)
@@ -362,29 +361,15 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
 
   wavelengths = wavelengths * wavelengthscaling
 
-  print *,gettime()," wavelength range: ",wavelengths(1),wavelengths(size(wavelengths))
+  print *,gettime(),"  wavelength range: ",wavelengths(1),wavelengths(size(wavelengths))
   print *
-
-! rebinning
-
-  if (rebinfactor .gt. 1) then
-    if (allocated(spectrum_1d)) then
-      print *,gettime(),"rebinned spectrum by factor of ",rebinfactor
-      call rebinarray(wavelengths,rebinfactor)
-      call rebinarray(spectrum_1d,rebinfactor)
-    else
-      print *,gettime(),"warning: can't rebin 2d or 3d spectra yet, left as is"
-    endif
-  endif
-
-! todo: make this work for 2d and 3d data
 
 end subroutine readdata
 
 subroutine rebinarray(array,rebinfactor)
-
+! for allocatable 1d array
   implicit none
-  real, dimension(:), allocatable :: array, array_temp
+  real, dimension(:), allocatable :: array,array_temp
   integer :: rebinfactor, i, newsize, endbit, s1, s2
 
   newsize=size(array)/rebinfactor
@@ -408,9 +393,50 @@ subroutine rebinarray(array,rebinfactor)
 
   deallocate(array)
   allocate(array(newsize))
+
   array=array_temp
 
 end subroutine rebinarray
+
+subroutine rebinspectrum(array,rebinfactor)
+! for allocatable arrays of type "spectrum"
+  implicit none
+  type(spectrum), dimension(:), allocatable :: array
+  real, dimension(:), allocatable :: arraywlen, arrayflux, arraywlen_rebinned, arrayflux_rebinned
+  integer :: rebinfactor, i, newsize, endbit, s1, s2
+
+  arraywlen=array%wavelength
+  arrayflux=array%flux
+
+  newsize=size(arraywlen)/rebinfactor
+  endbit=mod(size(arraywlen),rebinfactor)
+
+  if (endbit .gt. 0) then
+    newsize=newsize+1
+  endif
+
+  allocate(arraywlen_rebinned(newsize))
+  allocate(arrayflux_rebinned(newsize))
+
+  do i = 1,newsize
+    s1=(i-1)*rebinfactor + 1
+    s2=i*rebinfactor
+    arraywlen_rebinned(i)=sum(arraywlen(s1:s2)) / rebinfactor
+    arrayflux_rebinned(i)=sum(arrayflux(s1:s2)) / rebinfactor
+  enddo
+
+  if (endbit .ne. 0) then ! fill in last element
+    arraywlen_rebinned(newsize) = sum(arraywlen(size(arraywlen)-endbit+1:size(arraywlen)))/endbit
+    arrayflux_rebinned(newsize) = sum(arrayflux(size(arrayflux)-endbit+1:size(arrayflux)))/endbit
+  endif
+
+  deallocate(array)
+  allocate(array(newsize))
+
+  array%wavelength=arraywlen_rebinned
+  array%flux=arrayflux_rebinned
+
+end subroutine rebinspectrum
 
 subroutine readlinelist(linelistfile,referencelinelist,nlines,wavelength1,wavelength2,exclusions)
 !this subroutine reads in the line catalogue

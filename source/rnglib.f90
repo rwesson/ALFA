@@ -965,9 +965,9 @@ subroutine initialize ( )
   g = 1
   call cgn_set ( g )
 
-  write ( *, '(a)' ) ' '
-  write ( *, '(a)' ) 'INITIALIZE - Note:'
-  write ( *, '(a)' ) '  The RNGLIB package has been initialized.'
+!  write ( *, '(a)' ) ' '
+!  write ( *, '(a)' ) 'INITIALIZE - Note:'
+!  write ( *, '(a)' ) '  The RNGLIB package has been initialized.'
 
   return
 end

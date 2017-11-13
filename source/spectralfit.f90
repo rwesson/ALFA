@@ -159,8 +159,8 @@ do i=1,spectrumlength,400
     if (messages) print "(' ',A,A,F7.1,A,F7.1,A,I3,A)",gettime(),"fitting from ",spectrumchunk(1)%wavelength," to ",spectrumchunk(size(spectrumchunk))%wavelength," with ",nlines," lines"
     call fit(spectrumchunk, redshiftguess, resolutionguess, fittedlines_section, vtol2, rtol2, generations, popsize, pressure)
     !use redshift and resolution from this chunk as initial values for next chunk
-    redshiftguess=fittedlines_section(1)%redshift
-    resolutionguess=fittedlines_section(1)%resolution
+!    redshiftguess=fittedlines_section(1)%redshift
+!    resolutionguess=fittedlines_section(1)%resolution
     !copy results back
     fittedlines(linearraypos:linearraypos+nlines-1)=fittedlines_section
     linearraypos=linearraypos+nlines

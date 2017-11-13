@@ -42,33 +42,57 @@ if (subtractsky) then
   !if there are any sky lines to fit, then go though in chunks of 400 units
   if (nlines .gt. 0) then
     do i=1,spectrumlength,400
-      if (i+400 .gt. spectrumlength) then
-        endpos=spectrumlength
+
+! overlap=nint(2*vtol2/(1-realspec(i)%wavelength/realspec(i+1)%wavelength)) ! this needs fixing, i+1 can be out of bounds
+      overlap=20
+
+! avoid refitting final section. if spectrumlength%400<overlap, this would happen
+
+      if ((spectrumlength-i)<overlap) exit
+
+      if (i .eq. 1) then
+        startpos=1
+        startwlen=realspec(1)%wavelength
       else
-        endpos=i+400
+        startpos=i-overlap
+        startwlen=realspec(i)%wavelength
       endif
 
-      allocate(spectrumchunk(endpos-i+1))
-      spectrumchunk = realspec(i:endpos)
+      if (i+400+overlap-1 .gt. spectrumlength) then
+        endpos=spectrumlength
+        endwlen=realspec(spectrumlength)%wavelength
+      else
+        endpos=i+400+overlap-1
+        endwlen=realspec(i+400)%wavelength
+      endif
 
-      !read in sky lines in chunk
-      call selectlines(skylines_catalogue, realspec(i)%wavelength, realspec(endpos)%wavelength, skylines_section, nlines)
+      allocate(spectrumchunk(endpos-startpos+1))
+      spectrumchunk = realspec(startpos:endpos)
+
+      call selectlines(skylines_catalogue, startwlen, endwlen, skylines_section, nlines)
 
       if (nlines .gt. 0) then
-        call fit(spectrumchunk, 1., resolutionguess, skylines_section, 1.0, rtol2, generations, popsize, pressure)
-        skylines(linearraypos:linearraypos+nlines-1)=skylines_section!(1:nlines)
+        if (messages) print "(' ',A,A,F7.1,A,F7.1,A,I3,A)",gettime(),"fitting sky emission from ",spectrumchunk(1)%wavelength," to ",spectrumchunk(size(spectrumchunk))%wavelength," with ",nlines," lines"
+        call fit(spectrumchunk, 1.0, resolutionguess, skylines_section, 3.e-6, rtol2, generations, popsize, pressure) !velocity guess=0km/s, tolerance~1km/s
+    !use redshift and resolution from this chunk as initial values for next chunk
+!    redshiftguess=skylines_section(1)%redshift
+!    resolutionguess=skylines_section(1)%resolution
+    !copy results back
+        skylines(linearraypos:linearraypos+nlines-1)=skylines_section
         linearraypos=linearraypos+nlines
       endif
-
       deallocate(spectrumchunk)
     enddo
+
   ! make full sky spectrum and subtract at end
 
     call makespectrum(skylines,skyspectrum)
     realspec%flux = realspec%flux - skyspectrum%flux
 
   else
+
     print *,gettime(),"no sky lines in wavelength range covered by spectrum"
+
   endif ! nlines .gt. 0
 endif ! subtractsky
 

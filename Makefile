@@ -33,7 +33,7 @@ else
 endif
 
 # get version from changelog if debian package, or git log otherwise
-VERSION := $(shell if [ -e debian/ ]; then dpkg-parsechangelog -S version; else git describe --always --tags --dirty; fi)
+VERSION := $(shell if [ -e debian/ ]; then dpkg-parsechangelog -S version; elif [ -e .git/ ]; then git describe --always --tags --dirty; fi)
 
 FFLAGS+=-cpp -DPREFIX=\"$(PREFIX)\" -DVERSION=\"$(VERSION)\"
 LDFLAGS+=

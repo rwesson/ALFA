@@ -79,6 +79,7 @@ new: clean all
 
 alfa: source/rnglib.o source/types.o source/functions.o source/commandline.o source/readfiles.o source/quicksort.o source/continuum.o source/linefit.o source/uncertainties.o source/alfa.o
 	$(LD) $(LDFLAGS) $(FFLAGS) -o $@ $^ $(CFITSIOFLAGS)
+	@echo "Compilation complete"
 
 clean:
 	rm -f alfa source/*.o source/*.mod man/alfa.html
@@ -93,6 +94,7 @@ install: alfa
 	test -e $(DESTDIR)$(PREFIX)/share/bash-completion/completions || mkdir -p $(DESTDIR)$(PREFIX)/share/bash-completion/completions
 	install -m 644 source/bashcompletion $(DESTDIR)$(PREFIX)/share/bash-completion/completions/alfa
 	gzip -f $(MANDIR)/alfa.1
+	@echo "Installation complete"
 
 test: alfa
 	@mkdir -p testoutput

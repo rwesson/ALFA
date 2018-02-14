@@ -103,9 +103,9 @@ continuumwindow=101
 tablewavelengthcolumn=1
 tablefluxcolumn=2
 
-stronglinelistfile=trim(PREFIX)//"/share/alfa/strong.cat"
-deeplinelistfile=trim(PREFIX)//"/share/alfa/deep.cat"
-skylinelistfile=trim(PREFIX)//"/share/alfa/sky.cat"
+stronglinelistfile=trim(PREFIX)//"/share/alfa/optical_strong.cat"
+deeplinelistfile=trim(PREFIX)//"/share/alfa/optical_deep.cat"
+skylinelistfile=trim(PREFIX)//"/share/alfa/sky_deep.cat"
 
 outputdirectory="./"
 imagesection=""

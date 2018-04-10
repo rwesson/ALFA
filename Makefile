@@ -96,7 +96,7 @@ install: alfa
 	gzip -f $(MANDIR)/alfa.1
 	@echo "Installation complete"
 
-test: alfa
+fittest: alfa
 	@mkdir -p testoutput
 	@printf "testing reading and fitting of data formats:\n"
 	@printf " ..1d ascii"

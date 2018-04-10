@@ -91,7 +91,7 @@ resolutionguess=0.0 !lambda/deltalambda, determined assuming nyquist sampling if
 resolutionguess_initial=0.0
 rtol1=0.d0 !variation allowed in resolution on first pass.  determined later, either from user input, or to be equal to resolution guess.
 rtol2=500. !second pass
-vtol1=0.003 !variation allowed in velocity (expressed as redshift) on first pass. 0.003 = 900 km/s
+vtol1=0.0006 !variation allowed in velocity (expressed as redshift) on first pass. 0.0006 = 180 km/s
 vtol2=0.0002 !second pass. 0.0002 = 60 km/s
 baddata=0.d0
 bdcount=0

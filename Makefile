@@ -100,15 +100,15 @@ test: alfa
 	@mkdir -p testoutput
 	@printf "testing reading and fitting of data formats:\n"
 	@printf " ..1d ascii"
-	@./alfa test/1d.ascii --output-dir testoutput > /dev/null && printf "....success!\n"
+	@./alfa test/1d.ascii --output-dir testoutput && printf "....success!\n"
 	@printf " ..1d fits image"
-	@./alfa test/1d.fits --output-dir testoutput > /dev/null && printf "....success!\n"
+	@./alfa test/1d.fits --output-dir testoutput && printf "....success!\n"
 	@printf " ..2d fits image (also tests image section handling)"
-	@./alfa test/2d_small.fits[*,1:2] --output-dir testoutput > /dev/null && printf "....success!\n"
+	@./alfa test/2d_small.fits[*,1:2] --output-dir testoutput && printf "....success!\n"
 	@printf " ..3d fits image"
-	@./alfa test/3dspec_2x2.fits --output-dir testoutput > /dev/null && printf "....success!\n"
+	@./alfa test/3dspec_2x2.fits --output-dir testoutput && printf "....success!\n"
 	@printf " ..3d fits image collapsed"
-	@./alfa test/3dspec_2x2.fits --collapse --output-dir testoutput > /dev/null && printf "....success!\n"
+	@./alfa test/3dspec_2x2.fits --collapse --output-dir testoutput && printf "....success!\n"
 	@printf "all tests ran successfully!\n"
 	@rm -rf testoutput
 

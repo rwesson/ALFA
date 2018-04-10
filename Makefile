@@ -104,7 +104,7 @@ test: alfa
 	@printf " ..1d fits image"
 	@./alfa test/1d.fits --output-dir testoutput > /dev/null && printf "....success!\n"
 	@printf " ..2d fits image (also tests image section handling)"
-	@./alfa test/2d.fits[*,1:2] --output-dir testoutput > /dev/null && printf "....success!\n"
+	@./alfa test/2d_small.fits[*,1:2] --output-dir testoutput > /dev/null && printf "....success!\n"
 	@printf " ..3d fits image"
 	@./alfa test/3dspec_2x2.fits --output-dir testoutput > /dev/null && printf "....success!\n"
 	@printf " ..3d fits image collapsed"

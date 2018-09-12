@@ -316,6 +316,7 @@ if (messages) print *,gettime(),"writing output files ",trim(outputdirectory),tr
 if (messages) open(100+tid,file=trim(outputdirectory)//trim(outputbasename)//"_lines.tex")
 
 open(200+tid,file=trim(outputdirectory)//trim(outputbasename)//"_lines")
+write (200+tid,*) "#wlen (obs)  (rest)      flux    uncertainty     peak        FWHM"
 
 if (messages) then
   write(100+tid,*) "\\ \hline"

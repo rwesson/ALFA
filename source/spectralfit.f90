@@ -304,10 +304,8 @@ realspec%uncertainty = realspec%uncertainty * normalisation !for continuum jumps
 
 ! now write out the line list.
 
-if (maxval(fittedlines%peak) .lt. 0.1) then
+if (maxval(fittedlines%peak) .lt. 0.1 .or. maxval(fittedlines%peak) .gt. 1.e7) then
   fluxformat="ES12.3"
-elseif (maxval(fittedlines%peak) .gt. 1.e7) then
-  fluxformat="ES20.3"
 else
   fluxformat="F12.3"
 endif

@@ -264,16 +264,18 @@ close(100+tid)
 ! normalise if H beta is present and user did not specify a normalisation
 
 hbetaflux=0.d0
+normalisation=1.d0
 
 do i=1,totallines
   if (abs(fittedlines(i)%wavelength - 4861.33) .lt. 0.005) then
     hbetaflux = gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))
+    exit
   endif
 enddo
 
 if (.not. normalise) then
 
-  normalisation = 0.d0
+  normalisation = 1.d0
 
   if (hbetaflux .gt. 0.d0) then
     normalisation = 100./hbetaflux
@@ -287,9 +289,8 @@ if (.not. normalise) then
 
 else
 
-  if (normalisation .eq. 0.0) then
+  if (normalisation .eq. 1.d0) then
     if (messages) print *,gettime(),"no normalisation applied, measured fluxes will be reported"
-    normalisation = 1.d0
   else
     if (messages) print *,gettime(),"normalising to H beta = 100.0 assuming flux of ",normalisation
     normalisation = 100./normalisation

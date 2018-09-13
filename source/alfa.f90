@@ -249,7 +249,7 @@ elseif (allocated(spectrum_2d)) then !fit 2D data
 
   write (filenameformat,"(A,I1,A,I1)") "I",floor(log10(real(axes(2))))+1,".",floor(log10(real(axes(2))))+1
 
-!$OMP PARALLEL private(outputbasename,realspec,fittedspectrum,spectrumlength,continuum,nlines,spectrumchunk,linearraypos,overlap,startpos,startwlen,endpos,endwlen,skylines,skylines_section,stronglines,fittedlines,fittedlines_section,blendpeak,hbetaflux,totallines,skyspectrum,redshiftguess_overall,rss_i,tid,redshiftguess,resolutionguess,file_exists,writeb1,writeb2,writep1,writep2) shared(skylines_catalogue,stronglines_catalogue,deeplines_catalogue,axes,spectrumfile,redshiftguess_initial,resolutionguess_initial,outputdirectory)
+!$OMP PARALLEL private(outputbasename,realspec,fittedspectrum,spectrumlength,continuum,nlines,spectrumchunk,linearraypos,overlap,startpos,startwlen,endpos,endwlen,skylines,skylines_section,stronglines,fittedlines,fittedlines_section,blendpeak,hbetaflux,totallines,skyspectrum,redshiftguess_overall,rss_i,tid,redshiftguess,resolutionguess,file_exists,writeb1,writeb2,writep1,writep2,normalisation) shared(skylines_catalogue,stronglines_catalogue,deeplines_catalogue,axes,spectrumfile,redshiftguess_initial,resolutionguess_initial,outputdirectory)
 !$OMP MASTER
   if (omp_get_num_threads().gt.1) then
     print "(X,A9,X,A,I2,A)",gettime(),"using ",omp_get_num_threads()," processors"
@@ -321,7 +321,7 @@ elseif (allocated(spectrum_2d)) then !fit 2D data
 elseif (allocated(spectrum_3d)) then !fit 3D data
 
   print *,gettime(),"processing cube"
-!$OMP PARALLEL private(outputbasename,realspec,fittedspectrum,spectrumlength,continuum,nlines,spectrumchunk,linearraypos,overlap,startpos,startwlen,endpos,endwlen,skylines,skylines_section,stronglines,fittedlines,fittedlines_section,blendpeak,hbetaflux,totallines,skyspectrum,redshiftguess_overall,cube_i,cube_j,tid,redshiftguess,resolutionguess,file_exists,writeb1,writeb2,writep1,writep2) shared(skylines_catalogue,stronglines_catalogue,deeplines_catalogue,axes,spectrumfile,redshiftguess_initial,resolutionguess_initial,outputdirectory)
+!$OMP PARALLEL private(outputbasename,realspec,fittedspectrum,spectrumlength,continuum,nlines,spectrumchunk,linearraypos,overlap,startpos,startwlen,endpos,endwlen,skylines,skylines_section,stronglines,fittedlines,fittedlines_section,blendpeak,hbetaflux,totallines,skyspectrum,redshiftguess_overall,cube_i,cube_j,tid,redshiftguess,resolutionguess,file_exists,writeb1,writeb2,writep1,writep2,normalisation) shared(skylines_catalogue,stronglines_catalogue,deeplines_catalogue,axes,spectrumfile,redshiftguess_initial,resolutionguess_initial,outputdirectory)
 
 !$OMP MASTER
   if (omp_get_num_threads().gt.1) then

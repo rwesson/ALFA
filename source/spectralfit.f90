@@ -114,7 +114,9 @@ else
   allocate(stronglines(50*nlines))
   do i=1,nlines
     linelocation=minloc(abs(stronglines_catalogue(i)%wavelength*redshiftguess-realspec%wavelength),1)
-    stronglines(50*(i-1)+1:50*i) = realspec(linelocation-24:linelocation+25)
+    if (linelocation-24 .gt. 0 .and. linelocation+25 .lt. size(realspec)) then
+      stronglines(50*(i-1)+1:50*i) = realspec(linelocation-24:linelocation+25)
+    endif
   enddo
 
   !now fit the strong lines

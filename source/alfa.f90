@@ -243,7 +243,7 @@ if (allocated(spectrum_1d)) then !1d spectrum
   tid=0
   write (outputbasename,"(A)") spectrumfile(index(spectrumfile,"/",back=.true.)+1:len(trim(spectrumfile)))
 
-  include "spectralfit.f90"
+#include "spectralfit.f90"
 
 elseif (allocated(spectrum_2d)) then !fit 2D data
 
@@ -299,7 +299,7 @@ elseif (allocated(spectrum_2d)) then !fit 2D data
 
 !now do the fitting
 
-    include "spectralfit.f90"
+#include "spectralfit.f90"
 
 !deallocate arrays ready for the next pixel
     deallocate(realspec)
@@ -373,7 +373,7 @@ elseif (allocated(spectrum_3d)) then !fit 3D data
 
 !now do the fitting
 
-      include "spectralfit.f90"
+#include "spectralfit.f90"
 
 !deallocate arrays ready for the next pixel
 

@@ -255,6 +255,7 @@ call get_uncertainties(fittedspectrum, realspec, fittedlines)
 
 open(100+tid,file=trim(outputdirectory)//trim(outputbasename)//"_fit")
 
+write (100+tid,*) "#alfa version ",VERSION
 write (100+tid,*) "#fit generated using: ",trim(commandline)
 write (100+tid,*) "#""wavelength""  ""input spectrum ""  ""fitted spectrum""  ""cont-subbed orig"" ""continuum""  ""sky lines""  ""residuals""  ""uncertainty"""
 do i=1,spectrumlength

@@ -29,15 +29,16 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
   logical :: loglambda !is the spectrum logarithmically sampled?
   integer :: dimensions !number of dimensions
   integer, dimension(:), allocatable :: axes !number of pixels in each dimension
-  integer :: i, io !counter and io status for file reading
+  integer :: i,j,io !counter and io status for file reading
   integer, intent(in) :: rebinfactor
   integer :: tablewavelengthcolumn,tablefluxcolumn
 
   !cfitsio variables
 
-  integer :: status,unit,readwrite,blocksize,hdutype,group,numberofhdus,nrows
+  integer :: status,unit,readwrite,blocksize,hdutype,group,numberofhdus,nrows,ncols
   character(len=80) :: key_cunit, key_ctype, key_crpix, key_crval, key_cdelt, key_cd
   character(len=80) :: cunit,ctype
+  character(len=8) :: keynamevar,colheader
   real :: nullval
   logical :: anynull,datafound
 
@@ -97,8 +98,14 @@ subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelen
       if (hdutype.eq.1.or.hdutype.eq.2) then
         if (hdutype.eq.1) print *,gettime(),"extension ",i," contains an ASCII table:"
         if (hdutype.eq.2) print *,gettime(),"extension ",i," contains a binary table:"
-        call ftgnrw(unit,nrows,status) !
-        print *,gettime()," table contains ",nrows," rows"
+        call ftgnrw(unit,nrows,status)
+        call ftgncl(unit,ncols,status)
+        print *,gettime()," table contains ",nrows," rows and ",ncols," columns:"
+        do j=1,ncols
+          write (keynamevar, "(A5,I1)") "TTYPE", j
+          call ftgkys(unit,keynamevar,colheader,"",status)
+          print *,gettime(),"  column ",j,": ",colheader
+        enddo
 
 ! check for crappy ESO format which puts everything in one row
 ! look for header keyword nelem

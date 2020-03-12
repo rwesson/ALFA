@@ -31,7 +31,7 @@ character (len=32) :: imagesection
 
 type(linelist), dimension(:), allocatable :: skylines_catalogue, stronglines_catalogue, deeplines_catalogue
 type(linelist), dimension(:), allocatable :: fittedlines, fittedlines_section, skylines, skylines_section
-type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum, spectrumchunk, skyspectrum, continuum, stronglines
+type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum, spectrumchunk, skyspectrum, continuum, stronglines, maskedspectrum
 
 real :: baddata
 integer :: bdcount

@@ -148,6 +148,19 @@ endif
 
 if (messages) print *, gettime(),"fitting full spectrum with ",totallines," lines"
 
+! process the spectrum so that it only contains line regions
+
+maskedspectrum=realspec
+maskedspectrum%flux=0
+do i=1,totallines
+  where (abs(fittedlines(i)%wavelength-maskedspectrum%wavelength)<6)
+    maskedspectrum=realspec
+  endwhere
+enddo
+
+!todo: replace later use of realspec with maskedspectrum, but write out realspec at the end
+realspec%flux=maskedspectrum%flux
+
 !now go through spectrum in chunks of 440 units.  Each one overlaps by 20 units with the previous and succeeding chunk, to avoid the code attempting to fit part of a line profile
 !at beginning and end, padding is only to the right and left respectively
 

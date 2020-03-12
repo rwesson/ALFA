@@ -135,7 +135,7 @@ With the parameters optimised in each chunk, uncertainties are estimated using t
 
 The FITS file can have one, two or three dimensions.  If it has two, it is assumed to be in Row-Stacked Spectra (RSS) format, while if it has three, it is assumed to be a data cube with two axes representing spatial dimensions and the third representing the spectral dimension.
 
-If you don't want to fit the whole dataset, you can specify the range of pixels on each axis that you want \fBalfa\fR to read in.  This functionality is part of the CFITSIO library, and the format is described at https://heasarc.gsfc.nasa.gov/docs/software/fitsio/c/c_user/node95.html.  \fBalfa\fR itself does not read in the coordinates of the section, and so the output file numbering starts from 1 on each axis regardless of where the image section actually started.  The next release of \fBalfa\fR will have improved support for image sections.
+If you don't want to fit the whole dataset, you can specify the range of pixels on each axis that you want \fBalfa\fR to read in by appending the filename with [\fIstartx:endx,starty:endy\fR].  This functionality is part of the CFITSIO library, and the format is described at https://heasarc.gsfc.nasa.gov/docs/software/fitsio/c/c_user/node97.html.  \fBalfa\fR itself does not read in the coordinates of the section, and so the output file numbering starts from 1 on each axis regardless of where the image section actually started.  The next release of \fBalfa\fR will have improved support for image sections.
 
 .SH OUTPUT FILES
 For single spectra, \fBalfa\fR writes out three text files containing its results.  Their filenames are the input file suffixed with _fit, _lines, and _lines.tex.

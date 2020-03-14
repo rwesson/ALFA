@@ -158,15 +158,12 @@ do i=1,totallines
   endwhere
 enddo
 
-!todo: replace later use of realspec with maskedspectrum, but write out realspec at the end
-realspec%flux=maskedspectrum%flux
-
 !now go through spectrum in chunks of 440 units.  Each one overlaps by 20 units with the previous and succeeding chunk, to avoid the code attempting to fit part of a line profile
 !at beginning and end, padding is only to the right and left respectively
 
 do i=1,spectrumlength,400
 
-! overlap=nint(2*vtol2/(1-realspec(i)%wavelength/realspec(i+1)%wavelength)) ! this needs fixing, i+1 can be out of bounds
+! overlap=nint(2*vtol2/(1-maskedspectrum(i)%wavelength/maskedspectrum(i+1)%wavelength)) ! this needs fixing, i+1 can be out of bounds
   overlap=20
 
 ! avoid refitting final section. if spectrumlength%400<overlap, this would happen
@@ -175,22 +172,22 @@ do i=1,spectrumlength,400
 
   if (i .eq. 1) then
     startpos=1
-    startwlen=realspec(1)%wavelength/redshiftguess_overall
+    startwlen=maskedspectrum(1)%wavelength/redshiftguess_overall
   else
     startpos=i-overlap
-    startwlen=realspec(i)%wavelength/redshiftguess_overall
+    startwlen=maskedspectrum(i)%wavelength/redshiftguess_overall
   endif
 
   if (i+400+overlap-1 .gt. spectrumlength) then
     endpos=spectrumlength
-    endwlen=realspec(spectrumlength)%wavelength/redshiftguess_overall
+    endwlen=maskedspectrum(spectrumlength)%wavelength/redshiftguess_overall
   else
     endpos=i+400+overlap-1
-    endwlen=realspec(i+400)%wavelength/redshiftguess_overall
+    endwlen=maskedspectrum(i+400)%wavelength/redshiftguess_overall
   endif
 
   allocate(spectrumchunk(endpos-startpos+1))
-  spectrumchunk = realspec(startpos:endpos)
+  spectrumchunk = maskedspectrum(startpos:endpos)
 
   call selectlines(deeplines_catalogue, startwlen, endwlen, fittedlines_section, nlines)
 
@@ -262,7 +259,7 @@ enddo
 ! calculate the uncertainties
 
 if (messages) print *,gettime(),"estimating uncertainties"
-call get_uncertainties(fittedspectrum, realspec, fittedlines)
+call get_uncertainties(fittedspectrum, maskedspectrum, fittedlines)
 
 ! write out the fitted spectrum
 

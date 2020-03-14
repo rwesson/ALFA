@@ -153,7 +153,7 @@ if (messages) print *, gettime(),"fitting full spectrum with ",totallines," line
 maskedspectrum=realspec
 maskedspectrum%flux=0
 do i=1,totallines
-  where (abs(fittedlines(i)%wavelength-maskedspectrum%wavelength)<6)
+  where (abs(fittedlines(i)%wavelength-maskedspectrum%wavelength/redshiftguess)<6*fittedlines(i)%wavelength/resolutionguess)
     maskedspectrum=realspec
   endwhere
 enddo
@@ -269,7 +269,7 @@ write (100+tid,*) "#alfa version ",VERSION
 write (100+tid,*) "#fit generated using: ",trim(commandline)
 write (100+tid,*) "#""wavelength""  ""input spectrum ""  ""fitted spectrum""  ""cont-subbed orig"" ""continuum""  ""sky lines""  ""residuals""  ""uncertainty"""
 do i=1,spectrumlength
-  write(100+tid,"(F9.2, 7(ES12.3))") fittedspectrum(i)%wavelength,realspec(i)%flux + continuum(i)%flux, fittedspectrum(i)%flux + continuum(i)%flux + skyspectrum(i)%flux, realspec(i)%flux, continuum(i)%flux, skyspectrum(i)%flux, realspec(i)%flux - fittedspectrum(i)%flux, realspec(i)%uncertainty
+  write(100+tid,"(F9.2, 7(ES12.3))") fittedspectrum(i)%wavelength,realspec(i)%flux + continuum(i)%flux, fittedspectrum(i)%flux + continuum(i)%flux + skyspectrum(i)%flux, realspec(i)%flux, continuum(i)%flux, skyspectrum(i)%flux, realspec(i)%flux - fittedspectrum(i)%flux, maskedspectrum(i)%uncertainty
 enddo
 
 close(100+tid)

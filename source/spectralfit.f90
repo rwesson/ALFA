@@ -153,7 +153,7 @@ if (messages) print *, gettime(),"fitting full spectrum with ",totallines," line
 maskedspectrum=realspec
 maskedspectrum%flux=0
 do i=1,totallines
-  where (abs(fittedlines(i)%wavelength-maskedspectrum%wavelength/redshiftguess)<6*fittedlines(i)%wavelength/resolutionguess)
+  where (abs(fittedlines(i)%wavelength-maskedspectrum%wavelength/redshiftguess_overall)<6*fittedlines(i)%wavelength/resolutionguess)
     maskedspectrum=realspec
   endwhere
 enddo

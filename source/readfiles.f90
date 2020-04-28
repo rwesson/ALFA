@@ -437,13 +437,10 @@ subroutine rebinspectrum(array,rebinfactor)
 
 end subroutine rebinspectrum
 
-subroutine readlinelist(linelistfile,referencelinelist,nlines,wavelength1,wavelength2,exclusions)
+subroutine readlinelist(linelistfile,referencelinelist)
 !this subroutine reads in the line catalogue
 ! - linelistfile is the name of the line catalogue file
 ! - referencelinelist is the array into which the values are read
-! - nlines is the number of lines successfully read into the array
-! - wavelength1 and wavelength2 define the range of wavelenths to be read in
-! - exclusions is an array of wavelengths to be skipped if found in the input catalogue
 
   implicit none
   character (len=512) :: linelistfile
@@ -451,10 +448,9 @@ subroutine readlinelist(linelistfile,referencelinelist,nlines,wavelength1,wavele
   character (len=2) :: informatnumber
   character (len=20) :: informat
   integer :: i
-  real :: input1, wavelength1, wavelength2
-  integer :: io, nlines
+  real :: input1
+  integer :: io
   logical :: file_exists
-  real, dimension(:) :: exclusions
 
   type(linelist), dimension(:), allocatable :: referencelinelist
 
@@ -488,7 +484,7 @@ subroutine readlinelist(linelistfile,referencelinelist,nlines,wavelength1,wavele
   OPEN(199, file=linelistfile, iostat=IO, status='old')
   DO WHILE (IO >= 0)
     READ(199,*,end=110) input1
-    if (input1 .ge. wavelength1 .and. input1 .le.  wavelength2 .and. .not. (any(exclusions.eq.input1))) then
+    if (input1 .ge. minimumwavelength .and. input1 .le.  maximumwavelength .and. .not. (any(exclusions.eq.input1))) then
     !only read in lines that lie within the observed wavelength range, and are not in the line exclusions array
       I = I + 1
     endif
@@ -497,7 +493,7 @@ subroutine readlinelist(linelistfile,referencelinelist,nlines,wavelength1,wavele
 
 !determine the format to use. ceiling of log gives number of sig figs before dp, add 3 for dp and 2 sig figs after
 
-  write (informatnumber,"(I2)") ceiling(log10(max(wavelength1,wavelength2)))+3
+  write (informatnumber,"(I2)") ceiling(log10(max(minimumwavelength,maximumwavelength)))+3
   informat="(F"//trim(adjustl(informatnumber))//".2,A)"
 
 !then allocate and read
@@ -508,14 +504,14 @@ subroutine readlinelist(linelistfile,referencelinelist,nlines,wavelength1,wavele
   I=1
   do while (i .le. nlines)
     READ(199,informat) input1, linedatainput
-    if (input1 .ge. wavelength1 .and. input1 .le. wavelength2 .and. .not. (any(exclusions.eq.input1))) then
+    if (input1 .ge. minimumwavelength .and. input1 .le. maximumwavelength .and. .not. (any(exclusions.eq.input1))) then
       referencelinelist(i)%wavelength = input1
       referencelinelist(i)%peak=1000.
 !formerly abs(realspec(minloc((realspec%wavelength-input1)**2,1))%flux) but in case of weak lines near to negative flux values this prevented them being fitted. it makes a negligible difference to the running time
       referencelinelist(i)%linedata = linedatainput
       i=i+1
     endif
-    if (input1 .ge.  wavelength2) then
+    if (input1 .ge.  maximumwavelength) then
       exit
     endif
   END DO

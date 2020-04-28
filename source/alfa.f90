@@ -164,9 +164,9 @@ endif
 !read in the line catalogues
 
 print *,gettime(),"reading in line catalogues"
-call readlinelist(skylinelistfile, skylines_catalogue, nlines,minimumwavelength,maximumwavelength,exclusions)
-call readlinelist(stronglinelistfile, stronglines_catalogue, nlines,minimumwavelength,maximumwavelength,exclusions)
-call readlinelist(deeplinelistfile, deeplines_catalogue, nlines,minimumwavelength,maximumwavelength,exclusions)
+call readlinelist(skylinelistfile, skylines_catalogue)
+call readlinelist(stronglinelistfile, stronglines_catalogue)
+call readlinelist(deeplinelistfile, deeplines_catalogue)
 
 if (allocated(spectrum_1d)) then !1d spectrum
 

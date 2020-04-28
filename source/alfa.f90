@@ -189,7 +189,7 @@ if (allocated(spectrum_1d)) then !1d spectrum
   endif
   messages=.true.
 
-  tid=0
+  threadnumber=0
   write (outputbasename,"(A)") spectrumfile(index(spectrumfile,"/",back=.true.)+1:len(trim(spectrumfile)))
 
 #include "spectralfit.f90"
@@ -198,7 +198,7 @@ elseif (allocated(spectrum_2d)) then !fit 2D data
 
   write (filenameformat,"(A,I1,A,I1)") "I",floor(log10(real(axes(2))))+1,".",floor(log10(real(axes(2))))+1
 
-!$OMP PARALLEL private(outputbasename,realspec,fittedspectrum,spectrumlength,continuum,nlines,spectrumchunk,linearraypos,overlap,startpos,startwlen,endpos,endwlen,skylines,skylines_section,stronglines,fittedlines,fittedlines_section,blendpeak,hbetaflux,totallines,skyspectrum,redshiftguess_overall,rss_i,tid,redshiftguess,resolutionguess,file_exists,writeb1,writeb2,writep1,writep2,normalisation) shared(skylines_catalogue,stronglines_catalogue,deeplines_catalogue,axes,spectrumfile,redshiftguess_initial,resolutionguess_initial,outputdirectory)
+!$OMP PARALLEL private(outputbasename,realspec,fittedspectrum,spectrumlength,continuum,nlines,spectrumchunk,linearraypos,overlap,startpos,startwlen,endpos,endwlen,skylines,skylines_section,stronglines,fittedlines,fittedlines_section,blendpeak,hbetaflux,totallines,skyspectrum,redshiftguess_overall,rss_i,threadnumber,redshiftguess,resolutionguess,file_exists,writeb1,writeb2,writep1,writep2,normalisation) shared(skylines_catalogue,stronglines_catalogue,deeplines_catalogue,axes,spectrumfile,redshiftguess_initial,resolutionguess_initial,outputdirectory)
 !$OMP MASTER
   if (omp_get_num_threads().gt.1) then
     print "(X,A9,X,A,I2,A)",gettime(),"using ",omp_get_num_threads()," processors"
@@ -208,7 +208,7 @@ elseif (allocated(spectrum_2d)) then !fit 2D data
 !$OMP DO schedule(dynamic)
   do rss_i=1,axes(2) ! wavelength is on axis 1, row position is on axis 2, so this loops over rows
 
-    tid=OMP_GET_THREAD_NUM()
+    threadnumber=OMP_GET_THREAD_NUM()
 
     write (outputbasename,"(A,"//filenameformat(1)//")") spectrumfile(index(spectrumfile,"/",back=.true.)+1:len(trim(spectrumfile)))//"_row_",rss_i
 
@@ -231,11 +231,11 @@ elseif (allocated(spectrum_2d)) then !fit 2D data
     inquire(file=trim(outputdirectory)//trim(outputbasename)//"_lines", exist=file_exists)
 
     if (maxval(realspec%flux) .lt. baddata) then
-      print "(X,A,A,I2,A,"//filenameformat(1)//",A,ES10.2)",gettime(),"(thread ",tid,") : skipped row  ",rss_i,": all values below ",baddata
+      print "(X,A,A,I2,A,"//filenameformat(1)//",A,ES10.2)",gettime(),"(thread ",threadnumber,") : skipped row  ",rss_i,": all values below ",baddata
       deallocate(realspec)
       cycle
     elseif (file_exists) then
-      print "(X,A,A,I2,A,"//filenameformat(1)//",A)",gettime(),"(thread ",tid,") : skipped row  ",rss_i,": already fitted"
+      print "(X,A,A,I2,A,"//filenameformat(1)//",A)",gettime(),"(thread ",threadnumber,") : skipped row  ",rss_i,": already fitted"
       deallocate(realspec)
       cycle
     endif
@@ -256,7 +256,7 @@ elseif (allocated(spectrum_2d)) then !fit 2D data
     deallocate(continuum)
     if (allocated(skyspectrum)) deallocate(skyspectrum)
 
-    print "(X,A,A,I2,A,"//filenameformat(1)//",A,F6.1,A,F6.0)",gettime(),"(thread ",tid,") : finished row ",rss_i,". approx velocity and resolution ",c*(redshiftguess_overall-1.d0),", ",fittedlines(1)%resolution
+    print "(X,A,A,I2,A,"//filenameformat(1)//",A,F6.1,A,F6.0)",gettime(),"(thread ",threadnumber,") : finished row ",rss_i,". approx velocity and resolution ",c*(redshiftguess_overall-1.d0),", ",fittedlines(1)%resolution
 
   enddo
 
@@ -270,7 +270,7 @@ elseif (allocated(spectrum_2d)) then !fit 2D data
 elseif (allocated(spectrum_3d)) then !fit 3D data
 
   print *,gettime(),"processing cube"
-!$OMP PARALLEL private(outputbasename,realspec,fittedspectrum,spectrumlength,continuum,nlines,spectrumchunk,linearraypos,overlap,startpos,startwlen,endpos,endwlen,skylines,skylines_section,stronglines,fittedlines,fittedlines_section,blendpeak,hbetaflux,totallines,skyspectrum,redshiftguess_overall,cube_i,cube_j,tid,redshiftguess,resolutionguess,file_exists,writeb1,writeb2,writep1,writep2,normalisation) shared(skylines_catalogue,stronglines_catalogue,deeplines_catalogue,axes,spectrumfile,redshiftguess_initial,resolutionguess_initial,outputdirectory)
+!$OMP PARALLEL private(outputbasename,realspec,fittedspectrum,spectrumlength,continuum,nlines,spectrumchunk,linearraypos,overlap,startpos,startwlen,endpos,endwlen,skylines,skylines_section,stronglines,fittedlines,fittedlines_section,blendpeak,hbetaflux,totallines,skyspectrum,redshiftguess_overall,cube_i,cube_j,threadnumber,redshiftguess,resolutionguess,file_exists,writeb1,writeb2,writep1,writep2,normalisation) shared(skylines_catalogue,stronglines_catalogue,deeplines_catalogue,axes,spectrumfile,redshiftguess_initial,resolutionguess_initial,outputdirectory)
 
 !$OMP MASTER
   if (omp_get_num_threads().gt.1) then
@@ -285,7 +285,7 @@ elseif (allocated(spectrum_3d)) then !fit 3D data
   do cube_i=1,axes(1)
     do cube_j=1,axes(2)
 
-      tid=OMP_GET_THREAD_NUM()
+      threadnumber=OMP_GET_THREAD_NUM()
 
       write (outputbasename,"(A,"//filenameformat(1)//",A1,"//filenameformat(2)//")") spectrumfile(index(spectrumfile,"/",back=.true.)+1:len(trim(spectrumfile)))//"_pixel_",cube_i,"_",cube_j
       allocate(realspec(axes(3)))
@@ -307,11 +307,11 @@ elseif (allocated(spectrum_3d)) then !fit 3D data
       inquire(file=trim(outputdirectory)//trim(outputbasename)//"_lines", exist=file_exists)
 
       if (maxval(realspec%flux) .lt. baddata) then
-        print "(X,A,A,I2,A,"//filenameformat(1)//",A,"//filenameformat(2)//",A,ES10.2)",gettime(),"(thread ",tid,") : skipped pixel  ",cube_i,",",cube_j,": all values below ",baddata
+        print "(X,A,A,I2,A,"//filenameformat(1)//",A,"//filenameformat(2)//",A,ES10.2)",gettime(),"(thread ",threadnumber,") : skipped pixel  ",cube_i,",",cube_j,": all values below ",baddata
         deallocate(realspec)
         cycle
       elseif (file_exists) then
-        print "(X,A,A,I2,A,"//filenameformat(1)//",A,"//filenameformat(2)//",A)",gettime(),"(thread ",tid,") : skipped pixel  ",cube_i,",",cube_j,": already fitted"
+        print "(X,A,A,I2,A,"//filenameformat(1)//",A,"//filenameformat(2)//",A)",gettime(),"(thread ",threadnumber,") : skipped pixel  ",cube_i,",",cube_j,": already fitted"
         deallocate(realspec)
         cycle
       endif
@@ -331,7 +331,7 @@ elseif (allocated(spectrum_3d)) then !fit 3D data
       deallocate(continuum)
       if (allocated(skyspectrum)) deallocate(skyspectrum)
 
-      print "(X,A,A,I2,A,"//filenameformat(1)//",A,"//filenameformat(2)//",A,F6.1,A,F5.0)",gettime(),"(thread ",tid,") : finished pixel ",cube_i,",",cube_j,". approx velocity and resolution ",c*(redshiftguess_overall-1.d0),", ",fittedlines(1)%resolution
+      print "(X,A,A,I2,A,"//filenameformat(1)//",A,"//filenameformat(2)//",A,F6.1,A,F5.0)",gettime(),"(thread ",threadnumber,") : finished pixel ",cube_i,",",cube_j,". approx velocity and resolution ",c*(redshiftguess_overall-1.d0),", ",fittedlines(1)%resolution
 
     enddo
   enddo

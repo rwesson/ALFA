@@ -15,7 +15,7 @@ type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum, spectrumc
 real :: baddata
 integer :: bdcount
 integer :: cube_i, cube_j, rss_i
-integer, dimension(:), allocatable :: axes
+integer, dimension(:), allocatable :: axes !number of pixels in each dimension
 real, dimension(:), allocatable :: wavelengths !wavelength array
 real, dimension(:), allocatable :: spectrum_1d
 real, dimension(:,:), allocatable :: spectrum_2d
@@ -61,6 +61,6 @@ integer :: writeb1, writeb2, writep1, writep2
 
 ! openmp
 
-integer :: tid
+integer :: threadnumber
 
 end module mod_globals

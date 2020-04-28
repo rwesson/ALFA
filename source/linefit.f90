@@ -4,9 +4,10 @@
 module mod_fit
 use mod_routines
 use mod_types
+use mod_globals
 
 contains
-subroutine fit(inputspectrum, redshiftguess, resolutionguess, fittedlines, redshifttolerance, resolutiontolerance, generations, popsize, pressure)
+subroutine fit(inputspectrum, redshiftguess, resolutionguess, fittedlines, redshifttolerance, resolutiontolerance)
 
 implicit none
 
@@ -15,9 +16,9 @@ type(linelist), dimension(:,:), allocatable :: population
 type(linelist), dimension(:,:), allocatable ::  breed
 type(spectrum), dimension(:,:), allocatable :: synthspec
 type(spectrum), dimension(:) :: inputspectrum
-integer :: popsize, i, spectrumlength, lineid, loc1, loc2, nlines, gencount, generations, popnumber
+integer :: i, spectrumlength, lineid, loc1, loc2, nlines, gencount, popnumber
 real, dimension(:), allocatable :: sumsquares
-real :: random, r4_uni_01, pressure
+real :: random, r4_uni_01
 real :: resolutionguess, redshiftguess, redshifttolerance, resolutiontolerance
 real :: scalefactor
 

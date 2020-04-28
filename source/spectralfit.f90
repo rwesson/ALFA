@@ -73,7 +73,7 @@ if (subtractsky) then
 
       if (nlines .gt. 0) then
         if (messages) print "(' ',A,A,F7.1,A,F7.1,A,I3,A)",gettime(),"fitting sky emission from ",spectrumchunk(1)%wavelength," to ",spectrumchunk(size(spectrumchunk))%wavelength," with ",nlines," lines"
-        call fit(spectrumchunk, 1.0, resolutionguess, skylines_section, 3.e-6, rtol2, generations, popsize, pressure) !velocity guess=0km/s, tolerance~1km/s
+        call fit(spectrumchunk, 1.0, resolutionguess, skylines_section, 3.e-6, rtol2) !velocity guess=0km/s, tolerance~1km/s
     !use redshift and resolution from this chunk as initial values for next chunk
 !    redshiftguess=skylines_section(1)%redshift
 !    resolutionguess=skylines_section(1)%resolution
@@ -121,7 +121,7 @@ else
 
   !now fit the strong lines
 
-  call fit(stronglines, redshiftguess, resolutionguess, fittedlines, vtol1, rtol1, generations, popsize, pressure)
+  call fit(stronglines, redshiftguess, resolutionguess, fittedlines, vtol1, rtol1)
 
   if (messages) print *,gettime(),"estimated velocity and resolution: ",c*(fittedlines(1)%redshift-1),fittedlines(1)%resolution
   redshiftguess_overall = fittedlines(1)%redshift ! when fitting chunks, use this redshift to get lines in the right range from the catalogue. if velocity from each chunk is used, then there's a chance that a line could be missed or double counted due to variations in the calculated velocity between chunks.
@@ -193,7 +193,7 @@ do i=1,spectrumlength,400
 
   if (nlines .gt. 0) then
     if (messages) print "(' ',A,A,F7.1,A,F7.1,A,I3,A)",gettime(),"fitting from ",spectrumchunk(1)%wavelength," to ",spectrumchunk(size(spectrumchunk))%wavelength," with ",nlines," lines"
-    call fit(spectrumchunk, redshiftguess, resolutionguess, fittedlines_section, vtol2, rtol2, generations, popsize, pressure)
+    call fit(spectrumchunk, redshiftguess, resolutionguess, fittedlines_section, vtol2, rtol2)
     !use redshift and resolution from this chunk as initial values for next chunk
 !    redshiftguess=fittedlines_section(1)%redshift
 !    resolutionguess=fittedlines_section(1)%resolution

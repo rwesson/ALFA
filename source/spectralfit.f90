@@ -7,7 +7,7 @@
 ! subtract the continuum
 
 if (messages .and. subtractcontinuum) print *,gettime(),"fitting continuum"
-call fit_continuum(realspec,spectrumlength, continuum, continuumwindow, subtractcontinuum)
+call fit_continuum()
 
 ! now do the fitting
 ! first get guesses for the redshift and resolution

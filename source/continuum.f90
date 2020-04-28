@@ -4,18 +4,15 @@
 module mod_continuum
 use mod_types
 use mod_quicksort
+use mod_globals
 
 contains
 
-subroutine fit_continuum(realspec, spectrumlength, continuum, window, subtractcontinuum)
+subroutine fit_continuum()
 
 implicit none
-type(spectrum), dimension(:), allocatable :: realspec
-type(spectrum), dimension(:), allocatable :: continuum
 real, dimension(:), allocatable :: spectrumchunk
-integer :: i, spectrumlength
-integer :: window,halfwindow
-logical :: subtractcontinuum
+integer :: i,halfwindow
 
 #ifdef CO
   print *,"subroutine: fit_continuum"
@@ -27,9 +24,9 @@ logical :: subtractcontinuum
 
   if (subtractcontinuum) then
 ! take the 25th percentile value of chunks of the spectrum defined by window
-    halfwindow=window/2
+    halfwindow=continuumwindow/2
 ! note that in integer maths only integer part is taken. ie 101/2 (=50.5) = 50
-    allocate(spectrumchunk(window))
+    allocate(spectrumchunk(continuumwindow))
 
     do i=halfwindow+1,spectrumlength-halfwindow
       spectrumchunk = realspec(i-halfwindow:i+halfwindow)%flux

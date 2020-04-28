@@ -77,7 +77,7 @@ new: clean all
 %.o: %.f90
 	$(FC) $(FFLAGS) $< -c -o $@
 
-alfa: source/rnglib.o source/types.o source/globals.o source/functions.o source/commandline.o source/readfiles.o source/quicksort.o source/continuum.o source/linefit.o source/uncertainties.o source/alfa.o
+alfa: source/rnglib.o source/types.o source/globals.o source/functions.o source/output.o source/commandline.o source/readfiles.o source/quicksort.o source/continuum.o source/linefit.o source/uncertainties.o source/alfa.o
 	$(LD) $(LDFLAGS) $(FFLAGS) -o $@ $^ $(CFITSIOFLAGS)
 	@echo "Compilation complete"
 

@@ -23,10 +23,11 @@ use mod_fit
 use mod_uncertainties
 use mod_commandline
 use mod_globals
+use mod_output
 
 ! openmp variables
 implicit none
-integer :: tid, omp_get_thread_num, omp_get_num_threads
+integer :: omp_get_thread_num, omp_get_num_threads
 
 c=299792.458 !km/s
 !default values in absence of user specificed guess

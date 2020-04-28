@@ -3,27 +3,17 @@
 
 module mod_commandline
 use mod_routines
+use mod_globals
 
 contains
 
-subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_initial,resolutionguess_initial,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits,wavelengthscaling,collapse,exclusions,detectionlimit,rebinfactor,subtractcontinuum,continuumwindow,tablewavelengthcolumn,tablefluxcolumn,outputformat)
+subroutine readcommandline()
 
   implicit none
 
-  real :: normalisation,redshiftguess_initial,resolutionguess_initial,vtol1,vtol2,rtol1,rtol2,baddata,pressure,c,wavelengthscaling
-  character(len=2048) :: commandline
   character(len=512), dimension(:), allocatable :: options
-  character(len=512),intent(out) :: spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile
-  character(len=32) :: imagesection
-  character(len=5) :: outputformat
-  integer,intent(out) :: generations,popsize
-  integer :: Narg,nargused,i
-  logical :: subtractsky,resolution_estimated,file_exists,upperlimits,normalise,collapse,subtractcontinuum
-  real, dimension(:), allocatable :: exclusions
+  integer :: Narg,nargused,i,exclusioncount
   real :: excludewavelength
-  real :: detectionlimit
-  integer :: exclusioncount,rebinfactor,continuumwindow
-  integer :: tablewavelengthcolumn,tablefluxcolumn
 
 #ifdef CO
   print *,"subroutine: readcommandline"

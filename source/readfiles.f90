@@ -3,7 +3,7 @@
 
 module mod_readfiles
 use mod_types
-use mod_routines
+use mod_functions
 use mod_globals
 
 contains

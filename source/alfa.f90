@@ -16,7 +16,7 @@ program alfa
 !along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use mod_readfiles
-use mod_routines
+use mod_functions
 use mod_types
 use mod_continuum
 use mod_fit

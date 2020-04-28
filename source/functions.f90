@@ -1,7 +1,7 @@
 !Copyright (C) 2013- Roger Wesson
 !Free under the terms of the GNU General Public License v3
 
-module mod_routines
+module mod_functions
 contains
 
 real function gaussianflux(a,c)
@@ -98,4 +98,4 @@ subroutine makespectrum(lines,spec)
 
 end subroutine makespectrum
 
-end module mod_routines
+end module mod_functions

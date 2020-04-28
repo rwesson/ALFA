@@ -2,7 +2,7 @@
 !Free under the terms of the GNU General Public License v3
 
 module mod_fit
-use mod_routines
+use mod_functions
 use mod_types
 use mod_globals
 

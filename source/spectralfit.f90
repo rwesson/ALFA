@@ -261,19 +261,6 @@ enddo
 if (messages) print *,gettime(),"estimating uncertainties"
 call get_uncertainties(fittedspectrum, maskedspectrum, fittedlines)
 
-! write out the fitted spectrum
-
-open(100+tid,file=trim(outputdirectory)//trim(outputbasename)//"_fit")
-
-write (100+tid,*) "#alfa version ",VERSION
-write (100+tid,*) "#fit generated using: ",trim(commandline)
-write (100+tid,*) "#""wavelength""  ""input spectrum ""  ""fitted spectrum""  ""cont-subbed orig"" ""continuum""  ""sky lines""  ""residuals""  ""uncertainty"""
-do i=1,spectrumlength
-  write(100+tid,"(F9.2, 7(ES12.3))") fittedspectrum(i)%wavelength,realspec(i)%flux + continuum(i)%flux, fittedspectrum(i)%flux + continuum(i)%flux + skyspectrum(i)%flux, realspec(i)%flux, continuum(i)%flux, skyspectrum(i)%flux, realspec(i)%flux - fittedspectrum(i)%flux, maskedspectrum(i)%uncertainty
-enddo
-
-close(100+tid)
-
 ! normalise if H beta is present and user did not specify a normalisation
 
 hbetaflux=0.d0
@@ -314,6 +301,19 @@ endif
 fittedlines%peak = fittedlines%peak * normalisation
 continuum%flux = continuum%flux * normalisation !for continuum jumps to be scaled
 realspec%uncertainty = realspec%uncertainty * normalisation !for continuum jumps to be scaled
+
+! write out the fitted spectrum
+
+open(100+tid,file=trim(outputdirectory)//trim(outputbasename)//"_fit")
+
+write (100+tid,*) "#alfa version ",VERSION
+write (100+tid,*) "#fit generated using: ",trim(commandline)
+write (100+tid,*) "#""wavelength""  ""input spectrum ""  ""fitted spectrum""  ""cont-subbed orig"" ""continuum""  ""sky lines""  ""residuals""  ""uncertainty"""
+do i=1,spectrumlength
+  write(100+tid,"(F9.2, 7(ES12.3))") fittedspectrum(i)%wavelength,realspec(i)%flux + continuum(i)%flux, fittedspectrum(i)%flux + continuum(i)%flux + skyspectrum(i)%flux, realspec(i)%flux, continuum(i)%flux, skyspectrum(i)%flux, realspec(i)%flux - fittedspectrum(i)%flux, maskedspectrum(i)%uncertainty
+enddo
+
+close(100+tid)
 
 ! now write out the line list.
 

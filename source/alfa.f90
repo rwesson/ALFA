@@ -71,6 +71,7 @@ real :: detectionlimit ! sigma required to consider a line detected. default is 
 
 character(len=12) :: fluxformat !for writing out the line list
 character(len=4),dimension(2) :: filenameformat !variable format to give suitable file names for 2D and 3D outputs
+character(len=5) :: outputformat !text, csv, fits. json? xml?
 
 integer :: rebinfactor,continuumwindow
 integer :: tablewavelengthcolumn,tablefluxcolumn
@@ -103,6 +104,8 @@ continuumwindow=101
 tablewavelengthcolumn=1
 tablefluxcolumn=2
 
+outputformat="txt"
+
 stronglinelistfile=trim(PREFIX)//"/share/alfa/optical_strong.cat"
 deeplinelistfile=trim(PREFIX)//"/share/alfa/optical_deep.cat"
 skylinelistfile=trim(PREFIX)//"/share/alfa/sky_deep.cat"
@@ -131,7 +134,7 @@ call initialize()
 
 ! read command line
 
-call readcommandline(commandline,normalise,normalisation,redshiftguess_initial,resolutionguess_initial,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits,wavelengthscaling,collapse,exclusions,detectionlimit,rebinfactor,subtractcontinuum,continuumwindow,tablewavelengthcolumn,tablefluxcolumn)
+call readcommandline(commandline,normalise,normalisation,redshiftguess_initial,resolutionguess_initial,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits,wavelengthscaling,collapse,exclusions,detectionlimit,rebinfactor,subtractcontinuum,continuumwindow,tablewavelengthcolumn,tablefluxcolumn,outputformat)
 
 ! convert from velocity to redshift
 

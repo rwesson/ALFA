@@ -6,7 +6,7 @@ use mod_routines
 
 contains
 
-subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_initial,resolutionguess_initial,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits,wavelengthscaling,collapse,exclusions,detectionlimit,rebinfactor,subtractcontinuum,continuumwindow,tablewavelengthcolumn,tablefluxcolumn)
+subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_initial,resolutionguess_initial,vtol1,vtol2,rtol1,rtol2,baddata,pressure,spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile,generations,popsize,subtractsky,resolution_estimated,file_exists,imagesection,upperlimits,wavelengthscaling,collapse,exclusions,detectionlimit,rebinfactor,subtractcontinuum,continuumwindow,tablewavelengthcolumn,tablefluxcolumn,outputformat)
 
   implicit none
 
@@ -15,6 +15,7 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_ini
   character(len=512), dimension(:), allocatable :: options
   character(len=512),intent(out) :: spectrumfile,outputdirectory,skylinelistfile,stronglinelistfile,deeplinelistfile
   character(len=32) :: imagesection
+  character(len=5) :: outputformat
   integer,intent(out) :: generations,popsize
   integer :: Narg,nargused,i
   logical :: subtractsky,resolution_estimated,file_exists,upperlimits,normalise,collapse,subtractcontinuum
@@ -401,6 +402,15 @@ subroutine readcommandline(commandline,normalise,normalisation,redshiftguess_ini
           print *,gettime(),"error: invalid value given for table flux column"
           call exit(1)
         endif
+      else
+        print *,gettime(),"error: no value specified for ",trim(options(i))
+      endif
+    endif
+
+    if ((trim(options(i))=="-of" .or. trim(options(i))=="--output-format")) then
+      if ((i+1) .le. Narg) then
+        read (options(i+1),*) outputformat
+        options(i:i+1)=""
       else
         print *,gettime(),"error: no value specified for ",trim(options(i))
       endif

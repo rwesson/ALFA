@@ -56,7 +56,7 @@ The directory in which to put the output files. Default: current working directo
 
 .TP
 .B \-of, \-\-output\-format [VALUE]
-The format of the output files. Valid values are text, csv, fits, latex. Default: text
+The format of the output files. Valid values are text, csv, fits, latex. If you are using \fBalfa\fR in conjunction with \fBneat\fR, only plain text format can currently be read in. Default: text
 
 .TP
 .B \-pr, \-\-pressure [REAL]
@@ -67,7 +67,7 @@ The fraction of the population retained from each generation. The product of the
 The size of the population used in the genetic algorithm. Default: 30
 
 .TP
-.B \-rp, \-\-rebin [INTEGER]
+.B \-rb, \-\-rebin [INTEGER]
 Rebin the input spectrum by the specified factor. Useful for high resolution spectra where line profiles are not instrumental but kinematic. This option is currently only implemented for 1d spectra.
 
 .TP

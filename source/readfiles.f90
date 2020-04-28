@@ -22,7 +22,6 @@ subroutine readdata()
   real :: wavelength, dispersion, referencepixel
   logical :: loglambda !is the spectrum logarithmically sampled?
   integer :: dimensions !number of dimensions
-  integer, dimension(:), allocatable :: axes !number of pixels in each dimension
   integer :: i,j,io !counter and io status for file reading
 
   !cfitsio variables

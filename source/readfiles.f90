@@ -4,34 +4,26 @@
 module mod_readfiles
 use mod_types
 use mod_routines
+use mod_globals
 
 contains
 
-subroutine readdata(spectrumfile, spectrum_1d, spectrum_2d, spectrum_3d, wavelengths, wavelengthscaling, axes, rebinfactor, tablewavelengthcolumn, tablefluxcolumn)
+subroutine readdata()
 
 !take the filename, check if it's FITS or plain text
 !if FITS, then read the necessary keywords to set the wavelength scale, allocate the data array according to the number of dimensions found, and fill it
 !if plain text, read two columns for wavelength and flux, return.
 
   implicit none
-  character (len=*), intent(in) :: spectrumfile !input file name
-  real, dimension(:), allocatable :: wavelengths !wavelength array
-
-  real, dimension(:), allocatable :: spectrum_1d !array for 1d data
-  real, dimension(:,:), allocatable :: spectrum_2d !array for 2d data
-  real, dimension(:,:,:), allocatable :: spectrum_3d !array for 3d data
 
   character(len=1) :: checkrow ! for use in ignoring comment rows
   character(len=512) :: rowdata ! rows read into this variable then split into wavelength and flux
 
   real :: wavelength, dispersion, referencepixel
-  real :: wavelengthscaling !factor to convert wavelengths into Angstroms
   logical :: loglambda !is the spectrum logarithmically sampled?
   integer :: dimensions !number of dimensions
   integer, dimension(:), allocatable :: axes !number of pixels in each dimension
   integer :: i,j,io !counter and io status for file reading
-  integer, intent(in) :: rebinfactor
-  integer :: tablewavelengthcolumn,tablefluxcolumn
 
   !cfitsio variables
 

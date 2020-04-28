@@ -90,7 +90,8 @@ print *
 print *,gettime(),"reading in file ",trim(spectrumfile),":"
 
 !call subroutine to read in the data.  input is filename, output is 3D array containing data, length of dimensions dependent on whether file was 1D, 2D or 3D.
-call readdata(trim(spectrumfile)//trim(imagesection), spectrum_1d, spectrum_2d, spectrum_3d, wavelengths, wavelengthscaling, axes, rebinfactor, tablewavelengthcolumn, tablefluxcolumn)
+spectrumfile=trim(spectrumfile)//trim(imagesection)
+call readdata()
 
 minimumwavelength = wavelengths(1)
 maximumwavelength = wavelengths(size(wavelengths))

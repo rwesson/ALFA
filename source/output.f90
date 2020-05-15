@@ -258,6 +258,63 @@ subroutine write_csv
 end subroutine write_csv
 
 subroutine write_fits
+!create a single fits file with two extensions, one with the fit and one with the linelist
+
+  implicit none
+  integer :: status,unit,readwrite,blocksize,hdutype,group,numberofhdus,nrows,ncols
+  integer :: tfields,varidat
+  logical :: simple,extend
+  integer :: bitpix
+  character(len=32) :: extname
+  character(len=16),dimension(8) :: ttype
+  character(len=9),dimension(8) :: tunit
+  character(len=3),dimension(8) :: tform
+
+  nrows=100
+  status=0
+
+! get a unit number
+
+  call ftgiou(unit,status)
+print *,"status: ",status
+
+!initialise the table
+
+  tfields=8
+  ttype=(/"Wavelength      ","Input spectrum  ","Fitted spectrum ","Cont-subbed orig","Continuum       ","Sky lines       ","Residuals       ","Uncertainty     "/)
+  tunit=(/"Angstroms","Flux     ","Flux     ","Flux     ","Flux     ","Flux     ","Flux     ","Flux     "/)
+  tform=(/"10E","10E","10E","10E","10E","10E","10E","10E"/)
+
+  call ftinit(unit,"!"//trim(outputdirectory)//trim(outputbasename)//"_fit.fits",blocksize,status)
+print *,"status2: ",status
+  call ftibin(unit,nrows,tfields,ttype,tform,tunit,extname,varidat,status)
+print *,"status2.5: ",status
+
+  simple=.true.
+  bitpix=16
+  extend=.true.
+  varidat=0
+  extname="AAAH"
+
+!  Write the required header keywords to the file
+!  call ftphps(unit,bitpix,1,1,status)
+!print *,"status3: ",status
+!  call ftphbn(unit,nrows,tfields,ttype,tform,tunit,extname,varidat,status)
+
+! header comment and date
+
+  call ftpcom(unit,"FITS header comment. Will it work?",status)
+print *,"status4: ",status
+  call ftpdat(unit,status)
+print *,"status5: ",status
+
+! close the file, free the number
+
+  call ftclos(unit,status)
+print *,"status6: ",status
+  call ftfiou(unit, status)
+print *,"status7: ",status
+
 end subroutine write_fits
 
 end module mod_output

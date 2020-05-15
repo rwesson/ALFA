@@ -270,7 +270,8 @@ subroutine write_fits
   character(len=9),dimension(8) :: tunit
   character(len=3),dimension(8) :: tform
 
-  nrows=100
+! todo: remove unnecessary variable
+  nrows=spectrumlength
   status=0
 
 ! get a unit number
@@ -281,7 +282,7 @@ print *,"status: ",status
 !initialise the table
 
   tfields=8
-  ttype=(/"Wavelength      ","Input spectrum  ","Fitted spectrum ","Cont-subbed orig","Continuum       ","Sky lines       ","Residuals       ","Uncertainty     "/)
+  ttype=(/"Wavelength      ", "inputSpectrum   ", "fittedSpectrum  ", "contSubbedInput ", "Continuum       ", "skyLines        ", "Residuals       ", "Uncertainty     "/)
   tunit=(/"Angstroms","Flux     ","Flux     ","Flux     ","Flux     ","Flux     ","Flux     ","Flux     "/)
   tform=(/"10E","10E","10E","10E","10E","10E","10E","10E"/)
 
@@ -296,17 +297,26 @@ print *,"status2.5: ",status
   varidat=0
   extname="AAAH"
 
-!  Write the required header keywords to the file
-!  call ftphps(unit,bitpix,1,1,status)
-!print *,"status3: ",status
-!  call ftphbn(unit,nrows,tfields,ttype,tform,tunit,extname,varidat,status)
+! include command line and date
 
-! header comment and date
-
-  call ftpcom(unit,"FITS header comment. Will it work?",status)
+  call ftpcom(unit,"alfa version "//VERSION,status)
+  call ftpcom(unit,"fit generated using:",status)
+  call ftpcom(unit,trim(commandline),status)
 print *,"status4: ",status
   call ftpdat(unit,status)
 print *,"status5: ",status
+
+! write the data
+! todo: optimise
+
+  call ftpcle(unit,1,1,1,1,fittedspectrum%wavelength,status)
+  call ftpcle(unit,2,1,1,1,realspec%flux + continuum%flux,status)
+  call ftpcle(unit,3,1,1,1,fittedspectrum%flux + continuum%flux + skyspectrum%flux,status)
+  call ftpcle(unit,4,1,1,1,realspec%flux,status)
+  call ftpcle(unit,5,1,1,1,continuum%flux,status)
+  call ftpcle(unit,6,1,1,1,skyspectrum%flux,status)
+  call ftpcle(unit,7,1,1,1,realspec%flux - fittedspectrum%flux,status)
+  call ftpcle(unit,8,1,1,1,maskedspectrum%uncertainty,status)
 
 ! close the file, free the number
 

@@ -260,70 +260,37 @@ end subroutine write_csv
 subroutine write_fits
 !create a single fits file with two extensions, one with the fit and one with the linelist
 
-  implicit none
-  integer :: status,unit,readwrite,blocksize,hdutype,group,numberofhdus,nrows,ncols
-  integer :: tfields,varidat
-  logical :: simple,extend
-  integer :: bitpix
-  character(len=32) :: extname
-  character(len=16),dimension(8) :: ttype
-  character(len=9),dimension(8) :: tunit
-  character(len=3),dimension(8) :: tform
+  integer :: status,unit,readwrite,blocksize,tfields,varidat
+  character(len=16) :: extname
+  character(len=16),dimension(8) :: ttype,tform,tunit
 
-! todo: remove unnecessary variable
-  nrows=spectrumlength
+  ttype=(/"Wavelength      ","InputSpec       ","FittedSpec      ","ContSubbedInput ","Continuum       ","SkyLines        ","Residuals       ","Uncertainty     "/)
+  tform=(/"1E","1E","1E","1E","1E","1E","1E","1E"/)
+  tunit=(/"Angstrom        ","Flux            ","Flux            ","Flux            ","Flux            ","Flux            ","Flux            ","Flux            "/)
+
   status=0
-
-! get a unit number
+  readwrite=1
 
   call ftgiou(unit,status)
-print *,"status: ",status
-
-!initialise the table
-
-  tfields=8
-  ttype=(/"Wavelength      ", "inputSpectrum   ", "fittedSpectrum  ", "contSubbedInput ", "Continuum       ", "skyLines        ", "Residuals       ", "Uncertainty     "/)
-  tunit=(/"Angstroms","Flux     ","Flux     ","Flux     ","Flux     ","Flux     ","Flux     ","Flux     "/)
-  tform=(/"10E","10E","10E","10E","10E","10E","10E","10E"/)
-
   call ftinit(unit,"!"//trim(outputdirectory)//trim(outputbasename)//"_fit.fits",blocksize,status)
-print *,"status2: ",status
-  call ftibin(unit,nrows,tfields,ttype,tform,tunit,extname,varidat,status)
-print *,"status2.5: ",status
 
-  simple=.true.
-  bitpix=16
-  extend=.true.
+  extname='ALFA_FIT'
   varidat=0
-  extname="AAAH"
+  tfields=8
 
-! include command line and date
+  call ftibin(unit,spectrumlength,tfields,ttype,tform,tunit,extname,varidat,status)
 
-  call ftpcom(unit,"alfa version "//VERSION,status)
-  call ftpcom(unit,"fit generated using:",status)
-  call ftpcom(unit,trim(commandline),status)
-print *,"status4: ",status
-  call ftpdat(unit,status)
-print *,"status5: ",status
-
-! write the data
-! todo: optimise
-
-  call ftpcle(unit,1,1,1,1,fittedspectrum%wavelength,status)
-  call ftpcle(unit,2,1,1,1,realspec%flux + continuum%flux,status)
-  call ftpcle(unit,3,1,1,1,fittedspectrum%flux + continuum%flux + skyspectrum%flux,status)
-  call ftpcle(unit,4,1,1,1,realspec%flux,status)
-  call ftpcle(unit,5,1,1,1,continuum%flux,status)
-  call ftpcle(unit,6,1,1,1,skyspectrum%flux,status)
-  call ftpcle(unit,7,1,1,1,realspec%flux - fittedspectrum%flux,status)
-  call ftpcle(unit,8,1,1,1,maskedspectrum%uncertainty,status)
-
-! close the file, free the number
-
-  call ftclos(unit,status)
-print *,"status6: ",status
+  call ftpcle(unit,1,1,1,spectrumlength,fittedspectrum%wavelength,status)
+  call ftpcle(unit,2,1,1,spectrumlength,realspec%flux + continuum%flux,status)
+  call ftpcle(unit,3,1,1,spectrumlength,fittedspectrum%flux + continuum%flux + skyspectrum%flux,status)
+  call ftpcle(unit,4,1,1,spectrumlength,realspec%flux,status)
+  call ftpcle(unit,5,1,1,spectrumlength,continuum%flux,status)
+  call ftpcle(unit,6,1,1,spectrumlength,skyspectrum%flux,status)
+  call ftpcle(unit,7,1,1,spectrumlength,realspec%flux - fittedspectrum%flux,status)
+  call ftpcle(unit,8,1,1,spectrumlength,maskedspectrum%uncertainty,status)
+  call ftclos(unit, status)
   call ftfiou(unit, status)
-print *,"status7: ",status
+  if (status .gt. 0) print *,"CFITSIO returned an error: code ",status
 
 end subroutine write_fits
 

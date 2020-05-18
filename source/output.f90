@@ -290,7 +290,11 @@ subroutine write_fits
   call ftpcle(unit,8,1,1,spectrumlength,maskedspectrum%uncertainty,status)
   call ftclos(unit, status)
   call ftfiou(unit, status)
-  if (status .gt. 0) print *,"CFITSIO returned an error: code ",status
+  if (status .gt. 0) then
+    print *,gettime(),"CFITSIO returned an error: code ",status
+  else
+    print *,gettime(),"Wrote fit to header ALFA_FIT of output file ",trim(outputdirectory)//trim(outputbasename)//"_fit.fits"
+  endif
 
 end subroutine write_fits
 

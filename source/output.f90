@@ -1,7 +1,7 @@
 module mod_output
 use mod_functions
 use mod_globals
-
+implicit none
 contains
 
 subroutine write_plaintext
@@ -264,6 +264,7 @@ subroutine write_fits
   character(len=16) :: extname
   character(len=16),dimension(8) :: ttype_fit,tform_fit,tunit_fit
   character(len=16),dimension(7) :: ttype_lines,tform_lines,tunit_lines
+  character(len=16),dimension(4) :: ttype_qc,tform_qc,tunit_qc
   logical,dimension(:),allocatable :: lineblends
   real,dimension(:),allocatable :: linefluxes,linesigmas
 
@@ -361,6 +362,23 @@ subroutine write_fits
   else
     print *,gettime(),"Wrote line list to header ALFA_LINES"
   endif
+
+! third extension for nlines, f(hb), rv, resolution
+
+  status=0
+  extname="ALFA_QC"
+  tfields=4
+
+  ttype_qc=(/"NumberOfLines   ","HbFlux          ","RadialVelocity  ","Resolution      "/)
+  tform_qc=(/"1J","1E","1E","1E"/)
+  tunit_qc=(/"                ","SameAsInputFlux ","kms-1           ","                "/)
+
+  call ftibin(unit,1,tfields,ttype_qc,tform_qc,tunit_qc,extname,varidat,status)
+
+  call ftpclj(unit,1,1,1,1,totallines,status)
+  call ftpcle(unit,2,1,1,1,hbetaflux,status)
+  call ftpcle(unit,3,1,1,1,c*(redshiftguess_overall-1),status)
+  call ftpcle(unit,4,1,1,1,resolutionguess,status)
 
   call ftclos(unit, status)
   call ftfiou(unit, status)

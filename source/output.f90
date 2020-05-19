@@ -262,11 +262,16 @@ subroutine write_fits
 
   integer :: status,unit,readwrite,blocksize,tfields,varidat
   character(len=16) :: extname
-  character(len=16),dimension(8) :: ttype,tform,tunit
+  character(len=16),dimension(8) :: ttype_fit,tform_fit,tunit_fit
+  character(len=16),dimension(7) :: ttype_lines,tform_lines,tunit_lines
+  logical,dimension(:),allocatable :: lineblends
+  real,dimension(:),allocatable :: linefluxes,linesigmas
 
-  ttype=(/"Wavelength      ","InputSpec       ","FittedSpec      ","ContSubbedInput ","Continuum       ","SkyLines        ","Residuals       ","Uncertainty     "/)
-  tform=(/"1E","1E","1E","1E","1E","1E","1E","1E"/)
-  tunit=(/"Angstrom        ","Flux            ","Flux            ","Flux            ","Flux            ","Flux            ","Flux            ","Flux            "/)
+! first extension for the fit
+
+  ttype_fit=(/"Wavelength      ","InputSpec       ","FittedSpec      ","ContSubbedInput ","Continuum       ","SkyLines        ","Residuals       ","Uncertainty     "/)
+  tform_fit=(/"1E","1E","1E","1E","1E","1E","1E","1E"/)
+  tunit_fit=(/"Angstrom        ","Flux            ","Flux            ","Flux            ","Flux            ","Flux            ","Flux            ","Flux            "/)
 
   status=0
   readwrite=1
@@ -278,7 +283,7 @@ subroutine write_fits
   varidat=0
   tfields=8
 
-  call ftibin(unit,spectrumlength,tfields,ttype,tform,tunit,extname,varidat,status)
+  call ftibin(unit,spectrumlength,tfields,ttype_fit,tform_fit,tunit_fit,extname,varidat,status)
 
   call ftpcle(unit,1,1,1,spectrumlength,fittedspectrum%wavelength,status)
   call ftpcle(unit,2,1,1,spectrumlength,realspec%flux + continuum%flux,status)
@@ -288,13 +293,77 @@ subroutine write_fits
   call ftpcle(unit,6,1,1,spectrumlength,skyspectrum%flux,status)
   call ftpcle(unit,7,1,1,spectrumlength,realspec%flux - fittedspectrum%flux,status)
   call ftpcle(unit,8,1,1,spectrumlength,maskedspectrum%uncertainty,status)
-  call ftclos(unit, status)
-  call ftfiou(unit, status)
+
   if (status .gt. 0) then
     print *,gettime(),"CFITSIO returned an error: code ",status
   else
     print *,gettime(),"Wrote fit to header ALFA_FIT of output file ",trim(outputdirectory)//trim(outputbasename)//"_fit.fits"
   endif
+
+! second extension for the lines
+
+  status=0
+  extname="ALFA_LINES"
+  tfields=7
+
+  ttype_lines=(/"WlenObserved    ","WlenRest        ","Blend           ","Flux            ","Uncertainty     ","Peak            ","FWHM            "/)
+  tform_lines=(/"1E","1E","1L","1E","1E","1E","1E"/)
+  tunit_lines=(/"Angstrom        ","Angstrom        ","Logical         ","Flux            ","Flux            ","Flux            ","Angstrom        "/)
+
+!check whether to write out continuum fluxes
+
+  writeb1=0
+  writeb2=0
+  writep1=0
+  writep2=0
+
+  if (minval(continuum%wavelength)-3630.0 .lt.0..and. maxval(continuum%wavelength)-3630. .gt.0.) writeb1=minloc(abs(fittedlines%wavelength-3630.0),1)
+  if (minval(continuum%wavelength)-3700.0 .lt.0..and. maxval(continuum%wavelength)-3700. .gt.0.) writeb2=minloc(abs(fittedlines%wavelength-3700.0),1)
+  if (minval(continuum%wavelength)-8100.0 .lt.0..and. maxval(continuum%wavelength)-8100. .gt.0.) writep1=minloc(abs(fittedlines%wavelength-8100.0),1)
+  if (minval(continuum%wavelength)-8400.0 .lt.0..and. maxval(continuum%wavelength)-8400. .gt.0.) writep2=minloc(abs(fittedlines%wavelength-8400.0),1)
+
+!  totallines=totallines+sign(1,writeb1)+sign(1,writeb2)+sign(1,writep1)+sign(1,writep2)
+  call ftibin(unit,totallines,tfields,ttype_lines,tform_lines,tunit_lines,extname,varidat,status)
+
+! write out lines
+! todo: filter out non-detections, flag blends here. use -99 for blend, negative value for upper limit
+! calculate flux and sigma here too?
+
+  allocate(lineblends(totallines))
+  allocate(linefluxes(totallines))
+  allocate(linesigmas(totallines))
+
+!must be an intrinsic for this
+  where(fittedlines%blended>0)
+    lineblends=.true.
+    linefluxes=0.
+    linesigmas=0.
+  elsewhere
+    lineblends=.false.
+  endwhere
+
+! replicates gaussianflux function. why can't that be vectorised?
+! should replace this with calculation at time of fitting?
+  linefluxes=fittedlines%peak*(fittedlines%wavelength/fittedlines%resolution)*(2*3.14159265359)**0.5
+  linesigmas=linefluxes/fittedlines%uncertainty
+
+  call ftpcle(unit,1,1,1,totallines,fittedlines%wavelength*fittedlines%redshift,status)
+  call ftpcle(unit,2,1,1,totallines,fittedlines%wavelength,status)
+  call ftpcll(unit,3,1,1,totallines,lineblends,status)
+  call ftpcle(unit,4,1,1,totallines,linefluxes,status)
+  call ftpcle(unit,5,1,1,totallines,linesigmas,status)
+  call ftpcle(unit,6,1,1,totallines,fittedlines%peak/normalisation,status)
+  call ftpcle(unit,7,1,1,totallines,fittedlines%wavelength/fittedlines%resolution * 2.35482,status)
+! todo: line data, blended, upper limit, continuum fluxes
+
+  if (status .gt. 0) then
+    print *,gettime(),"CFITSIO returned an error: code ",status
+  else
+    print *,gettime(),"Wrote line list to header ALFA_LINES"
+  endif
+
+  call ftclos(unit, status)
+  call ftfiou(unit, status)
 
 end subroutine write_fits
 

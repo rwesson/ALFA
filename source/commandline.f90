@@ -507,6 +507,7 @@ subroutine readcommandline()
   print *,"             population size:                  ",popsize
   print *,"             pressure factor:                  ",pressure
   print *,"             output directory:                 ",trim(outputdirectory)
+  print *,"             output format:                    ",outputformat
 
 end subroutine readcommandline
 

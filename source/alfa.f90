@@ -29,6 +29,14 @@ use mod_output
 implicit none
 integer :: omp_get_thread_num, omp_get_num_threads
 
+! variables written to within parallel block cannot be global
+
+character(len=512) :: outputbasename
+type(linelist), dimension(:), allocatable :: fittedlines, fittedlines_section, skylines, skylines_section
+type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum, spectrumchunk, skyspectrum, continuum, stronglines, maskedspectrum
+real :: redshiftguess, redshiftguess_initial, redshiftguess_overall ! redshiftguess_initial is the user-specified value, used in the initial fit which determines redshiftguess_overall.  that is then used in the chunks to find redshift
+real :: resolutionguess, resolutionguess_initial ! resolutionguess_initial is the user-specified value, used in the initial fit to determine resolutionguess.
+
 c=299792.458 !km/s
 !default values in absence of user specificed guess
 redshiftguess=0.0 !km/s
@@ -77,9 +85,9 @@ print *,gettime(),"starting code"
 
 call initialize()
 
-! read command line
+! read command line. no variables to pass except the two which are not global
 
-call readcommandline()
+call readcommandline(redshiftguess_initial,resolutionguess_initial)
 
 ! convert from velocity to redshift
 

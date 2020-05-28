@@ -8,9 +8,10 @@ use mod_globals
 
 contains
 
-subroutine fit_continuum()
+subroutine fit_continuum(realspec,continuum)
 
 implicit none
+type(spectrum), dimension(:), allocatable :: realspec,continuum
 real, dimension(:), allocatable :: spectrumchunk
 integer :: i,halfwindow
 

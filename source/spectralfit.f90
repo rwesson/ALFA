@@ -7,7 +7,7 @@
 ! subtract the continuum
 
 if (messages .and. subtractcontinuum) print *,gettime(),"fitting continuum"
-call fit_continuum()
+call fit_continuum(realspec,continuum)
 
 ! now do the fitting
 ! first get guesses for the redshift and resolution
@@ -305,11 +305,11 @@ realspec%uncertainty = realspec%uncertainty * normalisation !for continuum jumps
 ! write out the fitted spectrum
 
 if (outputformat.eq."txt") then
-  call write_plaintext()
+  call write_plaintext(realspec,fittedspectrum,continuum,skyspectrum,maskedspectrum,fittedlines,redshiftguess_overall,resolutionguess,outputbasename)
 elseif (outputformat.eq."csv") then
-  call write_csv()
+  call write_csv(realspec,fittedspectrum,continuum,skyspectrum,maskedspectrum,fittedlines,redshiftguess_overall,resolutionguess,outputbasename)
 elseif (outputformat.eq."latex") then
-  call write_latex()
+  call write_latex(realspec,fittedspectrum,continuum,skyspectrum,maskedspectrum,fittedlines,redshiftguess_overall,resolutionguess,outputbasename)
 elseif (outputformat.eq."fits") then
-  call write_fits()
+  call write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectrum,fittedlines,redshiftguess_overall,resolutionguess,outputbasename)
 endif

@@ -4,7 +4,12 @@ use mod_globals
 implicit none
 contains
 
-subroutine write_plaintext
+subroutine write_plaintext(realspec,fittedspectrum,continuum,skyspectrum,maskedspectrum,fittedlines,redshiftguess_overall,resolutionguess,outputbasename)
+
+  type(linelist), dimension(:), allocatable :: fittedlines
+  type(spectrum), dimension(:), allocatable :: realspec,fittedspectrum, skyspectrum, continuum, maskedspectrum
+  character(len=512) :: outputbasename
+  real :: redshiftguess_overall,resolutionguess
 
   open(100+threadnumber,file=trim(outputdirectory)//trim(outputbasename)//"_fit")
 
@@ -87,7 +92,12 @@ end subroutine write_plaintext
 
 
 
-subroutine write_latex
+subroutine write_latex(realspec,fittedspectrum,continuum,skyspectrum,maskedspectrum,fittedlines,redshiftguess_overall,resolutionguess,outputbasename)
+
+  type(linelist), dimension(:), allocatable :: fittedlines
+  type(spectrum), dimension(:), allocatable :: realspec,fittedspectrum, skyspectrum, continuum, maskedspectrum
+  character(len=512) :: outputbasename
+  real :: redshiftguess_overall,resolutionguess
 
   open(100+threadnumber,file=trim(outputdirectory)//trim(outputbasename)//"_fit.tex")
 
@@ -176,7 +186,12 @@ end subroutine write_latex
 
 
 
-subroutine write_csv
+subroutine write_csv(realspec,fittedspectrum,continuum,skyspectrum,maskedspectrum,fittedlines,redshiftguess_overall,resolutionguess,outputbasename)
+
+  type(linelist), dimension(:), allocatable :: fittedlines
+  type(spectrum), dimension(:), allocatable :: realspec,fittedspectrum, skyspectrum, continuum, maskedspectrum
+  character(len=512) :: outputbasename
+  real :: redshiftguess_overall,resolutionguess
 
   open(100+threadnumber,file=trim(outputdirectory)//trim(outputbasename)//"_fit.csv")
 
@@ -257,7 +272,7 @@ subroutine write_csv
 
 end subroutine write_csv
 
-subroutine write_fits
+subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectrum,fittedlines,redshiftguess_overall,resolutionguess,outputbasename)
 !create a single fits file with two extensions, one with the fit and one with the linelist
 
   integer :: status,unit,readwrite,blocksize,tfields,varidat
@@ -267,6 +282,10 @@ subroutine write_fits
   character(len=16),dimension(4) :: ttype_qc,tform_qc,tunit_qc
   logical,dimension(:),allocatable :: lineblends
   real,dimension(:),allocatable :: linefluxes,linesigmas
+  type(linelist), dimension(:), allocatable :: fittedlines
+  type(spectrum), dimension(:), allocatable :: realspec,fittedspectrum, skyspectrum, continuum, maskedspectrum
+  character(len=512) :: outputbasename
+  real :: redshiftguess_overall,resolutionguess
 
 ! first extension for the fit
 

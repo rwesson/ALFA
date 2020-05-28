@@ -143,25 +143,22 @@ The FITS file can have one, two or three dimensions.  If it has two, it is assum
 If you don't want to fit the whole dataset, you can specify the range of pixels on each axis that you want \fBalfa\fR to read in by appending the filename with [\fIstartx:endx,starty:endy\fR].  This functionality is part of the CFITSIO library, and the format is described at https://heasarc.gsfc.nasa.gov/docs/software/fitsio/c/c_user/node97.html.  \fBalfa\fR itself does not read in the coordinates of the section, and so the output file numbering starts from 1 on each axis regardless of where the image section actually started.  The next release of \fBalfa\fR will have improved support for image sections.
 
 .SH OUTPUT FILES
-For single spectra, \fBalfa\fR writes out three text files containing its results.  Their filenames are the input file suffixed with _fit, _lines, and _lines.tex.
+\fBalfa\fR can produce output in plain text, csv, latex or FITS format. FITS is the recommended format; in future releases, output formats other than FITS will be deprecated and eventually removed.
+
+When producing plain text, csv or latex output, \fBalfa\fR will produce two files, a fit file and a line list file. When producing FITS format, a single file is created, with three extensions, for the fit, the linelist, and a third extension containing the Hbeta flux, number of lines detected, the radial velocity and average resolution over the spectrum. Output filenames are based on the input filename, with the extensions noted below.
 
 .TP
-.B The fit file (filename_fit):
+.B The fit file (_fit.txt, _fit.csv, _fit.tex) or extension (.fits):
 
 The fit file contains the best fitting synthesised spectrum.  It contains seven columns, representing the wavelength, the input spectrum, the fitted spectrum, the original after continuum subtraction, the estimated continuum, the fluxes of sky lines, and the residuals.  Thus, to see the fitted spectrum, you need to plot columns 1 and 3 of this file.  In gnuplot, one can compare the input and fitted spectra using this command:
     plot 'filename_fit' w l, 'filename_fit' using 1:3 w l
 
 .TP
-.B The plain text lines file (filename_lines):
+.B The lines file (_lines.txt, _lines.csv, _lines.tex) or extension (.fits):
 
-This file contains four columns with parameters of the fitted lines - the observed wavelength, the rest wavelength, the flux, and the uncertainty estimated from the residuals.  This file can be read directly by \fBneat\fR, which determines abundances for photoionised nebulae.
+This file contains four columns with parameters of the fitted lines - the observed wavelength, the rest wavelength, the flux, and the uncertainty estimated from the residuals.  This file can be read directly by \fBneat\fR, which determines abundances for photoionised nebulae. If latex format is requested, the file additionally contains atomic data details not currently available in the other formats.
 
-.TP
-.B The latex lines file (filename_lines.tex):
-
-This file can be used in publications.  It contains the information in the plain text lines file, as well as the line identification and atomic transition data.
-
-For RSS files and data cubes, \fBalfa\fR currently produces two files per pixel, these being the fit file and the plain text lines file.  Thus, for a data cube you may end up with tens of thousands of files in the output directory.  FITS output will be supported in the next release of \fBalfa\fR.
+For RSS files and data cubes, \fBalfa\fR currently produces output for each pixel. Thus, for a large data cube you may end up with tens of thousands of files in the output directory. A routine to combine these outputs into image maps will be provided in a future release of \fBalfa\fR.
 
 .SH USAGE NOTES
 

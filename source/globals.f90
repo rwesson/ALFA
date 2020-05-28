@@ -3,7 +3,7 @@ module mod_globals
 use mod_types
 
 implicit none
-integer :: I, spectrumlength, nlines, linearraypos, totallines, startpos, endpos
+integer :: I, spectrumlength
 real :: startwlen, endwlen
 character (len=512) :: spectrumfile,stronglinelistfile,deeplinelistfile,skylinelistfile,outputdirectory
 character (len=32) :: imagesection

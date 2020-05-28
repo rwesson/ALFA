@@ -36,6 +36,7 @@ type(linelist), dimension(:), allocatable :: fittedlines, fittedlines_section, s
 type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum, spectrumchunk, skyspectrum, continuum, stronglines, maskedspectrum
 real :: redshiftguess, redshiftguess_initial, redshiftguess_overall ! redshiftguess_initial is the user-specified value, used in the initial fit which determines redshiftguess_overall.  that is then used in the chunks to find redshift
 real :: resolutionguess, resolutionguess_initial ! resolutionguess_initial is the user-specified value, used in the initial fit to determine resolutionguess.
+integer :: linearraypos,totallines, startpos, endpos, nlines
 
 c=299792.458 !km/s
 !default values in absence of user specificed guess

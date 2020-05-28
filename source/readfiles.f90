@@ -446,7 +446,7 @@ subroutine readlinelist(linelistfile,referencelinelist)
   character (len=85) :: linedatainput
   character (len=2) :: informatnumber
   character (len=20) :: informat
-  integer :: i
+  integer :: i,nlines
   real :: input1
   integer :: io
   logical :: file_exists

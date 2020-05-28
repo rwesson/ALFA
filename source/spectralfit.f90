@@ -305,11 +305,11 @@ realspec%uncertainty = realspec%uncertainty * normalisation !for continuum jumps
 ! write out the fitted spectrum
 
 if (outputformat.eq."txt") then
-  call write_plaintext(realspec,fittedspectrum,continuum,skyspectrum,maskedspectrum,fittedlines,redshiftguess_overall,resolutionguess,outputbasename)
+  call write_plaintext(realspec,fittedspectrum,continuum,skyspectrum,maskedspectrum,fittedlines,redshiftguess_overall,resolutionguess,outputbasename,totallines)
 elseif (outputformat.eq."csv") then
-  call write_csv(realspec,fittedspectrum,continuum,skyspectrum,maskedspectrum,fittedlines,redshiftguess_overall,resolutionguess,outputbasename)
+  call write_csv(realspec,fittedspectrum,continuum,skyspectrum,maskedspectrum,fittedlines,redshiftguess_overall,resolutionguess,outputbasename,totallines)
 elseif (outputformat.eq."latex") then
-  call write_latex(realspec,fittedspectrum,continuum,skyspectrum,maskedspectrum,fittedlines,redshiftguess_overall,resolutionguess,outputbasename)
+  call write_latex(realspec,fittedspectrum,continuum,skyspectrum,maskedspectrum,fittedlines,redshiftguess_overall,resolutionguess,outputbasename,totallines)
 elseif (outputformat.eq."fits") then
-  call write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectrum,fittedlines,redshiftguess_overall,resolutionguess,outputbasename)
+  call write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectrum,fittedlines,redshiftguess_overall,resolutionguess,outputbasename,totallines)
 endif

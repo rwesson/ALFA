@@ -303,7 +303,7 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
   call ftgiou(unit,status)
   call ftinit(unit,"!"//trim(outputdirectory)//trim(outputbasename)//"_fit.fits",blocksize,status)
 
-  extname='ALFA_FIT'
+  extname='FIT'
   varidat=0
   tfields=8
 
@@ -321,13 +321,13 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
   if (status .gt. 0) then
     print *,gettime(),"CFITSIO returned an error: code ",status
   else
-    print *,gettime(),"Wrote fit to header ALFA_FIT of output file ",trim(outputdirectory)//trim(outputbasename)//"_fit.fits"
+    print *,gettime(),"Wrote fit to header FIT of output file ",trim(outputdirectory)//trim(outputbasename)//"_fit.fits"
   endif
 
 ! second extension for the lines
 
   status=0
-  extname="ALFA_LINES"
+  extname="LINES"
   tfields=7
 
   ttype_lines=(/"WlenObserved    ","WlenRest        ","Blend           ","Flux            ","Uncertainty     ","Peak            ","FWHM            "/)
@@ -383,13 +383,13 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
   if (status .gt. 0) then
     print *,gettime(),"CFITSIO returned an error: code ",status
   else
-    print *,gettime(),"Wrote line list to header ALFA_LINES"
+    print *,gettime(),"Wrote line list to header LINES"
   endif
 
 ! third extension for nlines, f(hb), rv, resolution
 
   status=0
-  extname="ALFA_QC"
+  extname="QC"
   tfields=4
 
   ttype_qc=(/"NumberOfLines   ","HbFlux          ","RadialVelocity  ","Resolution      "/)
@@ -402,6 +402,13 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
   call ftpcle(unit,2,1,1,1,hbetaflux,status)
   call ftpcle(unit,3,1,1,1,c*(redshiftguess_overall-1),status)
   call ftpcle(unit,4,1,1,1,resolutionguess,status)
+
+! record version, date and command line in comments
+
+  call ftpcom(unit,"Produced by alfa version "//VERSION,status)
+  call ftpcom(unit,"Command line:",status)
+  call ftpcom(unit,commandline,status)
+  call ftpdat(unit,status)
 
   call ftclos(unit, status)
   call ftfiou(unit, status)

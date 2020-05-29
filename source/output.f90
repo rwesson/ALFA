@@ -289,7 +289,7 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
   type(spectrum), dimension(:), allocatable :: realspec,fittedspectrum, skyspectrum, continuum, maskedspectrum
   character(len=512) :: outputbasename
   real :: redshiftguess_overall,resolutionguess
-  integer :: totallines,i
+  integer :: totallines,detectedlines,i
 
 ! first extension for the fit
 
@@ -364,6 +364,7 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
 
 ! deal with blends and upper limits
 
+  detectedlines=totallines
   do i=1,totallines
     if (fittedlines(i)%blended .ne. 0) then
         lineblends(i)=.true.
@@ -373,10 +374,12 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
       else ! todo: find better way to flag blends of non-detections
         linefluxes(i)=-tiny(1.0)
         linesigmas(i)=-tiny(1.0)
+        detectedlines=detectedlines-1
       endif
 ! write out 3 sigma upper limit as a negative flux for non-detections
     elseif (fittedlines(i)%uncertainty .le. detectionlimit) then
       linefluxes(i)=-detectionlimit*linesigmas(i)
+      detectedlines=detectedlines-1
     endif
   enddo
 
@@ -401,13 +404,13 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
   extname="QC"
   tfields=4
 
-  ttype_qc=(/"NumberOfLines   ","HbFlux          ","RadialVelocity  ","Resolution      "/)
+  ttype_qc=(/"NumberOfLines   ","HbetaFlux       ","RadialVelocity  ","Resolution      "/)
   tform_qc=(/"1J","1E","1E","1E"/)
   tunit_qc=(/"                ","SameAsInputFlux ","kms-1           ","                "/)
 
   call ftibin(unit,1,tfields,ttype_qc,tform_qc,tunit_qc,extname,varidat,status)
 
-  call ftpclj(unit,1,1,1,1,totallines,status)
+  call ftpclj(unit,1,1,1,1,detectedlines,status)
   call ftpcle(unit,2,1,1,1,hbetaflux,status)
   call ftpcle(unit,3,1,1,1,c*(redshiftguess_overall-1),status)
   call ftpcle(unit,4,1,1,1,resolutionguess,status)

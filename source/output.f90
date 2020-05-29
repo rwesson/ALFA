@@ -378,6 +378,7 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
 ! write out 3 sigma upper limit as a negative flux for non-detections
     elseif (fittedlines(i)%uncertainty .le. detectionlimit) then
       linefluxes(i)=-detectionlimit*linesigmas(i)
+      linesigmas(i)=-linesigmas(i)
       detectedlines=detectedlines-1
     endif
   enddo

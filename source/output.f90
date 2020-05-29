@@ -281,10 +281,9 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
   integer :: status,unit,readwrite,blocksize,tfields,varidat
   character(len=16) :: extname
   character(len=16),dimension(8) :: ttype_fit,tform_fit,tunit_fit
-  character(len=16),dimension(7) :: ttype_lines,tform_lines,tunit_lines
+  character(len=16),dimension(6) :: ttype_lines,tform_lines,tunit_lines
   character(len=16),dimension(4) :: ttype_qc,tform_qc,tunit_qc
-  logical,dimension(:),allocatable :: lineblends
-  real,dimension(:),allocatable :: linefluxes,linesigmas
+  real,dimension(:),allocatable :: linefluxes,linesigmas,linelambdas
   type(linelist), dimension(:), allocatable :: fittedlines
   type(spectrum), dimension(:), allocatable :: realspec,fittedspectrum, skyspectrum, continuum, maskedspectrum
   character(len=512) :: outputbasename
@@ -328,11 +327,11 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
 
   status=0
   extname="LINES"
-  tfields=7
+  tfields=6
 
-  ttype_lines=(/"WlenObserved    ","WlenRest        ","Blend           ","Flux            ","Uncertainty     ","Peak            ","FWHM            "/)
-  tform_lines=(/"1E","1E","1L","1E","1E","1E","1E"/)
-  tunit_lines=(/"Angstrom        ","Angstrom        ","Logical         ","Flux            ","Flux            ","Flux            ","Angstrom        "/)
+  ttype_lines=(/"WlenObserved    ","WlenRest        ","Flux            ","Uncertainty     ","Peak            ","FWHM            "/)
+  tform_lines=(/"1E","1E","1E","1E","1E","1E"/)
+  tunit_lines=(/"Angstrom        ","Angstrom        ","Flux            ","Flux            ","Flux            ","Angstrom        "/)
 
 !check whether to write out continuum fluxes
 
@@ -351,27 +350,27 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
 
 ! write out lines
 
-  allocate(lineblends(totallines))
   allocate(linefluxes(totallines))
   allocate(linesigmas(totallines))
-
-  lineblends=.false.
+  allocate(linelambdas(totallines))
 
 ! replicates gaussianflux function. why can't that be vectorised?
 ! should replace this with calculation at time of fitting?
   linefluxes=fittedlines%peak*(fittedlines%wavelength/fittedlines%resolution)*(2*3.14159265359)**0.5
   linesigmas=linefluxes/fittedlines%uncertainty
+  linelambdas=fittedlines%wavelength*fittedlines%redshift
 
 ! deal with blends and upper limits
 
   detectedlines=totallines
   do i=1,totallines
     if (fittedlines(i)%blended .ne. 0) then
-        lineblends(i)=.true.
+        linelambdas(i)=0
       if (fittedlines(fittedlines(i)%blended)%uncertainty .gt. detectionlimit) then
         linefluxes(i)=0
         linesigmas(i)=0
       else ! blends of non-detections. todo: save with null value
+        linelambdas(i)=0
         linefluxes(i)=-999.
         linesigmas(i)=-999.
         detectedlines=detectedlines-1
@@ -383,13 +382,12 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
     endif
   enddo
 
-  call ftpcle(unit,1,1,1,totallines,fittedlines%wavelength*fittedlines%redshift,status)
+  call ftpcle(unit,1,1,1,totallines,linelambdas,status)
   call ftpcle(unit,2,1,1,totallines,fittedlines%wavelength,status)
-  call ftpcll(unit,3,1,1,totallines,lineblends,status)
-  call ftpcle(unit,4,1,1,totallines,linefluxes,status)
-  call ftpcle(unit,5,1,1,totallines,linesigmas,status)
-  call ftpcle(unit,6,1,1,totallines,fittedlines%peak/normalisation,status)
-  call ftpcle(unit,7,1,1,totallines,fittedlines%wavelength/fittedlines%resolution * 2.35482,status)
+  call ftpcle(unit,3,1,1,totallines,linefluxes,status)
+  call ftpcle(unit,4,1,1,totallines,linesigmas,status)
+  call ftpcle(unit,5,1,1,totallines,fittedlines%peak/normalisation,status)
+  call ftpcle(unit,6,1,1,totallines,fittedlines%wavelength/fittedlines%resolution * 2.35482,status)
 ! todo: line data, continuum fluxes
 
   if (status .gt. 0) then

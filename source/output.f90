@@ -371,9 +371,9 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
       if (fittedlines(fittedlines(i)%blended)%uncertainty .gt. detectionlimit) then
         linefluxes(i)=0
         linesigmas(i)=0
-      else ! todo: find better way to flag blends of non-detections
-        linefluxes(i)=-tiny(1.0)
-        linesigmas(i)=-tiny(1.0)
+      else ! blends of non-detections. todo: save with null value
+        linefluxes(i)=-999.
+        linesigmas(i)=-999.
         detectedlines=detectedlines-1
       endif
 ! write out 3 sigma upper limit as a negative flux for non-detections
@@ -390,7 +390,7 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
   call ftpcle(unit,5,1,1,totallines,linesigmas,status)
   call ftpcle(unit,6,1,1,totallines,fittedlines%peak/normalisation,status)
   call ftpcle(unit,7,1,1,totallines,fittedlines%wavelength/fittedlines%resolution * 2.35482,status)
-! todo: line data, blended, upper limit, continuum fluxes
+! todo: line data, continuum fluxes
 
   if (status .gt. 0) then
     print *,gettime(),"CFITSIO returned an error: code ",status

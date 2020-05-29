@@ -289,7 +289,7 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
   type(spectrum), dimension(:), allocatable :: realspec,fittedspectrum, skyspectrum, continuum, maskedspectrum
   character(len=512) :: outputbasename
   real :: redshiftguess_overall,resolutionguess
-  integer :: totallines
+  integer :: totallines,i
 
 ! first extension for the fit
 
@@ -350,26 +350,35 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
   call ftibin(unit,totallines,tfields,ttype_lines,tform_lines,tunit_lines,extname,varidat,status)
 
 ! write out lines
-! todo: filter out non-detections, flag blends here. use -99 for blend, negative value for upper limit
-! calculate flux and sigma here too?
 
   allocate(lineblends(totallines))
   allocate(linefluxes(totallines))
   allocate(linesigmas(totallines))
 
-!must be an intrinsic for this
-  where(fittedlines%blended>0)
-    lineblends=.true.
-    linefluxes=0.
-    linesigmas=0.
-  elsewhere
-    lineblends=.false.
-  endwhere
+  lineblends=.false.
 
 ! replicates gaussianflux function. why can't that be vectorised?
 ! should replace this with calculation at time of fitting?
   linefluxes=fittedlines%peak*(fittedlines%wavelength/fittedlines%resolution)*(2*3.14159265359)**0.5
   linesigmas=linefluxes/fittedlines%uncertainty
+
+! deal with blends and upper limits
+
+  do i=1,totallines
+    if (fittedlines(i)%blended .ne. 0) then
+        lineblends(i)=.true.
+      if (fittedlines(fittedlines(i)%blended)%uncertainty .gt. detectionlimit) then
+        linefluxes(i)=0
+        linesigmas(i)=0
+      else ! todo: find better way to flag blends of non-detections
+        linefluxes(i)=-tiny(1.0)
+        linesigmas(i)=-tiny(1.0)
+      endif
+! write out 3 sigma upper limit as a negative flux for non-detections
+    elseif (fittedlines(i)%uncertainty .le. detectionlimit) then
+      linefluxes(i)=-detectionlimit*linesigmas(i)
+    endif
+  enddo
 
   call ftpcle(unit,1,1,1,totallines,fittedlines%wavelength*fittedlines%redshift,status)
   call ftpcle(unit,2,1,1,totallines,fittedlines%wavelength,status)

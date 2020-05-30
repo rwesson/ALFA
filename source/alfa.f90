@@ -58,7 +58,7 @@ continuumwindow=101
 tablewavelengthcolumn=1
 tablefluxcolumn=2
 
-outputformat="txt"
+outputformat="fits"
 
 stronglinelistfile=trim(PREFIX)//"/share/alfa/optical_strong.cat"
 deeplinelistfile=trim(PREFIX)//"/share/alfa/optical_deep.cat"

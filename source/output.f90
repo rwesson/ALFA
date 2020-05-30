@@ -290,17 +290,27 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
   real :: redshiftguess_overall,resolutionguess
   integer :: totallines,detectedlines,i
 
+  status=0
+  readwrite=1
+
+! initialise
+
+  call ftgiou(unit,status)
+  call ftinit(unit,"!"//trim(outputdirectory)//trim(outputbasename)//"_fit.fits",blocksize,status)
+  call ftphps(unit,16,0,0,status)
+
+! record version, date and command line in comments
+
+  call ftpcom(unit,"Produced by alfa version "//VERSION,status)
+  call ftpcom(unit,"Command line:",status)
+  call ftpcom(unit,commandline,status)
+  call ftpdat(unit,status)
+
 ! first extension for the fit
 
   ttype_fit=(/"Wavelength      ","InputSpec       ","FittedSpec      ","ContSubbedInput ","Continuum       ","SkyLines        ","Residuals       ","Uncertainty     "/)
   tform_fit=(/"1E","1E","1E","1E","1E","1E","1E","1E"/)
   tunit_fit=(/"Angstrom        ","Flux            ","Flux            ","Flux            ","Flux            ","Flux            ","Flux            ","Flux            "/)
-
-  status=0
-  readwrite=1
-
-  call ftgiou(unit,status)
-  call ftinit(unit,"!"//trim(outputdirectory)//trim(outputbasename)//"_fit.fits",blocksize,status)
 
   extname='FIT'
   varidat=0
@@ -414,12 +424,7 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
   call ftpcle(unit,3,1,1,1,c*(redshiftguess_overall-1),status)
   call ftpcle(unit,4,1,1,1,resolutionguess,status)
 
-! record version, date and command line in comments
-
-  call ftpcom(unit,"Produced by alfa version "//VERSION,status)
-  call ftpcom(unit,"Command line:",status)
-  call ftpcom(unit,commandline,status)
-  call ftpdat(unit,status)
+! close
 
   call ftclos(unit, status)
   call ftfiou(unit, status)

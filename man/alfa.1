@@ -143,7 +143,7 @@ The FITS file can have one, two or three dimensions.  If it has two, it is assum
 If you don't want to fit the whole dataset, you can specify the range of pixels on each axis that you want \fBalfa\fR to read in by appending the filename with [\fIstartx:endx,starty:endy\fR].  This functionality is part of the CFITSIO library, and the format is described at https://heasarc.gsfc.nasa.gov/docs/software/fitsio/c/c_user/node97.html.  \fBalfa\fR itself does not read in the coordinates of the section, and so the output file numbering starts from 1 on each axis regardless of where the image section actually started.  The next release of \fBalfa\fR will have improved support for image sections.
 
 .SH OUTPUT FILES
-\fBalfa\fR can produce output in plain text, csv, latex or FITS format. FITS is the recommended format; in future releases, output formats other than FITS will be deprecated and eventually removed.
+\fBalfa\fR can produce output in plain text, csv, latex or FITS format. FITS is the default and recommended format; in future releases, output formats other than FITS will be deprecated and eventually removed.
 
 When producing plain text, csv or latex output, \fBalfa\fR will produce two files, a fit file and a line list file. When producing FITS format, a single file is created, with three extensions, for the fit, the linelist, and a third extension containing the Hbeta flux, number of lines detected, the radial velocity and average resolution over the spectrum. Output filenames are based on the input filename, with the extensions noted below.
 

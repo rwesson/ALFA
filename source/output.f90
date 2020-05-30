@@ -289,6 +289,7 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
   character(len=512) :: outputbasename
   real :: redshiftguess_overall,resolutionguess
   integer :: totallines,detectedlines,i
+  character(len=8) :: writevalue
 
   status=0
   readwrite=1
@@ -299,11 +300,82 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
   call ftinit(unit,"!"//trim(outputdirectory)//trim(outputbasename)//"_fit.fits",blocksize,status)
   call ftphps(unit,16,0,0,status)
 
-! record version, date and command line in comments
+! record version, date and setting used in comments
 
   call ftpcom(unit,"Produced by alfa version "//VERSION,status)
-  call ftpcom(unit,"Command line:",status)
-  call ftpcom(unit,commandline,status)
+  call ftpcom(unit,"Command line: '"//trim(commandline)//"'",status)
+  call ftpcom(unit,"input file: "//trim(spectrumfile),status)
+!  if (len(trim(imagesection)).gt.0) print *,"                fitting section:               ",imagesection
+  if (.not.normalise) then
+  call ftpcom(unit,"normalisation:                    using measured value of Hb",status)
+  else
+    if (normalisation.eq.0.d0) then
+  call ftpcom(unit,"normalisation:                    no normalisation",status)
+    else
+  write(writevalue,*) normalisation
+  call ftpcom(unit,"normalisation:                    to Hb="//writevalue,status)
+    endif
+  endif
+  if (subtractcontinuum) then
+  call ftpcom(unit,"continuum fitting:                enabled",status)
+  write(writevalue,"(I8)") continuumwindow
+  call ftpcom(unit,"continuum window:                 "//writevalue,status)
+  else
+  call ftpcom(unit,"continuum fitting:                disabled",status)
+  endif
+  write(writevalue,"(F5.2)") baddata
+  call ftpcom(unit,"spectrum fitted if max value >    "//writevalue,status)
+  write(writevalue,"(F5.2)") wavelengthscaling
+  call ftpcom(unit,"Angstroms per wavelength unit:    "//writevalue,status)
+  if (tablewavelengthcolumn.ne.1) then
+  write(writevalue,"(I2)") tablewavelengthcolumn
+  call ftpcom(unit,"table wavelength column:          "//writevalue,status)
+  endif
+  if (tablefluxcolumn.ne.2) then
+  write(writevalue,"(I2)") tablefluxcolumn
+  call ftpcom(unit,"table flux column:                "//writevalue,status)
+  endif
+  if (collapse) then
+  call ftpcom(unit,"multiple spectra:                  collapsed to 1D",status)
+  else
+  call ftpcom(unit,"multiple spectra:                  fitted individually",status)
+  endif
+!  call ftpcom(unit,"velocity guess:                   ",status)
+!  call ftpcom(unit,redshiftguess_initial,status)
+!  call ftpcom(unit,"resolution guess:                 ",status)
+!  call ftpcom(unit,resolutionguess_initial,status)
+  write(writevalue,"(F8.2)") vtol1*c
+  call ftpcom(unit,"first pass velocity tolerance:    "//writevalue,status)
+  write(writevalue,"(F8.2)") vtol2*c
+  call ftpcom(unit,"second pass velocity tolerance:   "//writevalue,status)
+  write(writevalue,"(F8.2)") rtol1
+  call ftpcom(unit,"first pass resolution tolerance:  "//writevalue,status)
+  write(writevalue,"(F8.2)") rtol2
+  call ftpcom(unit,"second pass resolution tolerance: "//writevalue,status)
+  if (subtractsky) then
+  call ftpcom(unit,"sky line fitting:                 enabled",status)
+  call ftpcom(unit,"sky line catalogue:               "//trim(skylinelistfile),status)
+  else
+  call ftpcom(unit,"sky line fitting:                 disabled",status)
+  endif
+  call ftpcom(unit,"strong line catalogue:            "//trim(stronglinelistfile),status)
+  call ftpcom(unit,"deep line catalogue:              "//trim(deeplinelistfile),status)
+!  if (exclusioncount .gt. 0) then
+!  call ftpcom(unit,"lines excluded from fitting:      "//exclusions,status)
+!  endif
+  if (rebinfactor .gt. 1) then
+  write(writevalue,"(I8)") rebinfactor
+  call ftpcom(unit,"spectra rebinned by factor of:    "//writevalue,status)
+  endif
+  write(writevalue,"(I8)") generations
+  call ftpcom(unit,"number of generations:            "//writevalue,status)
+  write(writevalue,"(I8)") popsize
+  call ftpcom(unit,"population size:                  "//writevalue,status)
+  write(writevalue,"(F8.2)") pressure
+  call ftpcom(unit,"pressure factor:                  "//writevalue,status)
+  call ftpcom(unit,"output directory:                 "//trim(outputdirectory),status)
+  call ftpcom(unit,"output format:                    "//outputformat,status)
+
   call ftpdat(unit,status)
 
 ! first extension for the fit

@@ -237,7 +237,15 @@ elseif (allocated(spectrum_2d)) then !fit 2D data
 !check for valid data
 !ultra crude at the moment
 
-    inquire(file=trim(outputdirectory)//trim(outputbasename)//"_lines", exist=file_exists)
+    if (outputformat.eq."fits ") then
+      inquire(file=trim(outputdirectory)//trim(outputbasename)//"_fit.fits", exist=file_exists)
+    elseif (outputformat.eq."text ") then
+      inquire(file=trim(outputdirectory)//trim(outputbasename)//"_lines", exist=file_exists)
+    elseif (outputformat.eq."csv  ") then
+      inquire(file=trim(outputdirectory)//trim(outputbasename)//"_lines.csv", exist=file_exists)
+    elseif (outputformat.eq."latex") then
+      inquire(file=trim(outputdirectory)//trim(outputbasename)//"_lines.latex", exist=file_exists)
+    endif
 
     if (maxval(realspec%flux) .lt. baddata) then
       print "(X,A,A,I2,A,"//filenameformat(1)//",A,ES10.2)",gettime(),"(thread ",threadnumber,") : skipped row  ",rss_i,": all values below ",baddata
@@ -313,7 +321,15 @@ elseif (allocated(spectrum_3d)) then !fit 3D data
 !check for valid data
 !ultra crude at the moment
 
-      inquire(file=trim(outputdirectory)//trim(outputbasename)//"_lines", exist=file_exists)
+      if (outputformat.eq."fits ") then
+        inquire(file=trim(outputdirectory)//trim(outputbasename)//"_fit.fits", exist=file_exists)
+      elseif (outputformat.eq."text ") then
+        inquire(file=trim(outputdirectory)//trim(outputbasename)//"_lines", exist=file_exists)
+      elseif (outputformat.eq."csv  ") then
+        inquire(file=trim(outputdirectory)//trim(outputbasename)//"_lines.csv", exist=file_exists)
+      elseif (outputformat.eq."latex") then
+        inquire(file=trim(outputdirectory)//trim(outputbasename)//"_lines.latex", exist=file_exists)
+      endif
 
       if (maxval(realspec%flux) .lt. baddata) then
         print "(X,A,A,I2,A,"//filenameformat(1)//",A,"//filenameformat(2)//",A,ES10.2)",gettime(),"(thread ",threadnumber,") : skipped pixel  ",cube_i,",",cube_j,": all values below ",baddata

@@ -34,7 +34,7 @@ logical :: file_exists
 
 logical :: collapse !if true, 2D or 3D data is summed into a single spectrum
 logical :: messages
-logical :: noclobber !true to skip fitted spectra or pixels, false to overwrite
+logical :: clobber !true to skip fitted spectra or pixels, false to overwrite
 
 real, dimension(:), allocatable :: spectrum_1d
 real, dimension(:,:), allocatable :: spectrum_2d

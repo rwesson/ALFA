@@ -401,6 +401,7 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
 
   if (status .gt. 0) then
     print *,gettime(),"CFITSIO returned an error: code ",status
+    call exit(1)
   else
     print *,gettime(),"Wrote fit to header FIT of output file ",trim(outputdirectory)//trim(outputbasename)//"_fit.fits"
   endif
@@ -475,6 +476,7 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
 
   if (status .gt. 0) then
     print *,gettime(),"CFITSIO returned an error: code ",status
+    call exit(1)
   else
     print *,gettime(),"Wrote line list to header LINES"
   endif

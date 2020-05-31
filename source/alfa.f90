@@ -37,6 +37,7 @@ type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum, spectrumc
 real :: redshiftguess, redshiftguess_initial, redshiftguess_overall ! redshiftguess_initial is the user-specified value, used in the initial fit which determines redshiftguess_overall.  that is then used in the chunks to find redshift
 real :: resolutionguess, resolutionguess_initial ! resolutionguess_initial is the user-specified value, used in the initial fit to determine resolutionguess.
 integer :: linearraypos,totallines, startpos, endpos, nlines
+real :: normalisation, hbetaflux
 
 c=299792.458 !km/s
 !default values in absence of user specificed guess
@@ -89,7 +90,7 @@ call initialize()
 
 ! read command line. no variables to pass except the two which are not global
 
-call readcommandline(redshiftguess_initial,resolutionguess_initial)
+call readcommandline(redshiftguess_initial,resolutionguess_initial,normalisation)
 
 ! convert from velocity to redshift
 

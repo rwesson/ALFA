@@ -7,13 +7,13 @@ use mod_globals
 
 contains
 
-subroutine readcommandline(redshiftguess_initial,resolutionguess_initial)
+subroutine readcommandline(redshiftguess_initial,resolutionguess_initial,normalisation)
 
   implicit none
 
   character(len=512), dimension(:), allocatable :: options
   integer :: Narg,nargused,i,exclusioncount
-  real :: excludewavelength,redshiftguess_initial,resolutionguess_initial
+  real :: excludewavelength,redshiftguess_initial,resolutionguess_initial,normalisation
 
 #ifdef CO
   print *,"subroutine: readcommandline"

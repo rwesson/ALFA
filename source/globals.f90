@@ -20,7 +20,6 @@ CHARACTER(len=2048) :: commandline
 
 real :: vtol1, vtol2, rtol1, rtol2
 real :: blendpeak
-real :: normalisation, hbetaflux
 real :: c
 integer :: linelocation, overlap
 integer :: generations, popsize

@@ -4,13 +4,14 @@ use mod_globals
 implicit none
 contains
 
-subroutine write_plaintext(realspec,fittedspectrum,continuum,skyspectrum,maskedspectrum,fittedlines,redshiftguess_overall,resolutionguess,outputbasename,totallines)
+subroutine write_plaintext(realspec,fittedspectrum,continuum,skyspectrum,maskedspectrum,fittedlines,redshiftguess_overall,resolutionguess,normalisation,hbetaflux,outputbasename,totallines)
 
   type(linelist), dimension(:), allocatable :: fittedlines
   type(spectrum), dimension(:), allocatable :: realspec,fittedspectrum, skyspectrum, continuum, maskedspectrum
   character(len=512) :: outputbasename
   real :: redshiftguess_overall,resolutionguess
   integer :: totallines
+  real :: normalisation, hbetaflux
 
   open(100+threadnumber,file=trim(outputdirectory)//trim(outputbasename)//"_fit")
 
@@ -93,13 +94,14 @@ end subroutine write_plaintext
 
 
 
-subroutine write_latex(realspec,fittedspectrum,continuum,skyspectrum,maskedspectrum,fittedlines,redshiftguess_overall,resolutionguess,outputbasename,totallines)
+subroutine write_latex(realspec,fittedspectrum,continuum,skyspectrum,maskedspectrum,fittedlines,redshiftguess_overall,resolutionguess,normalisation,hbetaflux,outputbasename,totallines)
 
   type(linelist), dimension(:), allocatable :: fittedlines
   type(spectrum), dimension(:), allocatable :: realspec,fittedspectrum, skyspectrum, continuum, maskedspectrum
   character(len=512) :: outputbasename
   real :: redshiftguess_overall,resolutionguess
   integer :: totallines
+  real :: normalisation, hbetaflux
 
   open(100+threadnumber,file=trim(outputdirectory)//trim(outputbasename)//"_fit.tex")
 
@@ -188,13 +190,14 @@ end subroutine write_latex
 
 
 
-subroutine write_csv(realspec,fittedspectrum,continuum,skyspectrum,maskedspectrum,fittedlines,redshiftguess_overall,resolutionguess,outputbasename,totallines)
+subroutine write_csv(realspec,fittedspectrum,continuum,skyspectrum,maskedspectrum,fittedlines,redshiftguess_overall,resolutionguess,normalisation,hbetaflux,outputbasename,totallines)
 
   type(linelist), dimension(:), allocatable :: fittedlines
   type(spectrum), dimension(:), allocatable :: realspec,fittedspectrum, skyspectrum, continuum, maskedspectrum
   character(len=512) :: outputbasename
   real :: redshiftguess_overall,resolutionguess
   integer :: totallines
+  real :: normalisation, hbetaflux
 
   open(100+threadnumber,file=trim(outputdirectory)//trim(outputbasename)//"_fit.csv")
 
@@ -275,7 +278,7 @@ subroutine write_csv(realspec,fittedspectrum,continuum,skyspectrum,maskedspectru
 
 end subroutine write_csv
 
-subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectrum,fittedlines,redshiftguess_overall,resolutionguess,outputbasename,totallines)
+subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectrum,fittedlines,redshiftguess_overall,resolutionguess,normalisation,hbetaflux,outputbasename,totallines)
 !create a single fits file with two extensions, one with the fit and one with the linelist
 
   integer :: status,unit,readwrite,blocksize,tfields,varidat
@@ -289,6 +292,7 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
   character(len=512) :: outputbasename
   real :: redshiftguess_overall,resolutionguess
   integer :: totallines,detectedlines,i
+  real :: normalisation, hbetaflux
   character(len=8) :: writevalue
 
   status=0

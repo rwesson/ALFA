@@ -52,7 +52,7 @@ subroutine readdata()
     call ftgiou(unit,status)
     !  Open the FITS file
     readwrite=0
-    call ftopen(unit,trim(spectrumfile),readwrite,blocksize,status)
+    call ftopen(unit,trim(spectrumfile)//trim(imagesection),readwrite,blocksize,status)
 
     if (status .ne. 0) then
       print *,gettime(),"error: couldn't open FITS file ",trim(spectrumfile),". CFITSIO error code was ",status

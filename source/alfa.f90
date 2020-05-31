@@ -70,7 +70,7 @@ imagesection=""
 
 collapse=.false.
 messages=.false.
-noclobber=.false.
+clobber=.false.
 
 popsize=30
 pressure=0.3 !pressure * popsize needs to be an integer
@@ -197,8 +197,8 @@ if (allocated(spectrum_1d)) then !1d spectrum
   if (maxval(realspec%flux) .lt. baddata) then
     print *,gettime(),"no good data in spectrum (all fluxes are less than ",baddata,")"
     call exit(1)
-  elseif (noclobber) then
-    print *,gettime(),"spectrum already fitted and --no-clobber specified"
+  elseif (.not.clobber) then
+    print *,gettime(),"spectrum already fitted: use --clobber to overwrite previous output"
     stop
   endif
   messages=.true.
@@ -256,7 +256,7 @@ elseif (allocated(spectrum_2d)) then !fit 2D data
       print "(X,A,A,I2,A,"//filenameformat(1)//",A,ES10.2)",gettime(),"(thread ",threadnumber,") : skipped row  ",rss_i,": all values below ",baddata
       deallocate(realspec)
       cycle
-    elseif (file_exists .and. noclobber) then
+    elseif (file_exists .and. .not. clobber) then
       print "(X,A,A,I2,A,"//filenameformat(1)//",A)",gettime(),"(thread ",threadnumber,") : skipped row  ",rss_i,": already fitted"
       deallocate(realspec)
       cycle
@@ -340,7 +340,7 @@ elseif (allocated(spectrum_3d)) then !fit 3D data
         print "(X,A,A,I2,A,"//filenameformat(1)//",A,"//filenameformat(2)//",A,ES10.2)",gettime(),"(thread ",threadnumber,") : skipped pixel  ",cube_i,",",cube_j,": all values below ",baddata
         deallocate(realspec)
         cycle
-      elseif (file_exists .and. noclobber) then
+      elseif (file_exists .and. .not. clobber) then
         print "(X,A,A,I2,A,"//filenameformat(1)//",A,"//filenameformat(2)//",A)",gettime(),"(thread ",threadnumber,") : skipped pixel  ",cube_i,",",cube_j,": already fitted"
         deallocate(realspec)
         cycle

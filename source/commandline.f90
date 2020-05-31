@@ -412,8 +412,8 @@ subroutine readcommandline(redshiftguess_initial,resolutionguess_initial,normali
       endif
     endif
 
-    if ((trim(options(i))=="-ncl" .or. trim(options(i))=="--no-clobber")) then
-      noclobber=.true.
+    if ((trim(options(i))=="-cl" .or. trim(options(i))=="--clobber")) then
+      clobber=.true.
       options(i)=""
     endif
 

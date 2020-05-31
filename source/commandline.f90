@@ -406,6 +406,11 @@ subroutine readcommandline(redshiftguess_initial,resolutionguess_initial)
       endif
     endif
 
+    if ((trim(options(i))=="-ncl" .or. trim(options(i))=="--no-clobber")) then
+      noclobber=.true.
+      options(i)=""
+    endif
+
   enddo
 
   nargused=narg-count(options.ne."")

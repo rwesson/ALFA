@@ -9,7 +9,7 @@ _alfa()
 
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
-    opts="-n --normalise -vg --velocity-guess -rg --resolution-guess -vtol1 --velocity-tolerance-1 -vtol2 --velocity-tolerance-2 -rtol1 --resolution-tolerance-1 -rtol2 --resolution-tolerance-2 -ss --subtract-sky -o --output-dir --sky-catalogue --strong-catalogue --deep-catalogue -skyc -sc -dc -g --generations -ps --populationsize -pr --pressure -b --bad-data -ul --upper-limits --citation -ws --wavelength-scaling --collapse -el --exclude-line -dl --detection-limit -rb --rebin -nc --no-continuum -cw --continuum-window -wc --wavelength-column -fc --flux-column -of --output-format"
+    opts="-n --normalise -vg --velocity-guess -rg --resolution-guess -vtol1 --velocity-tolerance-1 -vtol2 --velocity-tolerance-2 -rtol1 --resolution-tolerance-1 -rtol2 --resolution-tolerance-2 -ss --subtract-sky -o --output-dir --sky-catalogue --strong-catalogue --deep-catalogue -skyc -sc -dc -g --generations -ps --populationsize -pr --pressure -b --bad-data -ul --upper-limits --citation -ws --wavelength-scaling --collapse -el --exclude-line -dl --detection-limit -rb --rebin -nc --no-continuum -cw --continuum-window -wc --wavelength-column -fc --flux-column -of --output-format -ncl --no-clobber"
 
     if [[ "$cur" == -* ]]; then
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )

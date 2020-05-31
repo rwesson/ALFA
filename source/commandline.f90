@@ -394,6 +394,7 @@ subroutine readcommandline(redshiftguess_initial,resolutionguess_initial)
         endif
       else
         print *,gettime(),"error: no value specified for ",trim(options(i))
+        call exit(1)
       endif
     endif
 
@@ -401,8 +402,13 @@ subroutine readcommandline(redshiftguess_initial,resolutionguess_initial)
       if ((i+1) .le. Narg) then
         read (options(i+1),*) outputformat
         options(i:i+1)=""
+        if (outputformat.ne."text".and.outputformat.ne."fits".and.outputformat.ne."latex".and.outputformat.ne."csv") then
+          print *,gettime(),"error: invalid output format. valid formats are fits, text, csv and latex"
+          call exit(1)
+        endif
       else
         print *,gettime(),"error: no value specified for ",trim(options(i))
+        call exit(1)
       endif
     endif
 

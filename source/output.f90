@@ -317,7 +317,7 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
     if (normalisation.eq.0.d0) then
   call ftpcom(unit,"normalisation:                    no normalisation",status)
     else
-  write(writevalue,*) normalisation
+  write(writevalue,"(F8.3)") normalisation
   call ftpcom(unit,"normalisation:                    to Hb="//writevalue,status)
     endif
   endif

@@ -197,14 +197,28 @@ if (allocated(spectrum_1d)) then !1d spectrum
   if (maxval(realspec%flux) .lt. baddata) then
     print *,gettime(),"no good data in spectrum (all fluxes are less than ",baddata,")"
     call exit(1)
-  elseif (.not.clobber) then
-    print *,gettime(),"spectrum already fitted: use --clobber to overwrite previous output"
     stop
   endif
   messages=.true.
 
   threadnumber=0
   write (outputbasename,"(A)") spectrumfile(index(spectrumfile,"/",back=.true.)+1:len(trim(spectrumfile)))
+
+  if (.not.clobber) then
+    if (outputformat.eq."fits ") then
+      inquire(file=trim(outputdirectory)//trim(outputbasename)//"_fit.fits", exist=file_exists)
+    elseif (outputformat.eq."text ") then
+      inquire(file=trim(outputdirectory)//trim(outputbasename)//"_lines", exist=file_exists)
+    elseif (outputformat.eq."csv  ") then
+      inquire(file=trim(outputdirectory)//trim(outputbasename)//"_lines.csv", exist=file_exists)
+    elseif (outputformat.eq."latex") then
+      inquire(file=trim(outputdirectory)//trim(outputbasename)//"_lines.latex", exist=file_exists)
+    endif
+    if (file_exists) then
+      print *,gettime(),"spectrum already fitted: use --clobber to overwrite previous output"
+      stop
+    endif
+  endif
 
 #include "spectralfit.f90"
 

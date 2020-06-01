@@ -281,6 +281,7 @@ end subroutine write_csv
 subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectrum,fittedlines,redshiftguess_overall,resolutionguess,normalisation,hbetaflux,outputbasename,totallines)
 !create a single fits file with two extensions, one with the fit and one with the linelist
 
+  implicit none
   integer :: status,unit,readwrite,blocksize,tfields,varidat
   character(len=16) :: extname
   character(len=16),dimension(8) :: ttype_fit,tform_fit,tunit_fit
@@ -291,7 +292,7 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
   type(spectrum), dimension(:), allocatable :: realspec,fittedspectrum, skyspectrum, continuum, maskedspectrum
   character(len=512) :: outputbasename
   real :: redshiftguess_overall,resolutionguess
-  integer :: totallines,detectedlines,i
+  integer :: totallines,detectedlines,i,rownumber
   real :: normalisation, hbetaflux
   character(len=8) :: writevalue
 
@@ -420,22 +421,7 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
   tform_lines=(/"1E","1E","1E","1E","1E","1E"/)
   tunit_lines=(/"Angstrom        ","Angstrom        ","Flux            ","Flux            ","Flux            ","Angstrom        "/)
 
-!check whether to write out continuum fluxes
-
-  writeb1=0
-  writeb2=0
-  writep1=0
-  writep2=0
-
-  if (minval(continuum%wavelength)-3630.0 .lt.0..and. maxval(continuum%wavelength)-3630. .gt.0.) writeb1=minloc(abs(fittedlines%wavelength-3630.0),1)
-  if (minval(continuum%wavelength)-3700.0 .lt.0..and. maxval(continuum%wavelength)-3700. .gt.0.) writeb2=minloc(abs(fittedlines%wavelength-3700.0),1)
-  if (minval(continuum%wavelength)-8100.0 .lt.0..and. maxval(continuum%wavelength)-8100. .gt.0.) writep1=minloc(abs(fittedlines%wavelength-8100.0),1)
-  if (minval(continuum%wavelength)-8400.0 .lt.0..and. maxval(continuum%wavelength)-8400. .gt.0.) writep2=minloc(abs(fittedlines%wavelength-8400.0),1)
-
-!  totallines=totallines+sign(1,writeb1)+sign(1,writeb2)+sign(1,writep1)+sign(1,writep2)
   call ftibin(unit,totallines,tfields,ttype_lines,tform_lines,tunit_lines,extname,varidat,status)
-
-! write out lines
 
   allocate(linefluxes(totallines))
   allocate(linesigmas(totallines))
@@ -476,7 +462,46 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
   call ftpcle(unit,4,1,1,totallines,linesigmas,status)
   call ftpcle(unit,5,1,1,totallines,fittedlines%peak/normalisation,status)
   call ftpcle(unit,6,1,1,totallines,fittedlines%wavelength/fittedlines%resolution * 2.35482,status)
-! todo: line data, continuum fluxes
+! todo: line data
+
+!write out continuum fluxes if measured
+  rownumber=totallines
+
+  if (minval(continuum%wavelength)-3630.0 .lt.0..and. maxval(continuum%wavelength)-3630. .gt.0.) then
+    call ftirow(unit,rownumber,1,status)
+    rownumber=rownumber+1
+    call ftpcle(unit,1,rownumber,1,1,3630.0,status)
+    call ftpcle(unit,2,rownumber,1,1,3630.0,status)
+    call ftpcle(unit,3,rownumber,1,1,continuum(minloc(abs(continuum%wavelength-3630.)))%flux,status)
+    call ftpcle(unit,4,rownumber,1,1,realspec(minloc(abs(continuum%wavelength-3630.)))%uncertainty,status)
+  endif
+
+  if (minval(continuum%wavelength)-3700.0 .lt.0..and. maxval(continuum%wavelength)-3700. .gt.0.) then
+    call ftirow(unit,rownumber,1,status)
+    rownumber=rownumber+1
+    call ftpcle(unit,1,rownumber,1,1,3700.0,status)
+    call ftpcle(unit,2,rownumber,1,1,3700.0,status)
+    call ftpcle(unit,3,rownumber,1,1,continuum(minloc(abs(continuum%wavelength-3700.)))%flux,status)
+    call ftpcle(unit,4,rownumber,1,1,realspec(minloc(abs(continuum%wavelength-3700.)))%uncertainty,status)
+  endif
+
+  if (minval(continuum%wavelength)-8100.0 .lt.0..and. maxval(continuum%wavelength)-8100. .gt.0.) then
+    call ftirow(unit,rownumber,1,status)
+    rownumber=rownumber+1
+    call ftpcle(unit,1,rownumber,1,1,8100.0,status)
+    call ftpcle(unit,2,rownumber,1,1,8100.0,status)
+    call ftpcle(unit,3,rownumber,1,1,continuum(minloc(abs(continuum%wavelength-8100.)))%flux,status)
+    call ftpcle(unit,4,rownumber,1,1,realspec(minloc(abs(continuum%wavelength-8100.)))%uncertainty,status)
+  endif
+
+  if (minval(continuum%wavelength)-8400.0 .lt.0..and. maxval(continuum%wavelength)-8400. .gt.0.) then
+    call ftirow(unit,rownumber,1,status)
+    rownumber=rownumber+1
+    call ftpcle(unit,1,rownumber,1,1,8400.0,status)
+    call ftpcle(unit,2,rownumber,1,1,8400.0,status)
+    call ftpcle(unit,3,rownumber,1,1,continuum(minloc(abs(continuum%wavelength-8400.)))%flux,status)
+    call ftpcle(unit,4,rownumber,1,1,realspec(minloc(abs(continuum%wavelength-8400.)))%uncertainty,status)
+  endif
 
   if (status .gt. 0) then
     print *,gettime(),"CFITSIO returned an error: code ",status

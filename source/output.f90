@@ -19,7 +19,7 @@ subroutine write_plaintext(realspec,fittedspectrum,continuum,skyspectrum,maskeds
   write (100+threadnumber,*) "#fit generated using: ",trim(commandline)
   write (100+threadnumber,*) "#""wavelength""  ""input spectrum ""  ""fitted spectrum""  ""cont-subbed orig"" ""continuum""  ""sky lines""  ""residuals""  ""uncertainty"""
   do i=1,spectrumlength
-    write(100+threadnumber,"(F9.2, 7(ES12.3))") fittedspectrum(i)%wavelength,realspec(i)%flux + continuum(i)%flux, fittedspectrum(i)%flux + continuum(i)%flux + skyspectrum(i)%flux, realspec(i)%flux, continuum(i)%flux, skyspectrum(i)%flux, realspec(i)%flux - fittedspectrum(i)%flux, maskedspectrum(i)%uncertainty
+    write(100+threadnumber,"(F9.2, 7(ES12.3))") fittedspectrum(i)%wavelength,realspec(i)%flux + continuum(i)%flux, fittedspectrum(i)%flux + continuum(i)%flux + skyspectrum(i)%flux, realspec(i)%flux, continuum(i)%flux, skyspectrum(i)%flux, realspec(i)%flux - fittedspectrum(i)%flux, realspec(i)%uncertainty
   enddo
 
   close(100+threadnumber)
@@ -109,7 +109,7 @@ subroutine write_latex(realspec,fittedspectrum,continuum,skyspectrum,maskedspect
   write (100+threadnumber,*) "%fit generated using: ",trim(commandline)
   write (100+threadnumber,*) "#""wavelength""  ""input spectrum ""  ""fitted spectrum""  ""cont-subbed orig"" ""continuum""  ""sky lines""  ""residuals""  ""uncertainty"""
   do i=1,spectrumlength
-    write(100+threadnumber,"(F9.2, 7(ES12.3))") fittedspectrum(i)%wavelength,realspec(i)%flux + continuum(i)%flux, fittedspectrum(i)%flux + continuum(i)%flux + skyspectrum(i)%flux, realspec(i)%flux, continuum(i)%flux, skyspectrum(i)%flux, realspec(i)%flux - fittedspectrum(i)%flux, maskedspectrum(i)%uncertainty
+    write(100+threadnumber,"(F9.2, 7(ES12.3))") fittedspectrum(i)%wavelength,realspec(i)%flux + continuum(i)%flux, fittedspectrum(i)%flux + continuum(i)%flux + skyspectrum(i)%flux, realspec(i)%flux, continuum(i)%flux, skyspectrum(i)%flux, realspec(i)%flux - fittedspectrum(i)%flux, realspec(i)%uncertainty
   enddo
 
   close(100+threadnumber)
@@ -205,7 +205,7 @@ subroutine write_csv(realspec,fittedspectrum,continuum,skyspectrum,maskedspectru
   write (100+threadnumber,*) "#fit generated using: ",trim(commandline)
   write (100+threadnumber,*) "#wavelength,input spectrum,fitted spectrum,cont-subbed orig,continuum,sky lines,residuals,uncertainty"
   do i=1,spectrumlength
-    write(100+threadnumber,"(F9.2, ',', 6(ES12.3,','), ES12.3)") fittedspectrum(i)%wavelength,realspec(i)%flux + continuum(i)%flux, fittedspectrum(i)%flux + continuum(i)%flux + skyspectrum(i)%flux, realspec(i)%flux, continuum(i)%flux, skyspectrum(i)%flux, realspec(i)%flux - fittedspectrum(i)%flux, maskedspectrum(i)%uncertainty
+    write(100+threadnumber,"(F9.2, ',', 6(ES12.3,','), ES12.3)") fittedspectrum(i)%wavelength,realspec(i)%flux + continuum(i)%flux, fittedspectrum(i)%flux + continuum(i)%flux + skyspectrum(i)%flux, realspec(i)%flux, continuum(i)%flux, skyspectrum(i)%flux, realspec(i)%flux - fittedspectrum(i)%flux, realspec(i)%uncertainty
   enddo
 
   close(100+threadnumber)
@@ -402,7 +402,7 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
   call ftpcle(unit,5,1,1,spectrumlength,continuum%flux,status)
   call ftpcle(unit,6,1,1,spectrumlength,skyspectrum%flux,status)
   call ftpcle(unit,7,1,1,spectrumlength,realspec%flux - fittedspectrum%flux,status)
-  call ftpcle(unit,8,1,1,spectrumlength,maskedspectrum%uncertainty,status)
+  call ftpcle(unit,8,1,1,spectrumlength,realspec%uncertainty,status)
 
   if (status .gt. 0) then
     print *,gettime(),"CFITSIO returned an error: code ",status

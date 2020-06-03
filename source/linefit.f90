@@ -52,16 +52,9 @@ real :: scalefactor
 ! todo, make sure no lines are included which are outside the wavelength range
 ! of the observations
 
-  do i=1,popsize
-    synthspec(:,i)%wavelength=inputspectrum%wavelength
-  enddo
-
   do popnumber=1,popsize
-    population(popnumber,:)%wavelength = fittedlines%wavelength
-    population(popnumber,:)%peak=fittedlines%peak
-    population(popnumber,:)%resolution=resolutionguess
-    population(popnumber,:)%redshift=redshiftguess
-    population(popnumber,:)%linedata=fittedlines%linedata
+    synthspec(:,popnumber)%wavelength=inputspectrum%wavelength
+    population(popnumber,:) = fittedlines
   enddo
 
 ! evolve

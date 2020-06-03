@@ -306,6 +306,23 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
   call ftinit(unit,"!"//trim(outputdirectory)//trim(outputbasename)//"_fit.fits",blocksize,status)
   call ftphps(unit,16,0,0,status)
 
+! add history keyword to primary HDU
+
+  call ftpdat(unit,status)
+  call ftphis(unit,trim(commandline),status)
+
+! first extension for the fit
+
+  ttype_fit=(/"Wavelength      ","InputSpec       ","FittedSpec      ","ContSubbedInput ","Continuum       ","SkyLines        ","Residuals       ","Uncertainty     "/)
+  tform_fit=(/"1E","1E","1E","1E","1E","1E","1E","1E"/)
+  tunit_fit=(/"Angstrom        ","Flux            ","Flux            ","Flux            ","Flux            ","Flux            ","Flux            ","Flux            "/)
+
+  extname='FIT'
+  varidat=0
+  tfields=8
+
+  call ftibin(unit,spectrumlength,tfields,ttype_fit,tform_fit,tunit_fit,extname,varidat,status)
+
 ! record version, date and setting used in comments
 
   call ftpcom(unit,"Produced by alfa version "//VERSION,status)
@@ -381,20 +398,6 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
   call ftpcom(unit,"pressure factor:                  "//writevalue,status)
   call ftpcom(unit,"output directory:                 "//trim(outputdirectory),status)
   call ftpcom(unit,"output format:                    "//outputformat,status)
-
-  call ftpdat(unit,status)
-
-! first extension for the fit
-
-  ttype_fit=(/"Wavelength      ","InputSpec       ","FittedSpec      ","ContSubbedInput ","Continuum       ","SkyLines        ","Residuals       ","Uncertainty     "/)
-  tform_fit=(/"1E","1E","1E","1E","1E","1E","1E","1E"/)
-  tunit_fit=(/"Angstrom        ","Flux            ","Flux            ","Flux            ","Flux            ","Flux            ","Flux            ","Flux            "/)
-
-  extname='FIT'
-  varidat=0
-  tfields=8
-
-  call ftibin(unit,spectrumlength,tfields,ttype_fit,tform_fit,tunit_fit,extname,varidat,status)
 
   call ftpcle(unit,1,1,1,spectrumlength,fittedspectrum%wavelength,status)
   call ftpcle(unit,2,1,1,spectrumlength,realspec%flux + continuum%flux,status)

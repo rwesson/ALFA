@@ -32,6 +32,7 @@ subroutine readdata()
   character(len=8) :: keynamevar,colheader
   real :: nullval
   logical :: anynull,datafound
+  character(len=30) :: cfitsioerror
 
 #ifdef CO
   print *,"subroutine: readdata"
@@ -55,7 +56,8 @@ subroutine readdata()
     call ftopen(unit,trim(spectrumfile)//trim(imagesection),readwrite,blocksize,status)
 
     if (status .ne. 0) then
-      print *,gettime(),"error: couldn't open FITS file ",trim(spectrumfile),". CFITSIO error code was ",status
+      call ftgerr(status,cfitsioerror)
+      print *,gettime(),"error opening file ",trim(spectrumfile),": ",status,cfitsioerror
       call exit(1)
     endif
 

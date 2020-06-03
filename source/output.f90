@@ -295,6 +295,7 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
   integer :: totallines,detectedlines,i,rownumber
   real :: normalisation, hbetaflux
   character(len=8) :: writevalue
+  character(len=30) :: cfitsioerror
 
   status=0
   readwrite=1
@@ -405,7 +406,8 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
   call ftpcle(unit,8,1,1,spectrumlength,realspec%uncertainty,status)
 
   if (status .gt. 0) then
-    print *,gettime(),"CFITSIO returned an error: code ",status
+    call ftgerr(status,cfitsioerror)
+    print *,gettime(),"CFITSIO error: ",status,cfitsioerror
     call exit(1)
   else
     print *,gettime(),"Wrote fit to header FIT of output file ",trim(outputdirectory)//trim(outputbasename)//"_fit.fits"
@@ -504,7 +506,8 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
   endif
 
   if (status .gt. 0) then
-    print *,gettime(),"CFITSIO returned an error: code ",status
+    call ftgerr(status,cfitsioerror)
+    print *,gettime(),"CFITSIO error: ",status,cfitsioerror
     call exit(1)
   else
     print *,gettime(),"Wrote line list to header LINES"

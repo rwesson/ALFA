@@ -96,7 +96,7 @@ Fit and subtract night sky emission lines before fitting nebular emission lines.
 
 .TP
 .B \-ul, \-\-upper-limits
-Write out upper limits for all lines searched for and not detected.
+Write out upper limits for all lines searched for and not detected. The upper limit is calculated as the detection limit (default 3, set by \-\-detection\-limit) multiplied by the uncertainty. In FITS output, this option is ignored - all upper limits are written out, and are indicated by negative flux values. If the FITS file is later anaysed with \fBneat\fR, these negative values are simply ignored.
 
 .TP
 .B \-vg, \-\-velocity\-guess [VALUE]

@@ -506,7 +506,7 @@ subroutine readlinelist(linelistfile,referencelinelist)
     READ(199,informat) input1%wavelength,input1%ion,input1%multiplet,input1%lowerterm,input1%upperterm,input1%g1,input1%g2
     if (input1%wavelength .ge. minimumwavelength .and. input1%wavelength .le. maximumwavelength .and. .not. (any(exclusions.eq.input1%wavelength))) then
       referencelinelist(i) = input1
-      referencelinelist(i)%peak=1000.!todo: change to very small value, assess effect
+      referencelinelist(i)%peak=1.0!todo: scale with data
       i=i+1
     endif
     if (input1%wavelength .ge.  maximumwavelength) then

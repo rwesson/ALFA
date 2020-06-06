@@ -15,7 +15,8 @@ type linelist
   real :: uncertainty
   real :: redshift
   real :: resolution
-  character(len=85) :: linedata
+  character(len=12) :: ion,multiplet,lowerterm,upperterm
+  integer :: g1,g2
   integer :: blended
 end type
 

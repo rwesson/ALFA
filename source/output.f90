@@ -161,14 +161,14 @@ subroutine write_latex(realspec,fittedspectrum,continuum,skyspectrum,maskedspect
     endif
 
     if (fittedlines(i)%blended .eq. 0 .and. fittedlines(i)%uncertainty .gt. detectionlimit) then
-      write (200+threadnumber,"(F9.2,' & ',F9.2,' & ',"//fluxformat//",' & ',"//fluxformat//",' & ',"//fluxformat//",' & ',"//fluxformat//",A85)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty, fittedlines(i)%peak/normalisation, fittedlines(i)%wavelength/fittedlines(i)%resolution * 2.35482, fittedlines(i)%linedata
+      write (200+threadnumber,"(F9.2,' & ',F9.2,' & ',"//fluxformat//",' & ',"//fluxformat//",' & ',"//fluxformat//",' & ',"//fluxformat//",A85)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty, fittedlines(i)%peak/normalisation, fittedlines(i)%wavelength/fittedlines(i)%resolution * 2.35482, fittedlines(i)%ion
     elseif (fittedlines(i)%blended .ne. 0) then
       if (fittedlines(fittedlines(i)%blended)%uncertainty .gt. detectionlimit) then
-        write (200+threadnumber,"(F9.2,' & ',F9.2,' &            * &            * &            * &            *',A85)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,fittedlines(i)%linedata
+        write (200+threadnumber,"(F9.2,' & ',F9.2,' &            * &            * &            * &            *',A85)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,fittedlines(i)%ion
       endif
 ! write out 3 sigma upper limit for non-detections if upperlimits flag is set
     elseif (fittedlines(i)%uncertainty .le. detectionlimit .and. upperlimits .eqv. .true.) then
-      write (200+threadnumber,"(F9.2,' & ',F9.2,' & ',"//fluxformat//",' & upper limit ',A85)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength, 3.*gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty, fittedlines(i)%linedata
+      write (200+threadnumber,"(F9.2,' & ',F9.2,' & ',"//fluxformat//",' & upper limit ',A85)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength, 3.*gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty, fittedlines(i)%ion
     endif
   enddo
 
@@ -285,7 +285,7 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
   integer :: status,unit,readwrite,blocksize,tfields,varidat
   character(len=16) :: extname
   character(len=16),dimension(8) :: ttype_fit,tform_fit,tunit_fit
-  character(len=16),dimension(6) :: ttype_lines,tform_lines,tunit_lines
+  character(len=16),dimension(12) :: ttype_lines,tform_lines,tunit_lines
   character(len=16),dimension(4) :: ttype_qc,tform_qc,tunit_qc
   real,dimension(:),allocatable :: linefluxes,linesigmas,linelambdas
   type(linelist), dimension(:), allocatable :: fittedlines
@@ -420,11 +420,11 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
 
   status=0
   extname="LINES"
-  tfields=6
+  tfields=12
 
-  ttype_lines=(/"WlenObserved    ","WlenRest        ","Flux            ","Uncertainty     ","Peak            ","FWHM            "/)
-  tform_lines=(/"1E","1E","1E","1E","1E","1E"/)
-  tunit_lines=(/"Angstrom        ","Angstrom        ","Flux            ","Flux            ","Flux            ","Angstrom        "/)
+  ttype_lines=(/"WlenObserved    ","WlenRest        ","Flux            ","Uncertainty     ","Peak            ","FWHM            ","Ion             ","Multiplet       ","LowerTerm       ","Upperterm       ","g1              ","g2              "/)
+  tform_lines=(/" 1E"," 1E"," 1E"," 1E"," 1E"," 1E","12A","12A","12A","12A"," 1I"," 1I"/)
+  tunit_lines=(/"Angstrom        ","Angstrom        ","Flux            ","Flux            ","Flux            ","Angstrom        ","                ","                ","                ","                ","                ","                "/)
 
   call ftibin(unit,totallines,tfields,ttype_lines,tform_lines,tunit_lines,extname,varidat,status)
 
@@ -467,7 +467,12 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
   call ftpcle(unit,4,1,1,totallines,linesigmas,status)
   call ftpcle(unit,5,1,1,totallines,fittedlines%peak/normalisation,status)
   call ftpcle(unit,6,1,1,totallines,fittedlines%wavelength/fittedlines%resolution * 2.35482,status)
-! todo: line data
+  call ftpcls(unit,7,1,1,totallines,fittedlines%ion,status)
+  call ftpcls(unit,8,1,1,totallines,fittedlines%multiplet,status)
+  call ftpcls(unit,9,1,1,totallines,fittedlines%lowerterm,status)
+  call ftpcls(unit,10,1,1,totallines,fittedlines%upperterm,status)
+  call ftpclj(unit,11,1,1,totallines,fittedlines%g1,status)
+  call ftpclj(unit,12,1,1,totallines,fittedlines%g2,status)
 
 !write out continuum fluxes if measured
   rownumber=totallines

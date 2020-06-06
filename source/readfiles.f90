@@ -445,14 +445,13 @@ subroutine readlinelist(linelistfile,referencelinelist)
 
   implicit none
   character (len=512) :: linelistfile
-  character (len=85) :: linedatainput
+  character (len=12) :: ion,multiplet,lowerterm,upperterm
   character (len=2) :: informatnumber
-  character (len=20) :: informat
-  integer :: i,nlines
-  real :: input1
+  character (len=45) :: informat
+  integer :: i,nlines,g1,g2
   integer :: io
   logical :: file_exists
-
+  type(linelist) :: input1
   type(linelist), dimension(:), allocatable :: referencelinelist
 
 #ifdef CO
@@ -484,8 +483,8 @@ subroutine readlinelist(linelistfile,referencelinelist)
   I = 0
   OPEN(199, file=linelistfile, iostat=IO, status='old')
   DO WHILE (IO >= 0)
-    READ(199,*,end=110) input1
-    if (input1 .ge. minimumwavelength .and. input1 .le.  maximumwavelength .and. .not. (any(exclusions.eq.input1))) then
+    READ(199,*,end=110) input1%wavelength
+    if (input1%wavelength .ge. minimumwavelength .and. input1%wavelength .le.  maximumwavelength .and. .not. (any(exclusions.eq.input1%wavelength))) then
     !only read in lines that lie within the observed wavelength range, and are not in the line exclusions array
       I = I + 1
     endif
@@ -495,7 +494,7 @@ subroutine readlinelist(linelistfile,referencelinelist)
 !determine the format to use. ceiling of log gives number of sig figs before dp, add 3 for dp and 2 sig figs after
 
   write (informatnumber,"(I2)") ceiling(log10(max(minimumwavelength,maximumwavelength)))+3
-  informat="(F"//trim(adjustl(informatnumber))//".2,A)"
+  informat="(F"//trim(adjustl(informatnumber))//".2,2X,A12,X,A12,X,A12,X,A12,X,I12,X,I9)"
 
 !then allocate and read
 
@@ -504,15 +503,13 @@ subroutine readlinelist(linelistfile,referencelinelist)
   REWIND (199)
   I=1
   do while (i .le. nlines)
-    READ(199,informat) input1, linedatainput
-    if (input1 .ge. minimumwavelength .and. input1 .le. maximumwavelength .and. .not. (any(exclusions.eq.input1))) then
-      referencelinelist(i)%wavelength = input1
-      referencelinelist(i)%peak=1000.
-!formerly abs(realspec(minloc((realspec%wavelength-input1)**2,1))%flux) but in case of weak lines near to negative flux values this prevented them being fitted. it makes a negligible difference to the running time
-      referencelinelist(i)%linedata = linedatainput
+    READ(199,informat) input1%wavelength,input1%ion,input1%multiplet,input1%lowerterm,input1%upperterm,input1%g1,input1%g2
+    if (input1%wavelength .ge. minimumwavelength .and. input1%wavelength .le. maximumwavelength .and. .not. (any(exclusions.eq.input1%wavelength))) then
+      referencelinelist(i) = input1
+      referencelinelist(i)%peak=1000.!todo: change to very small value, assess effect
       i=i+1
     endif
-    if (input1 .ge.  maximumwavelength) then
+    if (input1%wavelength .ge.  maximumwavelength) then
       exit
     endif
   END DO

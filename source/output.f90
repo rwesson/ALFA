@@ -423,7 +423,7 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,maskedspectr
   tfields=12
 
   ttype_lines=(/"WlenObserved    ","WlenRest        ","Flux            ","Uncertainty     ","Peak            ","FWHM            ","Ion             ","Multiplet       ","LowerTerm       ","Upperterm       ","g1              ","g2              "/)
-  tform_lines=(/" 1E"," 1E"," 1E"," 1E"," 1E"," 1E","12A","12A","12A","12A"," 1I"," 1I"/)
+  tform_lines=(/"1E ","1E ","1E ","1E ","1E ","1E ","12A","12A","12A","12A","1I ","1I "/)
   tunit_lines=(/"Angstrom        ","Angstrom        ","Flux            ","Flux            ","Flux            ","Angstrom        ","                ","                ","                ","                ","                ","                "/)
 
   call ftibin(unit,totallines,tfields,ttype_lines,tform_lines,tunit_lines,extname,varidat,status)

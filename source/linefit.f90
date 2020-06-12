@@ -113,9 +113,9 @@ real :: scalefactor
 
     do i=2,popsize
       random=r4_uni_01()
-      loc1=nint(popsize*random*pressure)+1
+      loc1=floor(popsize*random*pressure)+1
       random=r4_uni_01()
-      loc2=nint(popsize*random*pressure)+1
+      loc2=floor(popsize*random*pressure)+1
       population(i,:)%peak=(breed(loc1,:)%peak + breed(loc2,:)%peak)/2.0
       population(i,:)%resolution=(breed(loc1,:)%resolution + breed(loc2,:)%resolution)/2.0
       population(i,:)%redshift=(breed(loc1,:)%redshift + breed(loc2,:)%redshift)/2.0

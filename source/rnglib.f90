@@ -1555,7 +1555,7 @@ subroutine set_initial_seed ( ig1, ig2 )
   integer ( kind = 4 ), parameter :: a2_vw = 784306273
   integer ( kind = 4 ) g
   integer ( kind = 4 ), parameter :: g_max = 32
-  integer ( kind = 4 ) i
+!  integer ( kind = 4 ) i
   integer ( kind = 4 ) ig1
   integer ( kind = 4 ) ig2
   logical initialized_get
@@ -1656,7 +1656,7 @@ subroutine set_seed ( cg1, cg2 )
   integer ( kind = 4 ) cg2
   integer ( kind = 4 ) cgn_get
   integer ( kind = 4 ) g
-  integer ( kind = 4 ) i
+!  integer ( kind = 4 ) i
   logical initialized_get
   integer ( kind = 4 ), parameter :: m1 = 2147483563
   integer ( kind = 4 ), parameter :: m2 = 2147483399

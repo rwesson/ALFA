@@ -445,10 +445,9 @@ subroutine readlinelist(linelistfile,referencelinelist)
 
   implicit none
   character (len=512) :: linelistfile
-  character (len=12) :: ion,multiplet,lowerterm,upperterm
   character (len=2) :: informatnumber
   character (len=45) :: informat
-  integer :: i,nlines,g1,g2
+  integer :: i,nlines
   integer :: io
   logical :: file_exists
   type(linelist) :: input1

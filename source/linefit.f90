@@ -45,7 +45,7 @@ real :: scalefactor
 
   allocate(synthspec(spectrumlength,popsize))
   allocate(sumsquares(popsize))
-  allocate(breed(int(popsize*pressure),nlines))
+  allocate(breed(nint(popsize*pressure),nlines))
   allocate(population(popsize,nlines))
 
 ! now create population of synthetic spectra
@@ -102,7 +102,7 @@ real :: scalefactor
     population(1,:)=population(minloc(sumsquares,1),:)
     sumsquares(minloc(sumsquares,1))=1.e30
 
-    do i=1,int(popsize*pressure)
+    do i=1,nint(popsize*pressure)
       breed(i,:) = population(minloc(sumsquares,1),:)
       sumsquares(minloc(sumsquares,1))=1.e20
     enddo
@@ -113,9 +113,9 @@ real :: scalefactor
 
     do i=2,popsize
       random=r4_uni_01()
-      loc1=int(popsize*random*pressure)+1
+      loc1=nint(popsize*random*pressure)+1
       random=r4_uni_01()
-      loc2=int(popsize*random*pressure)+1
+      loc2=nint(popsize*random*pressure)+1
       population(i,:)%peak=(breed(loc1,:)%peak + breed(loc2,:)%peak)/2.0
       population(i,:)%resolution=(breed(loc1,:)%resolution + breed(loc2,:)%resolution)/2.0
       population(i,:)%redshift=(breed(loc1,:)%redshift + breed(loc2,:)%redshift)/2.0

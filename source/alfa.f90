@@ -38,6 +38,7 @@ real :: redshiftguess, redshiftguess_initial, redshiftguess_overall ! redshiftgu
 real :: resolutionguess, resolutionguess_initial ! resolutionguess_initial is the user-specified value, used in the initial fit to determine resolutionguess.
 integer :: linearraypos,totallines, startpos, endpos, nlines
 real :: normalisation, hbetaflux
+integer :: threadnumber
 
 c=299792.458 !km/s
 !default values in absence of user specificed guess

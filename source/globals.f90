@@ -58,8 +58,4 @@ integer :: tablewavelengthcolumn,tablefluxcolumn
 
 integer :: writeb1, writeb2, writep1, writep2
 
-! openmp
-
-integer :: threadnumber
-
 end module mod_globals

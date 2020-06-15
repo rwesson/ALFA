@@ -12,6 +12,9 @@ subroutine write_plaintext(realspec,fittedspectrum,continuum,skyspectrum,fittedl
   real :: redshiftguess_overall,resolutionguess
   integer :: totallines
   real :: normalisation, hbetaflux
+  integer :: omp_get_thread_num,threadnumber
+
+  threadnumber=omp_get_thread_num()
 
   open(100+threadnumber,file=trim(outputdirectory)//trim(outputbasename)//"_fit")
 
@@ -104,6 +107,9 @@ subroutine write_latex(realspec,fittedspectrum,continuum,skyspectrum,fittedlines
   real :: redshiftguess_overall,resolutionguess
   integer :: totallines
   real :: normalisation, hbetaflux
+  integer :: omp_get_thread_num,threadnumber
+
+  threadnumber=omp_get_thread_num()
 
   open(100+threadnumber,file=trim(outputdirectory)//trim(outputbasename)//"_fit.tex")
 
@@ -203,6 +209,9 @@ subroutine write_csv(realspec,fittedspectrum,continuum,skyspectrum,fittedlines,r
   real :: redshiftguess_overall,resolutionguess
   integer :: totallines
   real :: normalisation, hbetaflux
+  integer :: omp_get_thread_num,threadnumber
+
+  threadnumber=omp_get_thread_num()
 
   open(100+threadnumber,file=trim(outputdirectory)//trim(outputbasename)//"_fit.csv")
 
@@ -303,13 +312,17 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,fittedlines,
   real :: normalisation, hbetaflux
   character(len=8) :: writevalue
   character(len=30) :: cfitsioerror
+  integer :: omp_get_thread_num,threadnumber
+
+  threadnumber=omp_get_thread_num()
 
   status=0
   readwrite=1
 
 ! initialise
 
-  call ftgiou(unit,status)
+!  call ftgiou(unit,status)
+  unit=51+threadnumber
   call ftinit(unit,"!"//trim(outputdirectory)//trim(outputbasename)//"_fit.fits",blocksize,status)
   call ftphps(unit,16,0,0,status)
 
@@ -418,6 +431,7 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,fittedlines,
   if (status .gt. 0) then
     call ftgerr(status,cfitsioerror)
     print *,gettime(),"CFITSIO error: ",status,cfitsioerror
+    print *,gettime(),"thread ",threadnumber,", unit ",unit
     call exit(1)
   else
     print *,gettime(),"Wrote fit to header FIT of output file ",trim(outputdirectory)//trim(outputbasename)//"_fit.fits"

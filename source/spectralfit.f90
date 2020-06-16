@@ -137,7 +137,7 @@ endif
 linearraypos=1
 
 !get total number of lines and an array to put them all in
-
+if (redshiftguess_overall.eq.0.0) redshiftguess_overall=1.0 ! todo: sort this out upstream with proper initialisation
 call selectlines(deeplines_catalogue, realspec(1)%wavelength/redshiftguess_overall, realspec(size(realspec))%wavelength/redshiftguess_overall, fittedlines, totallines)
 
 if (totallines .eq. 0) then

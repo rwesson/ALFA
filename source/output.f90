@@ -55,19 +55,19 @@ subroutine write_plaintext(realspec,fittedspectrum,continuum,skyspectrum,fittedl
   do i=1,totallines
 
     if (i.eq.writeb1) then
-      write (200+threadnumber,"(2(F9.2),"//fluxformat//","//fluxformat//",'         0.0         0.0')") 3630.0, 3630.0, continuum(minloc(abs(continuum%wavelength-3630.)))%flux, realspec(minloc(abs(continuum%wavelength-3630.)))%uncertainty
+      write (200+threadnumber,"(2(F9.2),"//fluxformat//","//fluxformat//",'         0.0         0.0')") 3630.0, 3630.0, normalisation*continuum(minloc(abs(continuum%wavelength-3630.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-3630.)))%uncertainty
     endif
 
     if (i.eq.writeb2) then
-      write (200+threadnumber,"(2(F9.2),"//fluxformat//","//fluxformat//",'         0.0         0.0')") 3700.0, 3700.0, continuum(minloc(abs(continuum%wavelength-3700.)))%flux, realspec(minloc(abs(continuum%wavelength-3700.)))%uncertainty
+      write (200+threadnumber,"(2(F9.2),"//fluxformat//","//fluxformat//",'         0.0         0.0')") 3700.0, 3700.0, normalisation*continuum(minloc(abs(continuum%wavelength-3700.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-3700.)))%uncertainty
     endif
 
     if (i.eq.writep1) then
-      write (200+threadnumber,"(2(F9.2),"//fluxformat//","//fluxformat//",'         0.0         0.0')") 8100.0, 8100.0, continuum(minloc(abs(continuum%wavelength-8100.)))%flux, realspec(minloc(abs(continuum%wavelength-8100.)))%uncertainty
+      write (200+threadnumber,"(2(F9.2),"//fluxformat//","//fluxformat//",'         0.0         0.0')") 8100.0, 8100.0, normalisation*continuum(minloc(abs(continuum%wavelength-8100.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-8100.)))%uncertainty
     endif
 
     if (i.eq.writep2) then
-      write (200+threadnumber,"(2(F9.2),"//fluxformat//","//fluxformat//",'         0.0         0.0')") 8400.0, 8400.0, continuum(minloc(abs(continuum%wavelength-8400.)))%flux, realspec(minloc(abs(continuum%wavelength-8400.)))%uncertainty
+      write (200+threadnumber,"(2(F9.2),"//fluxformat//","//fluxformat//",'         0.0         0.0')") 8400.0, 8400.0, normalisation*continuum(minloc(abs(continuum%wavelength-8400.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-8400.)))%uncertainty
     endif
 
     if (fittedlines(i)%blended .eq. 0 .and. fittedlines(i)%uncertainty .gt. detectionlimit) then
@@ -153,19 +153,19 @@ subroutine write_latex(realspec,fittedspectrum,continuum,skyspectrum,fittedlines
   do i=1,totallines
 
     if (i.eq.writeb1) then
-      write (200+threadnumber,"(F9.2,' &           & ',"//fluxformat//",' & ',"//fluxformat//",' & Balmer cont.\\')") 3630.0, continuum(minloc(abs(continuum%wavelength-3630.)))%flux, realspec(minloc(abs(continuum%wavelength-3630.)))%uncertainty
+      write (200+threadnumber,"(F9.2,' &           & ',"//fluxformat//",' & ',"//fluxformat//",' & Balmer cont.\\')") 3630.0, normalisation*continuum(minloc(abs(continuum%wavelength-3630.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-3630.)))%uncertainty
     endif
 
     if (i.eq.writeb2) then
-      write (200+threadnumber,"(F9.2,' &           & ',"//fluxformat//",' & ',"//fluxformat//",' & Paschen cont.\\')") 3700.0, continuum(minloc(abs(continuum%wavelength-3700.)))%flux, realspec(minloc(abs(continuum%wavelength-3700.)))%uncertainty
+      write (200+threadnumber,"(F9.2,' &           & ',"//fluxformat//",' & ',"//fluxformat//",' & Paschen cont.\\')") 3700.0, normalisation*continuum(minloc(abs(continuum%wavelength-3700.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-3700.)))%uncertainty
     endif
 
     if (i.eq.writep1) then
-      write (200+threadnumber,"(F9.2,' &           & ',"//fluxformat//",' & ',"//fluxformat//",' & Paschen cont.\\')") 8100.0, continuum(minloc(abs(continuum%wavelength-8100.)))%flux, realspec(minloc(abs(continuum%wavelength-8100.)))%uncertainty
+      write (200+threadnumber,"(F9.2,' &           & ',"//fluxformat//",' & ',"//fluxformat//",' & Paschen cont.\\')") 8100.0, normalisation*continuum(minloc(abs(continuum%wavelength-8100.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-8100.)))%uncertainty
     endif
 
     if (i.eq.writep2) then
-      write (200+threadnumber,"(F9.2,' &           & ',"//fluxformat//",' & ',"//fluxformat//",' & Brackett cont.\\')") 8400.0, continuum(minloc(abs(continuum%wavelength-8400.)))%flux, realspec(minloc(abs(continuum%wavelength-8400.)))%uncertainty
+      write (200+threadnumber,"(F9.2,' &           & ',"//fluxformat//",' & ',"//fluxformat//",' & Brackett cont.\\')") 8400.0, normalisation*continuum(minloc(abs(continuum%wavelength-8400.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-8400.)))%uncertainty
     endif
 
     if (fittedlines(i)%blended .eq. 0 .and. fittedlines(i)%uncertainty .gt. detectionlimit) then
@@ -252,19 +252,19 @@ subroutine write_csv(realspec,fittedspectrum,continuum,skyspectrum,fittedlines,r
   do i=1,totallines
 
     if (i.eq.writeb1) then
-      write (200+threadnumber,"(2(F9.2,','),"//fluxformat//",',',"//fluxformat//",',         0.0,         0.0')") 3630.0, 3630.0, continuum(minloc(abs(continuum%wavelength-3630.)))%flux, realspec(minloc(abs(continuum%wavelength-3630.)))%uncertainty
+      write (200+threadnumber,"(2(F9.2,','),"//fluxformat//",',',"//fluxformat//",',         0.0,         0.0')") 3630.0, 3630.0, normalisation*continuum(minloc(abs(continuum%wavelength-3630.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-3630.)))%uncertainty
     endif
 
     if (i.eq.writeb2) then
-      write (200+threadnumber,"(2(F9.2,','),"//fluxformat//",',',"//fluxformat//",',         0.0,         0.0')") 3700.0, 3700.0, continuum(minloc(abs(continuum%wavelength-3700.)))%flux, realspec(minloc(abs(continuum%wavelength-3700.)))%uncertainty
+      write (200+threadnumber,"(2(F9.2,','),"//fluxformat//",',',"//fluxformat//",',         0.0,         0.0')") 3700.0, 3700.0, normalisation*continuum(minloc(abs(continuum%wavelength-3700.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-3700.)))%uncertainty
     endif
 
     if (i.eq.writep1) then
-      write (200+threadnumber,"(2(F9.2,','),"//fluxformat//",',',"//fluxformat//",',         0.0,         0.0')") 8100.0, 8100.0, continuum(minloc(abs(continuum%wavelength-8100.)))%flux, realspec(minloc(abs(continuum%wavelength-8100.)))%uncertainty
+      write (200+threadnumber,"(2(F9.2,','),"//fluxformat//",',',"//fluxformat//",',         0.0,         0.0')") 8100.0, 8100.0, normalisation*continuum(minloc(abs(continuum%wavelength-8100.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-8100.)))%uncertainty
     endif
 
     if (i.eq.writep2) then
-      write (200+threadnumber,"(2(F9.2,','),"//fluxformat//",',',"//fluxformat//",',         0.0,         0.0')") 8400.0, 8400.0, continuum(minloc(abs(continuum%wavelength-8400.)))%flux, realspec(minloc(abs(continuum%wavelength-8400.)))%uncertainty
+      write (200+threadnumber,"(2(F9.2,','),"//fluxformat//",',',"//fluxformat//",',         0.0,         0.0')") 8400.0, 8400.0, normalisation*continuum(minloc(abs(continuum%wavelength-8400.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-8400.)))%uncertainty
     endif
 
     if (fittedlines(i)%blended .eq. 0 .and. fittedlines(i)%uncertainty .gt. detectionlimit) then
@@ -503,8 +503,8 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,fittedlines,
     rownumber=rownumber+1
     call ftpcle(unit,1,rownumber,1,1,3630.0,status)
     call ftpcle(unit,2,rownumber,1,1,3630.0,status)
-    call ftpcle(unit,3,rownumber,1,1,continuum(minloc(abs(continuum%wavelength-3630.)))%flux,status)
-    call ftpcle(unit,4,rownumber,1,1,realspec(minloc(abs(continuum%wavelength-3630.)))%uncertainty,status)
+    call ftpcle(unit,3,rownumber,1,1,normalisation*continuum(minloc(abs(continuum%wavelength-3630.)))%flux,status)
+    call ftpcle(unit,4,rownumber,1,1,normalisation*realspec(minloc(abs(continuum%wavelength-3630.)))%uncertainty,status)
   endif
 
   if (minval(continuum%wavelength)-3700.0 .lt.0..and. maxval(continuum%wavelength)-3700. .gt.0.) then
@@ -512,8 +512,8 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,fittedlines,
     rownumber=rownumber+1
     call ftpcle(unit,1,rownumber,1,1,3700.0,status)
     call ftpcle(unit,2,rownumber,1,1,3700.0,status)
-    call ftpcle(unit,3,rownumber,1,1,continuum(minloc(abs(continuum%wavelength-3700.)))%flux,status)
-    call ftpcle(unit,4,rownumber,1,1,realspec(minloc(abs(continuum%wavelength-3700.)))%uncertainty,status)
+    call ftpcle(unit,3,rownumber,1,1,normalisation*continuum(minloc(abs(continuum%wavelength-3700.)))%flux,status)
+    call ftpcle(unit,4,rownumber,1,1,normalisation*realspec(minloc(abs(continuum%wavelength-3700.)))%uncertainty,status)
   endif
 
   if (minval(continuum%wavelength)-8100.0 .lt.0..and. maxval(continuum%wavelength)-8100. .gt.0.) then
@@ -521,8 +521,8 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,fittedlines,
     rownumber=rownumber+1
     call ftpcle(unit,1,rownumber,1,1,8100.0,status)
     call ftpcle(unit,2,rownumber,1,1,8100.0,status)
-    call ftpcle(unit,3,rownumber,1,1,continuum(minloc(abs(continuum%wavelength-8100.)))%flux,status)
-    call ftpcle(unit,4,rownumber,1,1,realspec(minloc(abs(continuum%wavelength-8100.)))%uncertainty,status)
+    call ftpcle(unit,3,rownumber,1,1,normalisation*continuum(minloc(abs(continuum%wavelength-8100.)))%flux,status)
+    call ftpcle(unit,4,rownumber,1,1,normalisation*realspec(minloc(abs(continuum%wavelength-8100.)))%uncertainty,status)
   endif
 
   if (minval(continuum%wavelength)-8400.0 .lt.0..and. maxval(continuum%wavelength)-8400. .gt.0.) then
@@ -530,8 +530,8 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,fittedlines,
     rownumber=rownumber+1
     call ftpcle(unit,1,rownumber,1,1,8400.0,status)
     call ftpcle(unit,2,rownumber,1,1,8400.0,status)
-    call ftpcle(unit,3,rownumber,1,1,continuum(minloc(abs(continuum%wavelength-8400.)))%flux,status)
-    call ftpcle(unit,4,rownumber,1,1,realspec(minloc(abs(continuum%wavelength-8400.)))%uncertainty,status)
+    call ftpcle(unit,3,rownumber,1,1,normalisation*continuum(minloc(abs(continuum%wavelength-8400.)))%flux,status)
+    call ftpcle(unit,4,rownumber,1,1,normalisation*realspec(minloc(abs(continuum%wavelength-8400.)))%uncertainty,status)
   endif
 
   if (status .gt. 0) then

@@ -299,8 +299,6 @@ else
 endif
 
 fittedlines%peak = fittedlines%peak * normalisation
-continuum%flux = continuum%flux * normalisation !for continuum jumps to be scaled
-realspec%uncertainty = realspec%uncertainty * normalisation !for continuum jumps to be scaled
 
 ! replace the masked spectrum with the original one
 

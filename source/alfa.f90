@@ -33,7 +33,7 @@ integer :: omp_get_thread_num, omp_get_num_threads
 
 character(len=512) :: outputbasename
 type(linelist), dimension(:), allocatable :: fittedlines, fittedlines_section, skylines, skylines_section
-type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum, spectrumchunk, skyspectrum, continuum, stronglines, maskedspectrum
+type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum, spectrumchunk, skyspectrum, continuum, stronglines, originalcopy
 real :: redshiftguess, redshiftguess_initial, redshiftguess_overall ! redshiftguess_initial is the user-specified value, used in the initial fit which determines redshiftguess_overall.  that is then used in the chunks to find redshift
 real :: resolutionguess, resolutionguess_initial ! resolutionguess_initial is the user-specified value, used in the initial fit to determine resolutionguess.
 integer :: linearraypos,totallines, startpos, endpos, nlines

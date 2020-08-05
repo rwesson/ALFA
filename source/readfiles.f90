@@ -490,11 +490,6 @@ subroutine readlinelist(linelistfile,referencelinelist)
   END DO
   110     nlines=I
 
-!determine the format to use. ceiling of log gives number of sig figs before dp, add 3 for dp and 2 sig figs after
-
-  write (informatnumber,"(I2)") ceiling(log10(max(minimumwavelength,maximumwavelength)))+3
-  informat="(F"//trim(adjustl(informatnumber))//".2,2X,A12,X,A12,X,A12,X,A12,X,I12,X,I9)"
-
 !then allocate and read
 
   allocate(referencelinelist(nlines))
@@ -502,6 +497,16 @@ subroutine readlinelist(linelistfile,referencelinelist)
   REWIND (199)
   I=1
   do while (i .le. nlines)
+
+!determine the format to use. ceiling of log gives number of sig figs before dp, add 3 for dp and 2 sig figs after
+
+    read (199,*) input1%wavelength
+    backspace 199
+    write (informatnumber,"(I2)") ceiling(log10(input1%wavelength))+3
+    informat="(F"//trim(adjustl(informatnumber))//".2,2X,A12,X,A12,X,A12,X,A12,X,I12,X,I9)"
+
+!then read the whole line
+
     READ(199,informat) input1%wavelength,input1%ion,input1%multiplet,input1%lowerterm,input1%upperterm,input1%g1,input1%g2
     if (input1%wavelength .ge. minimumwavelength .and. input1%wavelength .le. maximumwavelength .and. .not. (any(exclusions.eq.input1%wavelength))) then
       referencelinelist(i) = input1

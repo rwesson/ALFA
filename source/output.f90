@@ -501,8 +501,8 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,fittedlines,
   if (minval(continuum%wavelength)-3630.0 .lt.0..and. maxval(continuum%wavelength)-3630. .gt.0.) then
     call ftirow(unit,rownumber,1,status)
     rownumber=rownumber+1
-    call ftpcle(unit,1,rownumber,1,1,3630.0,status)
-    call ftpcle(unit,2,rownumber,1,1,3630.0,status)
+    call ftpcle(unit,1,rownumber,1,1,(/3630.0/),status)
+    call ftpcle(unit,2,rownumber,1,1,(/3630.0/),status)
     call ftpcle(unit,3,rownumber,1,1,normalisation*continuum(minloc(abs(continuum%wavelength-3630.)))%flux,status)
     call ftpcle(unit,4,rownumber,1,1,normalisation*realspec(minloc(abs(continuum%wavelength-3630.)))%uncertainty,status)
   endif
@@ -510,8 +510,8 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,fittedlines,
   if (minval(continuum%wavelength)-3700.0 .lt.0..and. maxval(continuum%wavelength)-3700. .gt.0.) then
     call ftirow(unit,rownumber,1,status)
     rownumber=rownumber+1
-    call ftpcle(unit,1,rownumber,1,1,3700.0,status)
-    call ftpcle(unit,2,rownumber,1,1,3700.0,status)
+    call ftpcle(unit,1,rownumber,1,1,(/3700.0/),status)
+    call ftpcle(unit,2,rownumber,1,1,(/3700.0/),status)
     call ftpcle(unit,3,rownumber,1,1,normalisation*continuum(minloc(abs(continuum%wavelength-3700.)))%flux,status)
     call ftpcle(unit,4,rownumber,1,1,normalisation*realspec(minloc(abs(continuum%wavelength-3700.)))%uncertainty,status)
   endif
@@ -519,8 +519,8 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,fittedlines,
   if (minval(continuum%wavelength)-8100.0 .lt.0..and. maxval(continuum%wavelength)-8100. .gt.0.) then
     call ftirow(unit,rownumber,1,status)
     rownumber=rownumber+1
-    call ftpcle(unit,1,rownumber,1,1,8100.0,status)
-    call ftpcle(unit,2,rownumber,1,1,8100.0,status)
+    call ftpcle(unit,1,rownumber,1,1,(/8100.0/),status)
+    call ftpcle(unit,2,rownumber,1,1,(/8100.0/),status)
     call ftpcle(unit,3,rownumber,1,1,normalisation*continuum(minloc(abs(continuum%wavelength-8100.)))%flux,status)
     call ftpcle(unit,4,rownumber,1,1,normalisation*realspec(minloc(abs(continuum%wavelength-8100.)))%uncertainty,status)
   endif
@@ -528,8 +528,8 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,fittedlines,
   if (minval(continuum%wavelength)-8400.0 .lt.0..and. maxval(continuum%wavelength)-8400. .gt.0.) then
     call ftirow(unit,rownumber,1,status)
     rownumber=rownumber+1
-    call ftpcle(unit,1,rownumber,1,1,8400.0,status)
-    call ftpcle(unit,2,rownumber,1,1,8400.0,status)
+    call ftpcle(unit,1,rownumber,1,1,(/8400.0/),status)
+    call ftpcle(unit,2,rownumber,1,1,(/8400.0/),status)
     call ftpcle(unit,3,rownumber,1,1,normalisation*continuum(minloc(abs(continuum%wavelength-8400.)))%flux,status)
     call ftpcle(unit,4,rownumber,1,1,normalisation*realspec(minloc(abs(continuum%wavelength-8400.)))%uncertainty,status)
   endif
@@ -554,10 +554,10 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,fittedlines,
 
   call ftibin(unit,1,tfields,ttype_qc,tform_qc,tunit_qc,extname,varidat,status)
 
-  call ftpclj(unit,1,1,1,1,detectedlines,status)
-  call ftpcle(unit,2,1,1,1,hbetaflux,status)
-  call ftpcle(unit,3,1,1,1,c*(redshiftguess_overall-1),status)
-  call ftpcle(unit,4,1,1,1,resolutionguess,status)
+  call ftpclj(unit,1,1,1,1,(/detectedlines/),status)
+  call ftpcle(unit,2,1,1,1,(/hbetaflux/),status)
+  call ftpcle(unit,3,1,1,1,(/c*(redshiftguess_overall-1)/),status)
+  call ftpcle(unit,4,1,1,1,(/resolutionguess/),status)
 
 ! close
 

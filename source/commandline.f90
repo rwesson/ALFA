@@ -270,24 +270,27 @@ subroutine readcommandline(redshiftguess_initial,resolutionguess_initial,normali
 
     if (trim(options(i))=="--citation") then
       print *
-      print *,"ALFA was described in Wesson, 2016, MNRAS, 456, 3774.  The bibtex data for the paper is:"
+      print *,"ALFA was described in Wesson, 2016, MNRAS, 456, 3774"
+      print *,"https://ui.adsabs.harvard.edu/abs/2016MNRAS.456.3774W"
+      print *,"The bibtex data for the paper is:"
       print *
       print *,"@ARTICLE{2016MNRAS.456.3774W,"
-      print *,"   author = {{Wesson}, R.},"
-      print *,"    title = ""{ALFA: an automated line fitting algorithm}"","
-      print *,"  journal = {\mnras},"
-      print *,"archivePrefix = ""arXiv"","
-      print *,"   eprint = {1512.04539},"
-      print *," primaryClass = ""astro-ph.SR"","
-      print *," keywords = {line: identification, methods: data analysis, H II regions,"
-      print *,"planetary nebulae: general},"
-      print *,"     year = 2016,"
-      print *,"    month = mar,"
-      print *,"   volume = 456,"
-      print *,"    pages = {3774-3781},"
-      print *,"      doi = {10.1093/mnras/stv2946},"
-      print *,"   adsurl = {http://adsabs.harvard.edu/abs/2016MNRAS.456.3774W},"
-      print *,"  adsnote = {Provided by the SAO/NASA Astrophysics Data System}"
+      print *,"       author = {{Wesson}, R.},"
+      print *,'        title = "{ALFA: an automated line fitting algorithm}",'
+      print *,"      journal = {\mnras},"
+      print *,"     keywords = {line: identification, methods: data analysis, H II regions,"
+      print *,"planetary nebulae: general, Astrophysics - Solar and Stellar Astrophysics},"
+      print *,"         year = 2016,"
+      print *,"        month = mar,"
+      print *,"       volume = {456},"
+      print *,"       number = {4},"
+      print *,"        pages = {3774-3781},"
+      print *,"          doi = {10.1093/mnras/stv2946},"
+      print *,"archivePrefix = {arXiv},"
+      print *,"       eprint = {1512.04539},"
+      print *," primaryClass = {astro-ph.SR},"
+      print *,"       adsurl = {https://ui.adsabs.harvard.edu/abs/2016MNRAS.456.3774W},"
+      print *,"      adsnote = {Provided by the SAO/NASA Astrophysics Data System}"
       print *,"}"
       call exit(0)
     endif

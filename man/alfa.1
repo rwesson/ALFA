@@ -170,6 +170,24 @@ For RSS files and data cubes, \fBalfa\fR currently produces output for each pixe
 
 The genetic parameters (population size, number of generations, pressure) are likely to be suitable for most cases.  There is no algorithm yet known for optimising these parameters in a genetic algorithm, so changing them requires trial and error.  In spectra of regions with lots of emission lines, such as 4000-4500 Angstrom, increasing the number of generations can result in a better fit.
 
+.SS Error codes
+
+If \fBalfa\fR encounters an error it will return one of the following status codes:
+
+ 100 incomplete or invalid command line option
+ 101 input file does not exist
+ 102 output directory does not exist
+ 103 error opening FITS file
+ 104 no axes found in input file
+ 105 too many axes found in input file
+ 106 error reading FITS keywords
+ 107 error writing FITS output
+ 108 no line catalogue file specified
+ 109 line catalogue not found
+
+ 200 all fluxes below baddata limit
+ 201 no known emission lines in wavelength range
+
 .SH SEE ALSO
 neat
 .SH BUGS

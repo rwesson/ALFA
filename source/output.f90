@@ -432,7 +432,7 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,fittedlines,
     call ftgerr(status,cfitsioerror)
     print *,gettime(),"CFITSIO error: ",status,cfitsioerror
     print *,gettime(),"thread ",threadnumber,", unit ",unit
-    call exit(1)
+    call exit(107)
   else
     print *,gettime(),"Wrote fit to header FIT of output file ",trim(outputdirectory)//trim(outputbasename)//"_fit.fits"
   endif
@@ -537,7 +537,7 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,fittedlines,
   if (status .gt. 0) then
     call ftgerr(status,cfitsioerror)
     print *,gettime(),"CFITSIO error: ",status,cfitsioerror
-    call exit(1)
+    call exit(107)
   else
     print *,gettime(),"Wrote line list to header LINES"
   endif

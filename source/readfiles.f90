@@ -58,7 +58,7 @@ subroutine readdata()
     if (status .ne. 0) then
       call ftgerr(status,cfitsioerror)
       print *,gettime(),"error opening file ",trim(spectrumfile),": ",status,cfitsioerror
-      call exit(1)
+      call exit(103)
     endif
 
     ! find number of HDUs
@@ -148,10 +148,10 @@ subroutine readdata()
     if (dimensions .eq. 0 .and. .not. datafound) then ! no axes found, no table data read
       print *,gettime(),"error : no axes found in ",trim(spectrumfile)
       print *,gettime(),"        (number of extensions searched: ",numberofhdus,")"
-      call exit(1)
+      call exit(104)
     elseif (dimensions .gt. 3) then ! can't imagine what a 4D fits file would actually be, but alfa definitely can't handle it
       print *,gettime(),"error : more than 3 axes found in ",trim(spectrumfile)
-      call exit(1)
+      call exit(105)
     endif
 
     print *,gettime(),"  number of dimensions: ",dimensions
@@ -198,7 +198,7 @@ subroutine readdata()
     call ftgkye(unit,key_crval,wavelength,"",status)
     if (status .ne. 0) then
       print *,gettime(),"error: couldn't find wavelength value at reference pixel - no keyword ",trim(key_crval),"."
-      call exit(1)
+      call exit(106)
     endif
 
     print *,gettime(),"  wavelength at reference pixel: ",wavelength
@@ -218,7 +218,7 @@ subroutine readdata()
       call ftgkye(unit,key_cd,dispersion,"",status)
         if (status .ne. 0) then
           print *,gettime(),"error: couldn't find wavelength dispersion - no keyword ",trim(key_cdelt)," or ",trim(key_cd),"."
-          call exit(1)
+          call exit(106)
         endif
     endif
 
@@ -269,7 +269,7 @@ subroutine readdata()
         print "(X,A,A,I7,A)",gettime(),"read 1D fits file with ",axes(1)," data points into memory."
       else
         print *,gettime(),"couldn't read file into memory"
-        call exit(1)
+        call exit(103)
       endif
 
     elseif (dimensions.eq.2) then
@@ -284,7 +284,7 @@ subroutine readdata()
       else
         print *,gettime(),"couldn't read RSS file into memory"
         print *,"error code ",status
-        call exit(1)
+        call exit(103)
       endif
 
     elseif (dimensions.eq.3) then
@@ -298,13 +298,13 @@ subroutine readdata()
         print "(X,A,A,I7,A)",gettime(),"read ",axes(1)*axes(2)," pixels into memory."
       else
         print *,gettime(),"couldn't read cube into memory"
-        call exit(1)
+        call exit(103)
       endif
 
     else
 
       print *,gettime(),"More than 3 dimensions.  ALFA cannot comprehend that yet, sorry."
-      call exit(1)
+      call exit(105)
 
     endif
 
@@ -462,7 +462,7 @@ subroutine readlinelist(linelistfile,referencelinelist)
 
   if (trim(linelistfile)=="") then
     print *,gettime(),"error: No line catalogue specified"
-    call exit(1)
+    call exit(108)
   endif
 
   inquire(file=linelistfile, exist=file_exists) ! see if the input file is present
@@ -472,7 +472,7 @@ subroutine readlinelist(linelistfile,referencelinelist)
     inquire(file=PREFIX//"/share/alfa/"//linelistfile, exist=file_exists)
     if (.not. file_exists) then
       print *,gettime(),"error: line catalogue not found: ",trim(linelistfile)," does not exist in current directory or in ",PREFIX,"/share/alfa"
-      call exit(1)
+      call exit(109)
     else
       linelistfile=PREFIX//"/share/alfa/"//trim(linelistfile)
     endif

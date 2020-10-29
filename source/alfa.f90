@@ -197,7 +197,7 @@ if (allocated(spectrum_1d)) then !1d spectrum
 
   if (maxval(realspec%flux) .lt. baddata) then
     print *,gettime(),"no good data in spectrum (all fluxes are less than ",baddata,")"
-    call exit(1)
+    call exit(200)
     stop
   endif
   messages=.true.

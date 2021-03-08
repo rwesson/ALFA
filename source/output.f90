@@ -434,7 +434,7 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,fittedlines,
     print *,gettime(),"thread ",threadnumber,", unit ",unit
     call exit(107)
   else
-    print *,gettime(),"Wrote fit to header FIT of output file ",trim(outputdirectory)//trim(outputbasename)//"_fit.fits"
+    print *,gettime(),"Wrote fit to extension FIT of output file ",trim(outputdirectory)//trim(outputbasename)//"_fit.fits"
   endif
 
 ! second extension for the lines
@@ -539,7 +539,7 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,fittedlines,
     print *,gettime(),"CFITSIO error: ",status,cfitsioerror
     call exit(107)
   else
-    print *,gettime(),"Wrote line list to header LINES"
+    print *,gettime(),"Wrote line list to extension LINES"
   endif
 
 ! third extension for nlines, f(hb), rv, resolution
@@ -558,6 +558,14 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,fittedlines,
   call ftpcle(unit,2,1,1,1,(/hbetaflux/),status)
   call ftpcle(unit,3,1,1,1,(/c*(redshiftguess_overall-1)/),status)
   call ftpcle(unit,4,1,1,1,(/resolutionguess/),status)
+
+  if (status .gt. 0) then
+    call ftgerr(status,cfitsioerror)
+    print *,gettime(),"CFITSIO error: ",status,cfitsioerror
+    call exit(107)
+  else
+    print *,gettime(),"Wrote QC info to extension QC"
+  endif
 
 ! close
 

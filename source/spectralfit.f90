@@ -143,6 +143,7 @@ call selectlines(deeplines_catalogue, realspec(1)%wavelength/redshiftguess_overa
 if (totallines .eq. 0) then
   print *,gettime(),"Error: no known emission lines in this spectrum."
   print *,gettime(),"       Are your wavelength units correct?  Default catalogues use Angstroms"
+  print *,gettime(),"       wavelength range is ",realspec(1)%wavelength/redshiftguess_overall,"-",realspec(size(realspec))%wavelength/redshiftguess_overall
   call exit(201)
 endif
 

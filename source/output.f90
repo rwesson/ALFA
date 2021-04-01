@@ -366,9 +366,9 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,fittedlines,
   else
   call ftpcom(unit,"continuum fitting:                disabled",status)
   endif
-  write(writevalue,"(F5.2)") baddata
+  write(writevalue,"(F8.2)") baddata
   call ftpcom(unit,"spectrum fitted if max value >    "//writevalue,status)
-  write(writevalue,"(F5.2)") wavelengthscaling
+  write(writevalue,"(F8.2)") wavelengthscaling
   call ftpcom(unit,"Angstroms per wavelength unit:    "//writevalue,status)
   if (tablewavelengthcolumn.ne.1) then
   write(writevalue,"(I2)") tablewavelengthcolumn

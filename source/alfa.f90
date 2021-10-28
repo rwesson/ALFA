@@ -426,13 +426,21 @@ endif
 
 !free memory
 
+if (allocated(axes)) deallocate(axes)
+if (allocated(continuum)) deallocate(continuum)
+if (allocated(deeplines_catalogue)) deallocate(deeplines_catalogue)
+if (allocated(fittedlines)) deallocate(fittedlines)
+if (allocated(fittedlines_section)) deallocate(fittedlines_section)
+if (allocated(fittedspectrum)) deallocate(fittedspectrum)
+if (allocated(originalcopy)) deallocate(originalcopy)
+if (allocated(realspec)) deallocate(realspec)
+if (allocated(skylines_catalogue)) deallocate(skylines_catalogue)
+if (allocated(skyspectrum)) deallocate(skyspectrum)
+if (allocated(spectrum_1d)) deallocate(spectrum_1d)
 if (allocated(spectrum_2d)) deallocate(spectrum_2d)
 if (allocated(spectrum_3d)) deallocate(spectrum_3d)
-if (allocated(axes)) deallocate(axes)
-if (allocated(wavelengths)) deallocate(wavelengths)
-if (allocated(skylines_catalogue)) deallocate(skylines_catalogue)
 if (allocated(stronglines_catalogue)) deallocate(stronglines_catalogue)
-if (allocated(deeplines_catalogue)) deallocate(deeplines_catalogue)
+if (allocated(wavelengths)) deallocate(wavelengths)
 
 print *,gettime(),"all done"
 print *

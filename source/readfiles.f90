@@ -519,6 +519,10 @@ subroutine readlinelist(linelistfile,referencelinelist)
   END DO
   CLOSE(199)
 
+! set some values
+  referencelinelist%redshift=0.0
+  referencelinelist%resolution=0.0
+
 end subroutine readlinelist
 
 subroutine selectlines(referencelinelist,wavelength1,wavelength2,fittedlines,nlines)

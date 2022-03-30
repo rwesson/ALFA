@@ -68,7 +68,7 @@ subroutine readcommandline(redshiftguess_initial,resolutionguess_initial,normali
         normalise=.true.
         options(i:i+1)=""
       else
-        print *,gettime(),"error: no value specified for ",trim(options(i))
+        print *,gettime(),"[100] no value specified for ",trim(options(i))
         call exit(100)
       endif
     endif
@@ -78,7 +78,7 @@ subroutine readcommandline(redshiftguess_initial,resolutionguess_initial,normali
         read (options(i+1),*) redshiftguess_initial
         options(i:i+1)=""
       else
-        print *,gettime(),"error: no value specified for ",trim(options(i))
+        print *,gettime(),"[100] no value specified for ",trim(options(i))
         call exit(100)
       endif
     endif
@@ -89,11 +89,11 @@ subroutine readcommandline(redshiftguess_initial,resolutionguess_initial,normali
         resolution_estimated=.true.
         options(i:i+1)=""
         if (resolutionguess_initial .lt. 0.) then
-          print *,gettime(),"error: invalid value given for resolution guess"
+          print *,gettime(),"[100] invalid value given for resolution guess"
           call exit(100)
         endif
       else
-        print *,gettime(),"error: no value specified for ",trim(options(i))
+        print *,gettime(),"[100] no value specified for ",trim(options(i))
         call exit(100)
       endif
     endif
@@ -104,11 +104,11 @@ subroutine readcommandline(redshiftguess_initial,resolutionguess_initial,normali
         vtol1 = vtol1/c
         options(i:i+1)=""
         if (vtol1 .lt. 0.) then
-          print *,gettime(),"error: invalid value given for vtol1"
+          print *,gettime(),"[100] invalid value given for vtol1"
           call exit(100)
         endif
       else
-        print *,gettime(),"error: no value specified for ",trim(options(i))
+        print *,gettime(),"[100] no value specified for ",trim(options(i))
         call exit(100)
       endif
     endif
@@ -118,11 +118,11 @@ subroutine readcommandline(redshiftguess_initial,resolutionguess_initial,normali
         vtol2 = vtol2/c
         options(i:i+1)=""
         if (vtol2 .lt. 0.) then
-          print *,gettime(),"error: invalid value given for vtol2"
+          print *,gettime(),"[100] invalid value given for vtol2"
           call exit(100)
         endif
       else
-        print *,gettime(),"error: no value specified for ",trim(options(i))
+        print *,gettime(),"[100] no value specified for ",trim(options(i))
         call exit(100)
       endif
     endif
@@ -132,11 +132,11 @@ subroutine readcommandline(redshiftguess_initial,resolutionguess_initial,normali
         read (options(i+1),*) rtol1
         options(i:i+1)=""
         if (rtol1 .lt. 0.) then
-          print *,gettime(),"error: invalid value given for rtol1"
+          print *,gettime(),"[100] invalid value given for rtol1"
           call exit(100)
         endif
       else
-        print *,gettime(),"error: no value specified for ",trim(options(i))
+        print *,gettime(),"[100] no value specified for ",trim(options(i))
         call exit(100)
       endif
     endif
@@ -146,11 +146,11 @@ subroutine readcommandline(redshiftguess_initial,resolutionguess_initial,normali
         read (options(i+1),*) rtol2
         options(i:i+1)=""
         if (rtol1 .lt. 0.) then
-          print *,gettime(),"error: invalid value given for rtol1"
+          print *,gettime(),"[100] invalid value given for rtol1"
           call exit(100)
         endif
       else
-        print *,gettime(),"error: no value specified for ",trim(options(i))
+        print *,gettime(),"[100] no value specified for ",trim(options(i))
         call exit(100)
       endif
     endif
@@ -165,7 +165,7 @@ subroutine readcommandline(redshiftguess_initial,resolutionguess_initial,normali
         read (options(i+1),*) baddata
         options(i:i+1)=""
       else
-        print *,gettime(),"error: no value specified for ",trim(options(i))
+        print *,gettime(),"[100] no value specified for ",trim(options(i))
         call exit(100)
       endif
     endif
@@ -176,11 +176,11 @@ subroutine readcommandline(redshiftguess_initial,resolutionguess_initial,normali
         outputdirectory=trim(outputdirectory)//"/"
         inquire(file=trim(outputdirectory), exist=file_exists) ! trailing slash ensures it's looking for a directory
       else
-        print *,gettime(),"error: no value specified for ",trim(options(i))
+        print *,gettime(),"[100] no value specified for ",trim(options(i))
         call exit(100)
       endif
       if (.not. file_exists) then
-        print *,gettime(),"error: output directory does not exist"
+        print *,gettime(),"[102] output directory does not exist"
         call exit(102)
       endif
       options(i:i+1)=""
@@ -191,7 +191,7 @@ subroutine readcommandline(redshiftguess_initial,resolutionguess_initial,normali
         read (options(i+1),"(A)") skylinelistfile
         options(i:i+1)=""
       else
-        print *,gettime(),"error: no value specified for ",trim(options(i))
+        print *,gettime(),"[100] no value specified for ",trim(options(i))
         call exit(100)
       endif
     endif
@@ -201,7 +201,7 @@ subroutine readcommandline(redshiftguess_initial,resolutionguess_initial,normali
         read (options(i+1),"(A)") stronglinelistfile
         options(i:i+1)=""
       else
-        print *,gettime(),"error: no value specified for ",trim(options(i))
+        print *,gettime(),"[100] no value specified for ",trim(options(i))
         call exit(100)
       endif
     endif
@@ -211,7 +211,7 @@ subroutine readcommandline(redshiftguess_initial,resolutionguess_initial,normali
         read (options(i+1),"(A)") deeplinelistfile
         options(i:i+1)=""
       else
-        print *,gettime(),"error: no value specified for ",trim(options(i))
+        print *,gettime(),"[100] no value specified for ",trim(options(i))
         call exit(100)
       endif
     endif
@@ -221,11 +221,11 @@ subroutine readcommandline(redshiftguess_initial,resolutionguess_initial,normali
         read (options(i+1),*) generations
         options(i:i+1)=""
         if (generations .lt. 1) then
-          print *,gettime(),"error: invalid value given for generations"
+          print *,gettime(),"[100] invalid value given for generations"
           call exit(100)
         endif
       else
-        print *,gettime(),"error: no value specified for ",trim(options(i))
+        print *,gettime(),"[100] no value specified for ",trim(options(i))
         call exit(100)
       endif
     endif
@@ -235,11 +235,11 @@ subroutine readcommandline(redshiftguess_initial,resolutionguess_initial,normali
         read (options(i+1),*) popsize
         options(i:i+1)=""
         if (popsize .lt. 1) then
-          print *,gettime(),"error: invalid value given for popsize"
+          print *,gettime(),"[100] invalid value given for popsize"
           call exit(100)
         endif
       else
-        print *,gettime(),"error: no value specified for ",trim(options(i))
+        print *,gettime(),"[100] no value specified for ",trim(options(i))
         call exit(100)
       endif
     endif
@@ -249,11 +249,11 @@ subroutine readcommandline(redshiftguess_initial,resolutionguess_initial,normali
         read (options(i+1),*) pressure
         options(i:i+1)=""
         if (pressure .lt. 0.d0 .or. pressure .gt. 1.d0) then
-          print *,"error: pressure must be between 0 and 1"
+          print *,"[100] pressure must be between 0 and 1"
           call exit(100)
         endif
       else
-        print *,gettime(),"error: no value specified for ",trim(options(i))
+        print *,gettime(),"[100] no value specified for ",trim(options(i))
         call exit(100)
       endif
     endif
@@ -300,11 +300,11 @@ subroutine readcommandline(redshiftguess_initial,resolutionguess_initial,normali
         read (options(i+1),*) wavelengthscaling
         options(i:i+1)=""
         if (wavelengthscaling .lt. 0.d0) then
-          print *,gettime(),"error: invalid value given for wavelengthscaling"
+          print *,gettime(),"[100] invalid value given for wavelengthscaling"
           call exit(100)
         endif
       else
-        print *,gettime(),"error: no value specified for ",trim(options(i))
+        print *,gettime(),"[100] no value specified for ",trim(options(i))
         call exit(100)
       endif
     endif
@@ -316,7 +316,7 @@ subroutine readcommandline(redshiftguess_initial,resolutionguess_initial,normali
         exclusions(exclusioncount) = excludewavelength
         exclusioncount = exclusioncount + 1
       else
-        print *,gettime(),"error: no value specified for ",trim(options(i))
+        print *,gettime(),"[100] no value specified for ",trim(options(i))
         call exit(100)
       endif
     endif
@@ -330,7 +330,7 @@ subroutine readcommandline(redshiftguess_initial,resolutionguess_initial,normali
           print *,gettime(),"warning: negative sigma detection limit specified - has been reset to zero"
         endif
       else
-        print *,gettime(),"error: no value specified for ",trim(options(i))
+        print *,gettime(),"[100] no value specified for ",trim(options(i))
         call exit(100)
       endif
     endif
@@ -340,11 +340,11 @@ subroutine readcommandline(redshiftguess_initial,resolutionguess_initial,normali
         read (options(i+1),*) rebinfactor
         options(i:i+1)=""
         if (rebinfactor<1) then
-          print *,gettime(),"error: impossible rebin factor specified: ",rebinfactor
+          print *,gettime(),"[100] impossible rebin factor specified: ",rebinfactor
           call exit(100)
         endif
       else
-        print *,gettime(),"error: no value specified for ",trim(options(i))
+        print *,gettime(),"[100] no value specified for ",trim(options(i))
       endif
     endif
 
@@ -358,7 +358,7 @@ subroutine readcommandline(redshiftguess_initial,resolutionguess_initial,normali
         read (options(i+1),*) continuumwindow
         options(i:i+1)=""
         if (continuumwindow .lt. 1) then
-          print *,gettime(),"error: invalid value given for continuum window"
+          print *,gettime(),"[100] invalid value given for continuum window"
           call exit(100)
         endif
         if (mod(continuumwindow,2).eq.1) then
@@ -366,7 +366,7 @@ subroutine readcommandline(redshiftguess_initial,resolutionguess_initial,normali
           print *,gettime(),"warning: continuum window has to be an odd number. incremented by one so it's now ",continuumwindow
         endif
       else
-        print *,gettime(),"error: no value specified for ",trim(options(i))
+        print *,gettime(),"[100] no value specified for ",trim(options(i))
         call exit(100)
       endif
     endif
@@ -379,11 +379,11 @@ subroutine readcommandline(redshiftguess_initial,resolutionguess_initial,normali
         read (options(i+1),*) tablewavelengthcolumn
         options(i:i+1)=""
         if (tablewavelengthcolumn .lt. 1) then
-          print *,gettime(),"error: invalid value given for table wavelength column"
+          print *,gettime(),"[100] invalid value given for table wavelength column"
           call exit(100)
         endif
       else
-        print *,gettime(),"error: no value specified for ",trim(options(i))
+        print *,gettime(),"[100] no value specified for ",trim(options(i))
       endif
     endif
 
@@ -392,11 +392,11 @@ subroutine readcommandline(redshiftguess_initial,resolutionguess_initial,normali
         read (options(i+1),*) tablefluxcolumn
         options(i:i+1)=""
         if (tablefluxcolumn .lt. 1) then
-          print *,gettime(),"error: invalid value given for table flux column"
+          print *,gettime(),"[100] invalid value given for table flux column"
           call exit(100)
         endif
       else
-        print *,gettime(),"error: no value specified for ",trim(options(i))
+        print *,gettime(),"[100] no value specified for ",trim(options(i))
         call exit(100)
       endif
     endif
@@ -406,11 +406,11 @@ subroutine readcommandline(redshiftguess_initial,resolutionguess_initial,normali
         read (options(i+1),*) outputformat
         options(i:i+1)=""
         if (outputformat.ne."text".and.outputformat.ne."fits".and.outputformat.ne."latex".and.outputformat.ne."csv") then
-          print *,gettime(),"error: invalid output format. valid formats are fits, text, csv and latex"
+          print *,gettime(),"[100] invalid output format. valid formats are fits, text, csv and latex"
           call exit(100)
         endif
       else
-        print *,gettime(),"error: no value specified for ",trim(options(i))
+        print *,gettime(),"[100] no value specified for ",trim(options(i))
         call exit(100)
       endif
     endif
@@ -434,10 +434,10 @@ subroutine readcommandline(redshiftguess_initial,resolutionguess_initial,normali
 !check that an input file was specified and that no unrecognised options are present
 
   if (len(trim(spectrumfile)).eq.0) then
-    print *,gettime(),"error: no input file specified"
+    print *,gettime(),"[100] no input file specified"
     call exit(100)
   elseif (narg - nargused .gt. 1) then
-    print *,gettime(),"error: some input options were not recognised:"
+    print *,gettime(),"[100] some input options were not recognised:"
     do i=1,narg
       if (len(trim(options(i))).gt.0) then
         print *,trim(options(i))
@@ -458,7 +458,7 @@ subroutine readcommandline(redshiftguess_initial,resolutionguess_initial,normali
   inquire(file=spectrumfile, exist=file_exists) ! see if the input file is present
 
   if (.not. file_exists) then
-    print *,gettime(),"error: input spectrum ",trim(spectrumfile)," does not exist"
+    print *,gettime(),"[101] input spectrum ",trim(spectrumfile)," does not exist"
     call exit(101)
   endif
 

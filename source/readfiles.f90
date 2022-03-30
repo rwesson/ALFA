@@ -197,7 +197,7 @@ subroutine readdata()
 
     call ftgkye(unit,key_crval,wavelength,"",status)
     if (status .ne. 0) then
-      print *,gettime(),"error: couldn't find wavelength value at reference pixel - no keyword ",trim(key_crval),"."
+      print *,gettime(),"[106] couldn't find wavelength value at reference pixel - no keyword ",trim(key_crval),"."
       call exit(106)
     endif
 
@@ -217,7 +217,7 @@ subroutine readdata()
       status=0
       call ftgkye(unit,key_cd,dispersion,"",status)
         if (status .ne. 0) then
-          print *,gettime(),"error: couldn't find wavelength dispersion - no keyword ",trim(key_cdelt)," or ",trim(key_cd),"."
+          print *,gettime(),"[106] couldn't find wavelength dispersion - no keyword ",trim(key_cdelt)," or ",trim(key_cd),"."
           call exit(106)
         endif
     endif
@@ -461,7 +461,7 @@ subroutine readlinelist(linelistfile,referencelinelist)
   if (allocated(referencelinelist)) deallocate(referencelinelist)
 
   if (trim(linelistfile)=="") then
-    print *,gettime(),"error: No line catalogue specified"
+    print *,gettime(),"[108] No line catalogue specified"
     call exit(108)
   endif
 
@@ -471,7 +471,7 @@ subroutine readlinelist(linelistfile,referencelinelist)
 
     inquire(file=PREFIX//"/share/alfa/"//linelistfile, exist=file_exists)
     if (.not. file_exists) then
-      print *,gettime(),"error: line catalogue not found: ",trim(linelistfile)," does not exist in current directory or in ",PREFIX,"/share/alfa"
+      print *,gettime(),"[109] line catalogue not found: ",trim(linelistfile)," does not exist in current directory or in ",PREFIX,"/share/alfa"
       call exit(109)
     else
       linelistfile=PREFIX//"/share/alfa/"//trim(linelistfile)

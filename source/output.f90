@@ -430,7 +430,7 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,fittedlines,
 
   if (status .gt. 0) then
     call ftgerr(status,cfitsioerror)
-    print *,gettime(),"CFITSIO error: ",status,cfitsioerror
+    print *,gettime(),"[107] CFITSIO error: ",status,cfitsioerror
     print *,gettime(),"thread ",threadnumber,", unit ",unit
     call exit(107)
   else
@@ -536,7 +536,7 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,fittedlines,
 
   if (status .gt. 0) then
     call ftgerr(status,cfitsioerror)
-    print *,gettime(),"CFITSIO error: ",status,cfitsioerror
+    print *,gettime(),"[107] CFITSIO error: ",status,cfitsioerror
     call exit(107)
   else
     print *,gettime(),"Wrote line list to extension LINES"
@@ -561,7 +561,7 @@ subroutine write_fits(realspec,fittedspectrum,continuum,skyspectrum,fittedlines,
 
   if (status .gt. 0) then
     call ftgerr(status,cfitsioerror)
-    print *,gettime(),"CFITSIO error: ",status,cfitsioerror
+    print *,gettime(),"[107] CFITSIO error: ",status,cfitsioerror
     call exit(107)
   else
     print *,gettime(),"Wrote QC info to extension QC"

@@ -139,16 +139,16 @@ linearraypos=1
 if (redshiftguess_overall.eq.0.0) redshiftguess_overall=1.0 ! todo: sort this out upstream with proper initialisation
 call selectlines(deeplines_catalogue, realspec(1)%wavelength/redshiftguess_overall, realspec(size(realspec))%wavelength/redshiftguess_overall, fittedlines, totallines)
 
-if (redshiftguess.eq.0.0 .and. resolutionguess.eq.0.0) then ! no strong lines were found to estimate the necessary parameters
-  print *,gettime(),"Error: no lines found to estimate the velocity and resolution"
-  call exit(201)
-endif
-
 if (totallines .eq. 0) then
   print *,gettime(),"Error: no known emission lines in this spectrum."
   print *,gettime(),"       Are your wavelength units correct?  Default catalogues use Angstroms"
   print *,gettime(),"       wavelength range is ",realspec(1)%wavelength/redshiftguess_overall,"-",realspec(size(realspec))%wavelength/redshiftguess_overall
   call exit(201)
+endif
+
+if (redshiftguess.eq.0.0 .and. resolutionguess.eq.0.0) then ! no strong lines were found to estimate the necessary parameters
+  print *,gettime(),"Error: no lines found to estimate the velocity and resolution"
+  call exit(202)
 endif
 
 if (messages) print *, gettime(),"fitting full spectrum with ",totallines," lines"

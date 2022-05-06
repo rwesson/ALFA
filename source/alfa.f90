@@ -37,7 +37,7 @@ type(spectrum), dimension(:), allocatable :: realspec, fittedspectrum, spectrumc
 real :: redshiftguess, redshiftguess_initial, redshiftguess_overall ! redshiftguess_initial is the user-specified value, used in the initial fit which determines redshiftguess_overall.  that is then used in the chunks to find redshift
 real :: resolutionguess, resolutionguess_initial ! resolutionguess_initial is the user-specified value, used in the initial fit to determine resolutionguess.
 integer :: linearraypos,totallines, startpos, endpos, nlines
-real :: normalisation, hbetaflux,initflux
+real :: normalisation, hbetaflux
 integer :: threadnumber
 
 c=299792.458 !km/s
@@ -195,14 +195,6 @@ if (allocated(spectrum_1d)) then !1d spectrum
   fittedspectrum%wavelength=realspec%wavelength
   fittedspectrum%flux=0.d0
 
-! set initial line fluxes to 0.1x mean flux of spectrum
-
-  initflux=0.1*sum(realspec%flux)/size(realspec%flux)
-
-  skylines_catalogue%peak=initflux
-  stronglines_catalogue%peak=initflux
-  deeplines_catalogue%peak=initflux
-
 ! bad data check
 
   if (maxval(realspec%flux) .lt. baddata) then
@@ -255,14 +247,6 @@ elseif (allocated(spectrum_2d)) then !fit 2D data
     spectrumlength=axes(1)
     realspec%wavelength = wavelengths
     realspec%flux=spectrum_2d(:,rss_i)
-
-! set initial line fluxes to 0.1x mean flux of spectrum
-
-    initflux=0.1*sum(realspec%flux)/size(realspec%flux)
-
-    skylines_catalogue%peak=initflux
-    stronglines_catalogue%peak=initflux
-    deeplines_catalogue%peak=initflux
 
 ! rebin
 
@@ -351,14 +335,6 @@ elseif (allocated(spectrum_3d)) then !fit 3D data
       spectrumlength=axes(3)
       realspec%flux=spectrum_3d(cube_i,cube_j,:)
       realspec%wavelength=wavelengths
-
-! set initial line fluxes to 0.1x mean flux of spectrum
-
-      initflux=0.1*sum(realspec%flux)/size(realspec%flux)
-
-      skylines_catalogue%peak=initflux
-      stronglines_catalogue%peak=initflux
-      deeplines_catalogue%peak=initflux
 
 ! rebin
 

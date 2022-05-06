@@ -41,6 +41,9 @@ real :: scalefactor
   endif
   inputspectrum%flux = inputspectrum%flux * scalefactor
 
+! set initial line fluxes to mean flux of spectrum
+  fittedlines%peak=sum(inputspectrum%flux)/size(inputspectrum%flux)
+
 !allocate arrays
 
   allocate(synthspec(spectrumlength,popsize))

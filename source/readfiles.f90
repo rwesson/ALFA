@@ -405,6 +405,9 @@ subroutine rebinspectrum(array,rebinfactor)
   real, dimension(:), allocatable :: arraywlen, arrayflux, arraywlen_rebinned, arrayflux_rebinned
   integer :: rebinfactor, i, newsize, endbit, s1, s2
 
+  allocate(arraywlen(size(array%wavelength)))
+  allocate(arrayflux(size(array%flux)))
+
   arraywlen=array%wavelength
   arrayflux=array%flux
 

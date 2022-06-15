@@ -60,7 +60,7 @@ The directory in which to put the output files. Default: current working directo
 
 .TP
 .B \-of, \-\-output\-format [VALUE]
-The format of the output files. Valid values are text, csv, fits, latex. If you are using \fBalfa\fR in conjunction with \fBneat\fR, plain text and fits formats can currently be read in. Default: text
+The format of the output files. Valid values are text, csv, fits, latex. If you are using \fBalfa\fR in conjunction with \fBneat\fR, plain text and fits formats can currently be read in. Default: fits
 
 .TP
 .B \-pr, \-\-pressure [REAL]
@@ -96,7 +96,7 @@ Fit and subtract night sky emission lines before fitting nebular emission lines.
 
 .TP
 .B \-ul, \-\-upper-limits
-Write out upper limits for all lines searched for and not detected. The upper limit is calculated as the detection limit (default 3, set by \-\-detection\-limit) multiplied by the uncertainty. In FITS output, this option is ignored - all upper limits are written out, and are indicated by negative flux values. If the FITS file is later anaysed with \fBneat\fR, these negative values are simply ignored.
+Write out upper limits for all lines searched for and not detected. The upper limit is calculated as the detection limit (default 3, set by \-\-detection\-limit) multiplied by the uncertainty. In FITS output, this option is ignored - all upper limits are written out, and are indicated by negative flux values. If the FITS file is later analysed with \fBneat\fR, these negative values are simply ignored.
 
 .TP
 .B \-vg, \-\-velocity\-guess [VALUE]
@@ -144,7 +144,7 @@ With the parameters optimised in each chunk, uncertainties are estimated using t
 
 The FITS file can have one, two or three dimensions.  If it has two, it is assumed to be in Row-Stacked Spectra (RSS) format, while if it has three, it is assumed to be a data cube with two axes representing spatial dimensions and the third representing the spectral dimension.
 
-If you don't want to fit the whole dataset, you can specify the range of pixels on each axis that you want \fBalfa\fR to read in by appending the filename with [\fIstartx:endx,starty:endy\fR].  This functionality is part of the CFITSIO library, and the format is described at https://heasarc.gsfc.nasa.gov/docs/software/fitsio/c/c_user/node97.html.  \fBalfa\fR itself does not read in the coordinates of the section, and so the output file numbering starts from 1 on each axis regardless of where the image section actually started.  The next release of \fBalfa\fR will have improved support for image sections.
+If you don't want to fit the whole dataset, you can specify the range of pixels on each axis that you want \fBalfa\fR to read in by appending the filename with [\fIstartx:endx,starty:endy\fR].  This functionality is part of the CFITSIO library, and the format is described at https://heasarc.gsfc.nasa.gov/docs/software/fitsio/c/c_user/node97.html.  \fBalfa\fR itself does not read in the coordinates of the section, and so the output file numbering starts from 1 on each axis regardless of where the image section actually started.  Improved support for image sections is planned for future releases.
 
 .SH OUTPUT FILES
 \fBalfa\fR can produce output in plain text, csv, latex or FITS format. FITS is the default and recommended format; in future releases, output formats other than FITS will be deprecated and eventually removed.
@@ -161,6 +161,8 @@ The fit file contains the best fitting synthesised spectrum.  It contains seven 
 .B The lines file (_lines.txt, _lines.csv, _lines.tex) or extension (.fits):
 
 This file contains four columns with parameters of the fitted lines - the observed wavelength, the rest wavelength, the flux, and the uncertainty estimated from the residuals.  This file can be read directly by \fBneat\fR, which determines abundances for photoionised nebulae. If latex format is requested, the file additionally contains atomic data details not currently available in the other formats.
+
+Lines are flagged as blended if they are separated by less than 0.75x the estimated resolution. For blended lines, the total flux is given with the first line of the feature. For the rest of the blended lines, the flux is given as "*" in text output, and 0 in fits output, or as -999 in the case that the blend is flagged as a non-detection.
 
 For RSS files and data cubes, \fBalfa\fR currently produces output for each pixel. Thus, for a large data cube you may end up with tens of thousands of files in the output directory. A routine to combine these outputs into image maps will be provided in a future release of \fBalfa\fR.
 

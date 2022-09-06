@@ -505,7 +505,11 @@ subroutine readlinelist(linelistfile,referencelinelist)
 
     read (199,*) input1%wavelength
     backspace 199
-    write (informatnumber,"(I2)") ceiling(log10(input1%wavelength))+3
+    if (ceiling(log10(input1%wavelength)).lt.4) then
+      informatnumber="7"
+    else
+      write (informatnumber,"(I2)") min(7,ceiling(log10(input1%wavelength))+3)
+    endif
     informat="(F"//trim(adjustl(informatnumber))//".2,2X,A12,X,A12,X,A12,X,A12,X,I12,X,I9)"
 
 !then read the whole line

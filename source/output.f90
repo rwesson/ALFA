@@ -13,8 +13,14 @@ subroutine write_plaintext(realspec,fittedspectrum,continuum,skyspectrum,fittedl
   integer :: totallines
   real :: normalisation, hbetaflux
   integer :: omp_get_thread_num,threadnumber
+  integer :: dpfmt
+  character(len=1) :: dpfmtch
 
   threadnumber=omp_get_thread_num()
+
+! set output format sensibly
+  dpfmt=max(2,5-floor(log10(fittedspectrum(i)%wavelength)))
+  write(dpfmtch,"(I1)") dpfmt
 
   open(100+threadnumber,file=trim(outputdirectory)//trim(outputbasename)//"_fit")
 
@@ -22,7 +28,7 @@ subroutine write_plaintext(realspec,fittedspectrum,continuum,skyspectrum,fittedl
   write (100+threadnumber,*) "#fit generated using: ",trim(commandline)
   write (100+threadnumber,*) "#""wavelength""  ""input spectrum ""  ""fitted spectrum""  ""cont-subbed orig"" ""continuum""  ""sky lines""  ""residuals""  ""uncertainty"""
   do i=1,spectrumlength
-    write(100+threadnumber,"(F9.2, 7(ES12.3))") fittedspectrum(i)%wavelength,realspec(i)%flux + continuum(i)%flux, fittedspectrum(i)%flux + continuum(i)%flux + skyspectrum(i)%flux, realspec(i)%flux, continuum(i)%flux, skyspectrum(i)%flux, realspec(i)%flux - fittedspectrum(i)%flux, realspec(i)%uncertainty
+    write(100+threadnumber,"(F9."//dpfmtch//", 7(ES12.3))") fittedspectrum(i)%wavelength,realspec(i)%flux + continuum(i)%flux, fittedspectrum(i)%flux + continuum(i)%flux + skyspectrum(i)%flux, realspec(i)%flux, continuum(i)%flux, skyspectrum(i)%flux, realspec(i)%flux - fittedspectrum(i)%flux, realspec(i)%uncertainty
   enddo
 
   close(100+threadnumber)

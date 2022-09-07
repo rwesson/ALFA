@@ -94,7 +94,7 @@ subroutine write_plaintext(realspec,fittedspectrum,continuum,skyspectrum,fittedl
     write (200+threadnumber,"(A,ES8.2)") "# measured flux of Hbeta: ",hbetaflux
   endif
   write (200+threadnumber,"(A,ES8.2)") "# spectral resolution: ",resolutionguess
-  write (200+threadnumber,"(A,ES8.2)") "# radial velocity: ",c*(redshiftguess_overall-1)
+  write (200+threadnumber,"(A,F6.2)") "# radial velocity: ",c*(redshiftguess_overall-1)
 
 !done, close files
 
@@ -194,7 +194,7 @@ subroutine write_latex(realspec,fittedspectrum,continuum,skyspectrum,fittedlines
   endif
 
   write (200+threadnumber,"(A,ES8.2,A)") "\multicolumn{10}{l}{Spectral resolution: ",resolutionguess,"} \\"
-  write (200+threadnumber,"(A,ES8.2,A)") "\multicolumn{10}{l}{Radial velocity: ",c*(redshiftguess_overall-1),"} \\"
+  write (200+threadnumber,"(A,F6.2,A)") "\multicolumn{10}{l}{Radial velocity: ",c*(redshiftguess_overall-1),"} \\"
 
   write (200+threadnumber,*) "\hline"
 
@@ -291,7 +291,7 @@ subroutine write_csv(realspec,fittedspectrum,continuum,skyspectrum,fittedlines,r
     write (200+threadnumber,"(A,ES8.2)") "# measured flux of Hbeta: ",hbetaflux
   endif
   write (200+threadnumber,"(A,ES8.2)") "# spectral resolution: ",resolutionguess
-  write (200+threadnumber,"(A,ES8.2)") "# radial velocity: ",c*(redshiftguess_overall-1)
+  write (200+threadnumber,"(A,F6.2)") "# radial velocity: ",c*(redshiftguess_overall-1)
 
 !done, close files
 

@@ -61,30 +61,30 @@ subroutine write_plaintext(realspec,fittedspectrum,continuum,skyspectrum,fittedl
   do i=1,totallines
 
     if (i.eq.writeb1) then
-      write (200+threadnumber,"(2(F9.2),"//fluxformat//","//fluxformat//",'         0.0         0.0')") 3630.0, 3630.0, normalisation*continuum(minloc(abs(continuum%wavelength-3630.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-3630.)))%uncertainty
+      write (200+threadnumber,"(2(F9."//dpfmtch//"),"//fluxformat//","//fluxformat//",'         0.0         0.0')") 3630.0, 3630.0, normalisation*continuum(minloc(abs(continuum%wavelength-3630.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-3630.)))%uncertainty
     endif
 
     if (i.eq.writeb2) then
-      write (200+threadnumber,"(2(F9.2),"//fluxformat//","//fluxformat//",'         0.0         0.0')") 3700.0, 3700.0, normalisation*continuum(minloc(abs(continuum%wavelength-3700.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-3700.)))%uncertainty
+      write (200+threadnumber,"(2(F9."//dpfmtch//"),"//fluxformat//","//fluxformat//",'         0.0         0.0')") 3700.0, 3700.0, normalisation*continuum(minloc(abs(continuum%wavelength-3700.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-3700.)))%uncertainty
     endif
 
     if (i.eq.writep1) then
-      write (200+threadnumber,"(2(F9.2),"//fluxformat//","//fluxformat//",'         0.0         0.0')") 8100.0, 8100.0, normalisation*continuum(minloc(abs(continuum%wavelength-8100.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-8100.)))%uncertainty
+      write (200+threadnumber,"(2(F9."//dpfmtch//"),"//fluxformat//","//fluxformat//",'         0.0         0.0')") 8100.0, 8100.0, normalisation*continuum(minloc(abs(continuum%wavelength-8100.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-8100.)))%uncertainty
     endif
 
     if (i.eq.writep2) then
-      write (200+threadnumber,"(2(F9.2),"//fluxformat//","//fluxformat//",'         0.0         0.0')") 8400.0, 8400.0, normalisation*continuum(minloc(abs(continuum%wavelength-8400.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-8400.)))%uncertainty
+      write (200+threadnumber,"(2(F9."//dpfmtch//"),"//fluxformat//","//fluxformat//",'         0.0         0.0')") 8400.0, 8400.0, normalisation*continuum(minloc(abs(continuum%wavelength-8400.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-8400.)))%uncertainty
     endif
 
     if (fittedlines(i)%blended .eq. 0 .and. fittedlines(i)%uncertainty .gt. detectionlimit) then
-      write (200+threadnumber,"(2(F9.2),4("//fluxformat//"))") fittedlines(i)%wavelength*fittedlines(i)%redshift, fittedlines(i)%wavelength, gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty,fittedlines(i)%peak/normalisation, fittedlines(i)%wavelength/fittedlines(i)%resolution * 2.35482
+      write (200+threadnumber,"(2(F9."//dpfmtch//"),4("//fluxformat//"),3X,(A11))") fittedlines(i)%wavelength*fittedlines(i)%redshift, fittedlines(i)%wavelength, gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty,fittedlines(i)%peak/normalisation, fittedlines(i)%wavelength/fittedlines(i)%resolution * 2.35482,fittedlines(i)%ion
     elseif (fittedlines(i)%blended .ne. 0) then
       if (fittedlines(fittedlines(i)%blended)%uncertainty .gt. detectionlimit) then
-        write (200+threadnumber,"(F9.2,F9.2,'           *           *           *           *')") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength
+        write (200+threadnumber,"(F9."//dpfmtch//",F9."//dpfmtch//",'           *           *           *           *   ',A11)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,fittedlines(i)%ion
       endif
 ! write out 3 sigma upper limit for non-detections if upperlimits flag is set
     elseif (fittedlines(i)%uncertainty .le. detectionlimit .and. upperlimits .eqv. .true.) then
-      write (200+threadnumber,"(2(F9.2),"//fluxformat//",' upper limit')") fittedlines(i)%wavelength*fittedlines(i)%redshift, fittedlines(i)%wavelength, 3.*gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty
+      write (200+threadnumber,"(2(F9."//dpfmtch//"),"//fluxformat//",' upper limit')") fittedlines(i)%wavelength*fittedlines(i)%redshift, fittedlines(i)%wavelength, 3.*gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty
     endif
   enddo
 
@@ -114,8 +114,14 @@ subroutine write_latex(realspec,fittedspectrum,continuum,skyspectrum,fittedlines
   integer :: totallines
   real :: normalisation, hbetaflux
   integer :: omp_get_thread_num,threadnumber
+  integer :: dpfmt
+  character(len=1) :: dpfmtch
 
   threadnumber=omp_get_thread_num()
+
+! set output format sensibly
+  dpfmt=max(2,5-floor(log10(fittedspectrum(i)%wavelength)))
+  write(dpfmtch,"(I1)") dpfmt
 
   open(100+threadnumber,file=trim(outputdirectory)//trim(outputbasename)//"_fit.tex")
 
@@ -123,7 +129,7 @@ subroutine write_latex(realspec,fittedspectrum,continuum,skyspectrum,fittedlines
   write (100+threadnumber,*) "%fit generated using: ",trim(commandline)
   write (100+threadnumber,*) "#""wavelength""  ""input spectrum ""  ""fitted spectrum""  ""cont-subbed orig"" ""continuum""  ""sky lines""  ""residuals""  ""uncertainty"""
   do i=1,spectrumlength
-    write(100+threadnumber,"(F9.2, 7(ES12.3))") fittedspectrum(i)%wavelength,realspec(i)%flux + continuum(i)%flux, fittedspectrum(i)%flux + continuum(i)%flux + skyspectrum(i)%flux, realspec(i)%flux, continuum(i)%flux, skyspectrum(i)%flux, realspec(i)%flux - fittedspectrum(i)%flux, realspec(i)%uncertainty
+    write(100+threadnumber,"(F9."//dpfmtch//", 7(ES12.3))") fittedspectrum(i)%wavelength,realspec(i)%flux + continuum(i)%flux, fittedspectrum(i)%flux + continuum(i)%flux + skyspectrum(i)%flux, realspec(i)%flux, continuum(i)%flux, skyspectrum(i)%flux, realspec(i)%flux - fittedspectrum(i)%flux, realspec(i)%uncertainty
   enddo
 
   close(100+threadnumber)
@@ -159,30 +165,30 @@ subroutine write_latex(realspec,fittedspectrum,continuum,skyspectrum,fittedlines
   do i=1,totallines
 
     if (i.eq.writeb1) then
-      write (200+threadnumber,"(F9.2,' &           & ',"//fluxformat//",' & ',"//fluxformat//",' & Balmer cont.\\')") 3630.0, normalisation*continuum(minloc(abs(continuum%wavelength-3630.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-3630.)))%uncertainty
+      write (200+threadnumber,"(F9."//dpfmtch//",' &           & ',"//fluxformat//",' & ',"//fluxformat//",' & Balmer cont.\\')") 3630.0, normalisation*continuum(minloc(abs(continuum%wavelength-3630.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-3630.)))%uncertainty
     endif
 
     if (i.eq.writeb2) then
-      write (200+threadnumber,"(F9.2,' &           & ',"//fluxformat//",' & ',"//fluxformat//",' & Paschen cont.\\')") 3700.0, normalisation*continuum(minloc(abs(continuum%wavelength-3700.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-3700.)))%uncertainty
+      write (200+threadnumber,"(F9."//dpfmtch//",' &           & ',"//fluxformat//",' & ',"//fluxformat//",' & Paschen cont.\\')") 3700.0, normalisation*continuum(minloc(abs(continuum%wavelength-3700.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-3700.)))%uncertainty
     endif
 
     if (i.eq.writep1) then
-      write (200+threadnumber,"(F9.2,' &           & ',"//fluxformat//",' & ',"//fluxformat//",' & Paschen cont.\\')") 8100.0, normalisation*continuum(minloc(abs(continuum%wavelength-8100.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-8100.)))%uncertainty
+      write (200+threadnumber,"(F9."//dpfmtch//",' &           & ',"//fluxformat//",' & ',"//fluxformat//",' & Paschen cont.\\')") 8100.0, normalisation*continuum(minloc(abs(continuum%wavelength-8100.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-8100.)))%uncertainty
     endif
 
     if (i.eq.writep2) then
-      write (200+threadnumber,"(F9.2,' &           & ',"//fluxformat//",' & ',"//fluxformat//",' & Brackett cont.\\')") 8400.0, normalisation*continuum(minloc(abs(continuum%wavelength-8400.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-8400.)))%uncertainty
+      write (200+threadnumber,"(F9."//dpfmtch//",' &           & ',"//fluxformat//",' & ',"//fluxformat//",' & Brackett cont.\\')") 8400.0, normalisation*continuum(minloc(abs(continuum%wavelength-8400.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-8400.)))%uncertainty
     endif
 
     if (fittedlines(i)%blended .eq. 0 .and. fittedlines(i)%uncertainty .gt. detectionlimit) then
-      write (200+threadnumber,"(F9.2,' & ',F9.2,' & ',"//fluxformat//",' & ',"//fluxformat//",' & ',"//fluxformat//",' & ',"//fluxformat//",A85)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty, fittedlines(i)%peak/normalisation, fittedlines(i)%wavelength/fittedlines(i)%resolution * 2.35482, fittedlines(i)%ion
+      write (200+threadnumber,"(F9."//dpfmtch//",' & ',F9."//dpfmtch//",' & ',"//fluxformat//",' & ',"//fluxformat//",' & ',"//fluxformat//",' & ',"//fluxformat//",A85)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty, fittedlines(i)%peak/normalisation, fittedlines(i)%wavelength/fittedlines(i)%resolution * 2.35482, fittedlines(i)%ion
     elseif (fittedlines(i)%blended .ne. 0) then
       if (fittedlines(fittedlines(i)%blended)%uncertainty .gt. detectionlimit) then
-        write (200+threadnumber,"(F9.2,' & ',F9.2,' &            * &            * &            * &            *',A85)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,fittedlines(i)%ion
+        write (200+threadnumber,"(F9."//dpfmtch//",' & ',F9."//dpfmtch//",' &            * &            * &            * &            *',A85)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,fittedlines(i)%ion
       endif
 ! write out 3 sigma upper limit for non-detections if upperlimits flag is set
     elseif (fittedlines(i)%uncertainty .le. detectionlimit .and. upperlimits .eqv. .true.) then
-      write (200+threadnumber,"(F9.2,' & ',F9.2,' & ',"//fluxformat//",' & upper limit ',A85)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength, 3.*gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty, fittedlines(i)%ion
+      write (200+threadnumber,"(F9."//dpfmtch//",' & ',F9."//dpfmtch//",' & ',"//fluxformat//",' & upper limit ',A85)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength, 3.*gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty, fittedlines(i)%ion
     endif
   enddo
 
@@ -216,8 +222,14 @@ subroutine write_csv(realspec,fittedspectrum,continuum,skyspectrum,fittedlines,r
   integer :: totallines
   real :: normalisation, hbetaflux
   integer :: omp_get_thread_num,threadnumber
+  integer :: dpfmt
+  character(len=1) :: dpfmtch
 
   threadnumber=omp_get_thread_num()
+
+! set output format sensibly
+  dpfmt=max(2,5-floor(log10(fittedspectrum(i)%wavelength)))
+  write(dpfmtch,"(I1)") dpfmt
 
   open(100+threadnumber,file=trim(outputdirectory)//trim(outputbasename)//"_fit.csv")
 
@@ -225,7 +237,7 @@ subroutine write_csv(realspec,fittedspectrum,continuum,skyspectrum,fittedlines,r
   write (100+threadnumber,*) "#fit generated using: ",trim(commandline)
   write (100+threadnumber,*) "#wavelength,input spectrum,fitted spectrum,cont-subbed orig,continuum,sky lines,residuals,uncertainty"
   do i=1,spectrumlength
-    write(100+threadnumber,"(F9.2, ',', 6(ES12.3,','), ES12.3)") fittedspectrum(i)%wavelength,realspec(i)%flux + continuum(i)%flux, fittedspectrum(i)%flux + continuum(i)%flux + skyspectrum(i)%flux, realspec(i)%flux, continuum(i)%flux, skyspectrum(i)%flux, realspec(i)%flux - fittedspectrum(i)%flux, realspec(i)%uncertainty
+    write(100+threadnumber,"(F9."//dpfmtch//", ',', 6(ES12.3,','), ES12.3)") fittedspectrum(i)%wavelength,realspec(i)%flux + continuum(i)%flux, fittedspectrum(i)%flux + continuum(i)%flux + skyspectrum(i)%flux, realspec(i)%flux, continuum(i)%flux, skyspectrum(i)%flux, realspec(i)%flux - fittedspectrum(i)%flux, realspec(i)%uncertainty
   enddo
 
   close(100+threadnumber)
@@ -258,30 +270,30 @@ subroutine write_csv(realspec,fittedspectrum,continuum,skyspectrum,fittedlines,r
   do i=1,totallines
 
     if (i.eq.writeb1) then
-      write (200+threadnumber,"(2(F9.2,','),"//fluxformat//",',',"//fluxformat//",',         0.0,         0.0')") 3630.0, 3630.0, normalisation*continuum(minloc(abs(continuum%wavelength-3630.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-3630.)))%uncertainty
+      write (200+threadnumber,"(2(F9."//dpfmtch//",','),"//fluxformat//",',',"//fluxformat//",',         0.0,         0.0')") 3630.0, 3630.0, normalisation*continuum(minloc(abs(continuum%wavelength-3630.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-3630.)))%uncertainty
     endif
 
     if (i.eq.writeb2) then
-      write (200+threadnumber,"(2(F9.2,','),"//fluxformat//",',',"//fluxformat//",',         0.0,         0.0')") 3700.0, 3700.0, normalisation*continuum(minloc(abs(continuum%wavelength-3700.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-3700.)))%uncertainty
+      write (200+threadnumber,"(2(F9."//dpfmtch//",','),"//fluxformat//",',',"//fluxformat//",',         0.0,         0.0')") 3700.0, 3700.0, normalisation*continuum(minloc(abs(continuum%wavelength-3700.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-3700.)))%uncertainty
     endif
 
     if (i.eq.writep1) then
-      write (200+threadnumber,"(2(F9.2,','),"//fluxformat//",',',"//fluxformat//",',         0.0,         0.0')") 8100.0, 8100.0, normalisation*continuum(minloc(abs(continuum%wavelength-8100.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-8100.)))%uncertainty
+      write (200+threadnumber,"(2(F9."//dpfmtch//",','),"//fluxformat//",',',"//fluxformat//",',         0.0,         0.0')") 8100.0, 8100.0, normalisation*continuum(minloc(abs(continuum%wavelength-8100.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-8100.)))%uncertainty
     endif
 
     if (i.eq.writep2) then
-      write (200+threadnumber,"(2(F9.2,','),"//fluxformat//",',',"//fluxformat//",',         0.0,         0.0')") 8400.0, 8400.0, normalisation*continuum(minloc(abs(continuum%wavelength-8400.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-8400.)))%uncertainty
+      write (200+threadnumber,"(2(F9."//dpfmtch//",','),"//fluxformat//",',',"//fluxformat//",',         0.0,         0.0')") 8400.0, 8400.0, normalisation*continuum(minloc(abs(continuum%wavelength-8400.)))%flux, normalisation*realspec(minloc(abs(continuum%wavelength-8400.)))%uncertainty
     endif
 
     if (fittedlines(i)%blended .eq. 0 .and. fittedlines(i)%uncertainty .gt. detectionlimit) then
-      write (200+threadnumber,"(2(F9.2,','),3("//fluxformat//",','),"//fluxformat//")") fittedlines(i)%wavelength*fittedlines(i)%redshift, fittedlines(i)%wavelength, gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty,fittedlines(i)%peak/normalisation, fittedlines(i)%wavelength/fittedlines(i)%resolution * 2.35482
+      write (200+threadnumber,"(2(F9."//dpfmtch//",','),3("//fluxformat//",','),"//fluxformat//")") fittedlines(i)%wavelength*fittedlines(i)%redshift, fittedlines(i)%wavelength, gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty,fittedlines(i)%peak/normalisation, fittedlines(i)%wavelength/fittedlines(i)%resolution * 2.35482
     elseif (fittedlines(i)%blended .ne. 0) then
       if (fittedlines(fittedlines(i)%blended)%uncertainty .gt. detectionlimit) then
-        write (200+threadnumber,"(F9.2,','F9.2,',',3(A12,','),A12)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,"*","*","*","*"
+        write (200+threadnumber,"(F9."//dpfmtch//",','F9."//dpfmtch//",',',3(A12,','),A12)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,"*","*","*","*"
       endif
 ! write out 3 sigma upper limit for non-detections if upperlimits flag is set
     elseif (fittedlines(i)%uncertainty .le. detectionlimit .and. upperlimits .eqv. .true.) then
-      write (200+threadnumber,"(2(F9.2,','),"//fluxformat//",' upper limit')") fittedlines(i)%wavelength*fittedlines(i)%redshift, fittedlines(i)%wavelength, 3.*gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty
+      write (200+threadnumber,"(2(F9."//dpfmtch//",','),"//fluxformat//",' upper limit')") fittedlines(i)%wavelength*fittedlines(i)%redshift, fittedlines(i)%wavelength, 3.*gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty
     endif
   enddo
 

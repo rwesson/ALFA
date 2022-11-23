@@ -35,16 +35,16 @@ subroutine write_plaintext(realspec,fittedspectrum,continuum,skyspectrum,fittedl
 
 ! now write out the line list.
 
-  if (maxval(fittedlines%peak) .lt. 0.1 .or. maxval(fittedlines%peak) .gt. 1.e7) then
+!  if (maxval(fittedlines%peak) .lt. 0.1 .or. maxval(fittedlines%peak) .gt. 1.e7) then
     fluxformat="ES12.3"
-  else
-    fluxformat="F12.3"
-  endif
+!  else
+!    fluxformat="F12.3"
+!  endif
 
   if (messages) print *,gettime(),"writing output files ",trim(outputdirectory),trim(outputbasename),"_lines and ",trim(outputdirectory),trim(outputbasename),"_fit"
 
   open(200+threadnumber,file=trim(outputdirectory)//trim(outputbasename)//"_lines")
-  write (200+threadnumber,*) "#wlen (obs)  (rest)      flux    uncertainty     peak        FWHM"
+  write (200+threadnumber,*) "#wlen (obs)  (rest)      flux     uncert.        peak        FWHM   Ion     Multiplet   UpperTerm LowerTerm g1  g2"
 
 !check whether to write out continuum fluxes
 
@@ -77,14 +77,14 @@ subroutine write_plaintext(realspec,fittedspectrum,continuum,skyspectrum,fittedl
     endif
 
     if (fittedlines(i)%blended .eq. 0 .and. fittedlines(i)%uncertainty .gt. detectionlimit) then
-      write (200+threadnumber,"(2(F9."//dpfmtch//"),4("//fluxformat//"),3X,(A11))") fittedlines(i)%wavelength*fittedlines(i)%redshift, fittedlines(i)%wavelength, gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty,fittedlines(i)%peak/normalisation, fittedlines(i)%wavelength/fittedlines(i)%resolution * 2.35482,fittedlines(i)%ion
+      write (200+threadnumber,"(2(F9."//dpfmtch//"),4("//fluxformat//"),3X,A12,A12,A12,A12,I5,I5)") fittedlines(i)%wavelength*fittedlines(i)%redshift, fittedlines(i)%wavelength, gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution)), gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty,fittedlines(i)%peak/normalisation, fittedlines(i)%wavelength/fittedlines(i)%resolution * 2.35482,fittedlines(i)%ion,fittedlines(i)%multiplet,fittedlines(i)%lowerterm,fittedlines(i)%upperterm,fittedlines(i)%g1,fittedlines(i)%g2
     elseif (fittedlines(i)%blended .ne. 0) then
       if (fittedlines(fittedlines(i)%blended)%uncertainty .gt. detectionlimit) then
-        write (200+threadnumber,"(F9."//dpfmtch//",F9."//dpfmtch//",'           *           *           *           *   ',A11)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,fittedlines(i)%ion
+        write (200+threadnumber,"(F9."//dpfmtch//",F9."//dpfmtch//",'           *           *           *           *   ',A12,A12,A12,A12,I5,I5)") fittedlines(i)%wavelength*fittedlines(i)%redshift,fittedlines(i)%wavelength,fittedlines(i)%ion,fittedlines(i)%multiplet,fittedlines(i)%lowerterm,fittedlines(i)%upperterm,fittedlines(i)%g1,fittedlines(i)%g2
       endif
 ! write out 3 sigma upper limit for non-detections if upperlimits flag is set
     elseif (fittedlines(i)%uncertainty .le. detectionlimit .and. upperlimits .eqv. .true.) then
-      write (200+threadnumber,"(2(F9."//dpfmtch//"),"//fluxformat//",' upper limit')") fittedlines(i)%wavelength*fittedlines(i)%redshift, fittedlines(i)%wavelength, 3.*gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty
+      write (200+threadnumber,"(2(F9."//dpfmtch//"),"//fluxformat//",' upper limit',12X,12X,3X,A12,A12,A12,A12,I5,I5)") fittedlines(i)%wavelength*fittedlines(i)%redshift, fittedlines(i)%wavelength, 3.*gaussianflux(fittedlines(i)%peak,(fittedlines(i)%wavelength/fittedlines(i)%resolution))/fittedlines(i)%uncertainty,fittedlines(i)%ion,fittedlines(i)%multiplet,fittedlines(i)%lowerterm,fittedlines(i)%upperterm,fittedlines(i)%g1,fittedlines(i)%g2
     endif
   enddo
 

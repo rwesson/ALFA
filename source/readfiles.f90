@@ -448,7 +448,6 @@ subroutine readlinelist(linelistfile,referencelinelist)
 
   implicit none
   character (len=512) :: linelistfile
-  character (len=2) :: informatnumber
   character (len=45) :: informat
   integer :: i,nlines
   integer :: io
@@ -501,16 +500,18 @@ subroutine readlinelist(linelistfile,referencelinelist)
   I=1
   do while (i .le. nlines)
 
-!determine the format to use. ceiling of log gives number of sig figs before dp, add 3 for dp and 2 sig figs after
+!determine the format to use. for wavelengths in angstoms, 2dp. for wavelenths in um, 5dp
 
     read (199,*) input1%wavelength
     backspace 199
-    if (ceiling(log10(input1%wavelength)).lt.4) then
-      informatnumber="7"
+    if (input1%wavelength.lt.1000) then
+      informat="F8.5,2X,A11"
+    elseif (input1%wavelength.lt.10000) then
+      informat="F7.2,2X,A12"
     else
-      write (informatnumber,"(I2)") min(7,ceiling(log10(input1%wavelength))+3)
+      informat="F8.2,2X,A11"
     endif
-    informat="(F"//trim(adjustl(informatnumber))//".2,2X,A12,X,A12,X,A12,X,A12,X,I12,X,I9)"
+    informat="("//trim(informat)//",X,A12,X,A12,X,A12,X,I12,X,I9)"
 
 !then read the whole line
 

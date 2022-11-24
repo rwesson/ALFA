@@ -62,9 +62,9 @@ tablefluxcolumn=2
 
 outputformat="fits"
 
-stronglinelistfile=trim(PREFIX)//"/share/alfa/optical_strong.cat"
-deeplinelistfile=trim(PREFIX)//"/share/alfa/optical_deep.cat"
-skylinelistfile=trim(PREFIX)//"/share/alfa/sky_deep.cat"
+stronglinelistfile=""
+deeplinelistfile=""
+skylinelistfile=""
 
 outputdirectory="./"
 imagesection=""
@@ -109,6 +109,31 @@ call readdata()
 minimumwavelength = wavelengths(1)
 maximumwavelength = wavelengths(size(wavelengths))
 spectrumlength = size(wavelengths)
+
+! set catalogue if not already specified
+! select optical catalogue if min wavelength greater than 1000, IR if max wavelength less than 1000
+
+if (minimumwavelength.gt.1000) then
+  if (stronglinelistfile.eq."") then
+    stronglinelistfile=trim(PREFIX)//"/share/alfa/optical_strong.cat"
+    print *,gettime(),"optical strong line catalogue selected"
+  endif
+  if (deeplinelistfile.eq."") then
+    deeplinelistfile=trim(PREFIX)//"/share/alfa/optical_deep.cat"
+    print *,gettime(),"optical deep line catalogue selected"
+  endif
+else
+  if (stronglinelistfile.eq."") then
+    stronglinelistfile=trim(PREFIX)//"/share/alfa/IR_strong.cat"
+    print *,gettime(),"IR strong line catalogue selected"
+  endif
+  if (deeplinelistfile.eq."") then
+    deeplinelistfile=trim(PREFIX)//"/share/alfa/IR_deep.cat"
+    print *,gettime(),"IR deep line catalogue selected"
+  endif
+endif
+
+if (skylinelistfile.eq."") skylinelistfile=trim(PREFIX)//"/share/alfa/sky_deep.cat"
 
 ! collapse data to 1D if requested
 ! apply baddata to sum only pixels with good data in

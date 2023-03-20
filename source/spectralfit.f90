@@ -26,7 +26,7 @@ endif
 
 if (messages) print "(X,A,A,F8.1,A,F7.1)",gettime(),"initial guesses for velocity and resolution: ",c*(redshiftguess-1),"km/s, R=",resolutionguess
 
-! first, subtract sky spectrum if requested. do in chunks of 400 units. no overlap necessary because velocity is zero
+! first, subtract sky spectrum if requested. do in chunks of size set by chunksize. no overlap necessary because velocity is zero
 
 allocate(skyspectrum(spectrumlength))
 skyspectrum%wavelength=realspec%wavelength
@@ -39,14 +39,14 @@ if (subtractsky) then
   call selectlines(skylines_catalogue,realspec(1)%wavelength, realspec(size(realspec))%wavelength, skylines, nlines)
   linearraypos=1
 
-  !if there are any sky lines to fit, then go though in chunks of 400 units
+  !if there are any sky lines to fit, then go though in chunks
   if (nlines .gt. 0) then
-    do i=1,spectrumlength,400
+    do i=1,spectrumlength,chunksize
 
 ! overlap=nint(2*vtol2/(1-realspec(i)%wavelength/realspec(i+1)%wavelength)) ! this needs fixing, i+1 can be out of bounds
       overlap=20
 
-! avoid refitting final section. if spectrumlength%400<overlap, this would happen
+! avoid refitting final section. if spectrumlength%chunksize<overlap, this would happen
 
       if ((spectrumlength-i)<overlap) exit
 
@@ -58,12 +58,12 @@ if (subtractsky) then
         startwlen=realspec(i)%wavelength
       endif
 
-      if (i+400+overlap-1 .gt. spectrumlength) then
+      if (i+chunksize+overlap-1 .gt. spectrumlength) then
         endpos=spectrumlength
         endwlen=realspec(spectrumlength)%wavelength
       else
-        endpos=i+400+overlap-1
-        endwlen=realspec(i+400)%wavelength
+        endpos=i+chunksize+overlap-1
+        endwlen=realspec(i+chunksize)%wavelength
       endif
 
       allocate(spectrumchunk(endpos-startpos+1))
@@ -166,12 +166,12 @@ enddo
 !now go through spectrum in chunks of 440 units.  Each one overlaps by 20 units with the previous and succeeding chunk, to avoid the code attempting to fit part of a line profile
 !at beginning and end, padding is only to the right and left respectively
 
-do i=1,spectrumlength,400
+do i=1,spectrumlength,chunksize
 
 ! overlap=nint(2*vtol2/(1-realspec(i)%wavelength/realspec(i+1)%wavelength)) ! this needs fixing, i+1 can be out of bounds
   overlap=20
 
-! avoid refitting final section. if spectrumlength%400<overlap, this would happen
+! avoid refitting final section. if spectrumlength%chunksize<overlap, this would happen
 
   if ((spectrumlength-i)<overlap) exit
 
@@ -183,12 +183,12 @@ do i=1,spectrumlength,400
     startwlen=realspec(i)%wavelength/redshiftguess_overall
   endif
 
-  if (i+400+overlap-1 .gt. spectrumlength) then
+  if (i+chunksize+overlap-1 .gt. spectrumlength) then
     endpos=spectrumlength
     endwlen=realspec(spectrumlength)%wavelength/redshiftguess_overall
   else
-    endpos=i+400+overlap-1
-    endwlen=realspec(i+400)%wavelength/redshiftguess_overall
+    endpos=i+chunksize+overlap-1
+    endwlen=realspec(i+chunksize)%wavelength/redshiftguess_overall
   endif
 
   allocate(spectrumchunk(endpos-startpos+1))

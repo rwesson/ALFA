@@ -420,6 +420,19 @@ subroutine readcommandline(redshiftguess_initial,resolutionguess_initial,normali
       options(i)=""
     endif
 
+    if ((trim(options(i))=="-cs" .or. trim(options(i))=="--chunk-size")) then
+      if ((i+1) .le. Narg) then
+        read (options(i+1),*) chunksize
+        options(i:i+1)=""
+        if (chunksize .lt. 80) then ! less than 2x overlap
+          print *,gettime(),"[100] invalid value given for chunk size"
+          call exit(100)
+        endif
+      else
+        print *,gettime(),"[100] no value specified for ",trim(options(i))
+      endif
+    endif
+
   enddo
 
   nargused=narg-count(options.ne."")

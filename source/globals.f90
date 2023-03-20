@@ -21,6 +21,7 @@ CHARACTER(len=2048) :: commandline
 real :: vtol1, vtol2, rtol1, rtol2
 real :: blendpeak
 real :: c
+integer :: chunksize
 integer :: linelocation, overlap
 integer :: generations, popsize
 real :: pressure

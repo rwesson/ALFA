@@ -27,6 +27,10 @@ Prints out the bibliographic details of the paper to cite if you use \fBalfa\fR 
 Sums all spectra in multi-dimensional FITS files into a single spectrum.  Spectra whose peak value is below any value specified with the \fB--bad-data\fR option are excluded.  \fB--collapse\fR has no effect on 1D data.
 
 .TP
+.B \-cs, \-\-chunk\-size [INTEGER]
+Sets the size in pixels of the chunks into which the spectrum is split for fitting. Default: 400
+
+.TP
 .B \-cw, \-\-continuum\-window [INTEGER]
 ALFA's continuum fitting takes the 25th percentile of flux values in a moving window as representative of the continuum level. This option can be used to set the size of the window. The value must be an odd integer. Default: 101
 
@@ -155,7 +159,7 @@ When producing plain text, csv or latex output, \fBalfa\fR will produce two file
 .B The fit file (_fit.txt, _fit.csv, _fit.tex) or extension (.fits):
 
 The fit file contains the best fitting synthesised spectrum.  It contains seven columns, representing the wavelength, the input spectrum, the fitted spectrum, the original after continuum subtraction, the estimated continuum, the fluxes of sky lines, and the residuals.  Thus, to see the fitted spectrum, you need to plot columns 1 and 3 of this file.  In gnuplot, one can compare the input and fitted spectra using this command:
-    plot 'filename_fit' w l, 'filename_fit' using 1:3 w l
+    plot 'filename_fit' w l, '' using 1:3 w l
 
 .TP
 .B The lines file (_lines.txt, _lines.csv, _lines.tex) or extension (.fits):

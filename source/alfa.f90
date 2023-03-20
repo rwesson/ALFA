@@ -56,6 +56,7 @@ wavelengthscaling=1.d0
 detectionlimit=3.0
 rebinfactor=1
 continuumwindow=101
+chunksize=400
 
 tablewavelengthcolumn=1
 tablefluxcolumn=2

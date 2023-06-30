@@ -223,7 +223,7 @@ if (allocated(spectrum_1d)) then !1d spectrum
 
 ! bad data check
 
-  if (maxval(realspec%flux) .lt. baddata) then
+  if (maxval(realspec%flux) .le. baddata) then
     print *,gettime(),"[200] no good data in spectrum (all fluxes are less than ",baddata,")"
     call exit(200)
     stop
@@ -299,7 +299,7 @@ elseif (allocated(spectrum_2d)) then !fit 2D data
       inquire(file=trim(outputdirectory)//trim(outputbasename)//"_lines.latex", exist=file_exists)
     endif
 
-    if (maxval(realspec%flux) .lt. baddata) then
+    if (maxval(realspec%flux) .le. baddata) then
       print "(X,A,A,I2,A,"//filenameformat(1)//",A,ES10.2)",gettime(),"(thread ",threadnumber,") : skipped row  ",rss_i,": all values below ",baddata
       deallocate(realspec)
       cycle
@@ -387,7 +387,7 @@ elseif (allocated(spectrum_3d)) then !fit 3D data
         inquire(file=trim(outputdirectory)//trim(outputbasename)//"_lines.latex", exist=file_exists)
       endif
 
-      if (maxval(realspec%flux) .lt. baddata) then
+      if (maxval(realspec%flux) .le. baddata) then
         print "(X,A,A,I2,A,"//filenameformat(1)//",A,"//filenameformat(2)//",A,ES10.2)",gettime(),"(thread ",threadnumber,") : skipped pixel  ",cube_i,",",cube_j,": all values below ",baddata
         deallocate(realspec)
         cycle

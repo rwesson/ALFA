@@ -227,7 +227,7 @@ if (messages) print *,gettime(),"flagging blends"
 fittedlines%blended = 0
 
 do i=1,totallines-1
-  if (abs(fittedlines(i)%wavelength-fittedlines(i+1)%wavelength) .lt. 0.75*fittedlines(i)%wavelength/fittedlines(i)%resolution) then
+  if (abs(fittedlines(i)%wavelength-fittedlines(i+1)%wavelength) .lt. 1.0*fittedlines(i)%wavelength/fittedlines(i)%resolution) then
     if (fittedlines(i)%blended .gt. 0) then
       fittedlines(i+1)%blended = fittedlines(i)%blended
     else

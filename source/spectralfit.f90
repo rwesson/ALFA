@@ -112,6 +112,7 @@ else
   !todo: calculate the number of points from vtol1
 
   allocate(stronglines(50*nlines))
+  stronglines%flux=0.d0
   do i=1,nlines
     linelocation=minloc(abs(stronglines_catalogue(i)%wavelength*redshiftguess-realspec%wavelength),1)
     if (linelocation-24 .gt. 0 .and. linelocation+25 .lt. size(realspec)) then

@@ -19,7 +19,7 @@ subroutine write_plaintext(realspec,fittedspectrum,continuum,skyspectrum,fittedl
   threadnumber=omp_get_thread_num()
 
 ! set output format sensibly
-  dpfmt=max(2,5-floor(log10(fittedspectrum(i)%wavelength)))
+  dpfmt=max(2,5-floor(log10(fittedspectrum(1)%wavelength)))
   write(dpfmtch,"(I1)") dpfmt
 
   open(100+threadnumber,file=trim(outputdirectory)//trim(outputbasename)//"_fit")

@@ -180,7 +180,7 @@ if (collapse) then
     enddo
 
     print *,gettime(),"co-added ",i," of ",axes(1)*axes(2)," pixels"
-    if (bdcount .gt. 0) print *,gettime(),"omitted ",bdcount," rows where peak flux was less than baddata value of ",baddata
+    if (bdcount .gt. 0) print *,gettime(),"omitted ",bdcount," pixels where peak flux was less than baddata value of ",baddata
     print *
 
     deallocate(spectrum_3d)

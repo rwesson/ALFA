@@ -509,7 +509,7 @@ subroutine readlinelist(linelistfile,referencelinelist)
     elseif (input1%wavelength.lt.10000) then
       informat="F7.2,2X,A12"
     else
-      informat="F8.2,2X,A11"
+      informat="F8.2,2X,A12"
     endif
     informat="("//trim(informat)//",X,A12,X,A12,X,A12,X,I12,X,I9)"
 

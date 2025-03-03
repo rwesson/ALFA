@@ -353,6 +353,11 @@ subroutine readdata()
     enddo
     close(199)
 
+! if any NaNs were read in, deal with them now
+    where (spectrum_1d .ne. spectrum_1d)
+      spectrum_1d = 0.d0
+    endwhere
+
   endif
 
 888 continue ! fix this ugly code at some point

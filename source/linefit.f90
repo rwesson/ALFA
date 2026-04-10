@@ -33,8 +33,15 @@ real :: scalefactor
 
 !  call init_random_seed()
 
+! if all values are zero, return zero line fluxes
+  if (maxval(inputspectrum%flux).eq. 0.d0) then
+    fittedlines%peak = 0
+    fittedlines%uncertainty = 0
+    return
+  endif
+
   scalefactor=1.d0
-  if (maxval(inputspectrum%flux) .lt. 0.01) then
+  if (maxval(inputspectrum%flux) .lt. 0.01 .and. maxval(inputspectrum%flux) .gt. 0.D0) then
     !hacky fix, something goes wrong with very small numbers like fluxes in units of erg/cm2/s/A
     scalefactor = 1./maxval(inputspectrum%flux)
   else

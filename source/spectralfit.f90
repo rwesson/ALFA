@@ -13,8 +13,8 @@ call fit_continuum(realspec,continuum)
 ! first get guesses for the redshift and resolution
 
 if (.not. resolution_estimated) then
-  ! estimate resolution assuming nyquist sampling
-  resolutionguess=2*realspec(2)%wavelength/(realspec(3)%wavelength-realspec(1)%wavelength)
+  ! estimate resolution assuming nyquist sampling, so two pixels sample one resolution element
+  resolutionguess=realspec(2)%wavelength/(realspec(3)%wavelength-realspec(1)%wavelength)
   if (messages) print *,gettime(),"estimated spectrograph resolution assuming Nyquist sampling: ",resolutionguess
 else
   if (messages) print *,gettime(),"estimated spectrograph resolution from user input: ",resolutionguess

@@ -5,7 +5,7 @@ module mod_functions
 contains
 
 real function gaussianflux(a,c)
-!return the integral of the gaussian, equal to a*c*(2*pi**0.5)
+!return the integral of the gaussian, equal to a*c*(2*pi)**0.5
   implicit none
   real :: a,c,pi
 

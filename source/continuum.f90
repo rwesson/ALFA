@@ -13,7 +13,7 @@ subroutine fit_continuum(realspec,continuum)
 implicit none
 type(spectrum), dimension(:), allocatable :: realspec,continuum
 real, dimension(:), allocatable :: spectrumchunk
-integer :: i,halfwindow
+integer :: i,halfwindow,cindex
 
 #ifdef CO
   print *,"subroutine: fit_continuum"
@@ -24,15 +24,16 @@ integer :: i,halfwindow
   continuum%flux=0.D0
 
   if (subtractcontinuum) then
-! take the 25th percentile value of chunks of the spectrum defined by window
+! take the percentile defined by continuumpercentile of chunks of the spectrum defined by window
     halfwindow=continuumwindow/2
+    cindex=nint(0.01*continuumpercentile*continuumwindow)
 ! note that in integer maths only integer part is taken. ie 101/2 (=50.5) = 50
     allocate(spectrumchunk(continuumwindow))
 
     do i=halfwindow+1,spectrumlength-halfwindow
       spectrumchunk = realspec(i-halfwindow:i+halfwindow)%flux
       call qsort(spectrumchunk)
-      continuum(i)%flux = spectrumchunk(halfwindow/2)
+      continuum(i)%flux = spectrumchunk(cindex)
     enddo
 
 !fill in the ends

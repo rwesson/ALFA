@@ -371,8 +371,19 @@ subroutine readcommandline(redshiftguess_initial,resolutionguess_initial,normali
       endif
     endif
 
-  ! to implement:
-  !   continuum percentile
+    if ((trim(options(i))=="-cp" .or. trim(options(i))=="--continuum-percentile")) then
+      if ((i+1) .le. Narg) then
+        read (options(i+1),*) continuumpercentile
+        options(i:i+1)=""
+        if (continuumpercentile .lt. 0 .or. continuumpercentile .gt. 100) then
+          print *,gettime(),"[100] invalid value given for continuum percentile"
+          call exit(100)
+        endif
+      else
+        print *,gettime(),"[100] no value specified for ",trim(options(i))
+        call exit(100)
+      endif
+    endif
 
     if ((trim(options(i))=="-wc" .or. trim(options(i))=="--wavelength-column")) then
       if ((i+1) .le. Narg) then

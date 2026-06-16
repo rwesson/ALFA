@@ -31,8 +31,12 @@ Sums all spectra in multi-dimensional FITS files into a single spectrum.  Spectr
 Sets the size in pixels of the chunks into which the spectrum is split for fitting. Default: 400
 
 .TP
+.B \-cp, \-\-continuum\-percentile [REAL]
+ALFA's continuum fitting takes the specified percentile of flux values in a moving window as representative of the continuum level. Default: 25
+
+.TP
 .B \-cw, \-\-continuum\-window [INTEGER]
-ALFA's continuum fitting takes the 25th percentile of flux values in a moving window as representative of the continuum level. This option can be used to set the size of the window. The value must be an odd integer. Default: 101
+ALFA's continuum fitting uses flux values in a moving window as representative of the continuum level. This option can be used to set the size of the window. The value must be an odd integer. Default: 101
 
 .TP
 .B \-dl, \-\-detection-limit [REAL]

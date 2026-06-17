@@ -54,7 +54,6 @@ character(len=5) :: outputformat !text, csv, fits. json? xml?
 
 integer :: rebinfactor,continuumwindow
 integer :: tablewavelengthcolumn,tablefluxcolumn
-real :: continuumpercentile
 
 ! switches for writing out continuum fluxes
 

@@ -83,7 +83,7 @@ alfa: source/rnglib.o source/types.o source/globals.o source/functions.o source/
 	$(LD) $(LDFLAGS) $(FFLAGS) -o $@ $^ $(CFITSIOFLAGS)
 	@echo "Compilation complete"
 
-source/alfa.o : source/alfa.f90 source/output.o source/globals.o source/commandline.o source/uncertainties.o source/linefit.o source/continuum.o source/types.o source/functions.o source/readfiles.o
+source/alfa.o : source/alfa.f90 source/output.o source/globals.o source/commandline.o source/uncertainties.o source/linefit.o source/continuum.o source/types.o source/functions.o source/readfiles.o source/spectralfit.f90
 source/commandline.o : source/commandline.f90 source/globals.o source/functions.o
 source/continuum.o : source/continuum.f90 source/globals.o source/quicksort.o source/types.o
 source/functions.o : source/functions.f90 source/types.o

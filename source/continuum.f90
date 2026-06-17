@@ -13,44 +13,28 @@ subroutine fit_continuum(realspec,continuum)
 implicit none
 type(spectrum), dimension(:), allocatable :: realspec,continuum
 real, dimension(:), allocatable :: spectrumchunk
-integer :: i,halfwindow,cindex1,cindex2,cindex_median
-real :: mean,std
+integer :: i,halfwindow,cindex
 
 #ifdef CO
   print *,"subroutine: fit_continuum"
 #endif
-
-! todo: better treatment of ends
-! track running sum and sum of squares, adding new element and subtracting old each time
 
   allocate(continuum(spectrumlength))
   continuum%wavelength = realspec%wavelength
   continuum%flux=0.D0
 
   if (subtractcontinuum) then
-! note that in integer maths only integer part is taken. ie 101/2 (=50.5) = 50
+! take the percentile defined by continuumpercentile of chunks of the spectrum defined by window
     halfwindow=continuumwindow/2
+    cindex=nint(0.01*continuumpercentile*continuumwindow)
+! note that in integer maths only integer part is taken. ie 101/2 (=50.5) = 50
     allocate(spectrumchunk(continuumwindow))
 
-     do i=halfwindow+1,spectrumlength-halfwindow
-! get chunk of spectrum
-       spectrumchunk = realspec(i-halfwindow:i+halfwindow)%flux
-! get mean and standard deviation of chunk
-      mean=sum(spectrumchunk)/size(spectrumchunk)
-      std=(sum((spectrumchunk-mean)**2)/size(spectrumchunk))**0.5
-! sort array
-       call qsort(spectrumchunk)
-! find locations where values are within 3std of the mean
-      cindex1=minloc(abs(mean-(spectrumchunk+3*std)),1)
-      cindex2=minloc(abs(mean-(spectrumchunk-3*std)),1)
-! get the median. note than integer division only keeps integer part
-      cindex_median=cindex1+(cindex2-cindex1)/2
-      if (mod(cindex2 - cindex1,2).eq.1) then ! mean of two central elements
-        continuum(i)%flux = (spectrumchunk(cindex_median)+spectrumchunk(cindex_median+1))*0.5
-      else
-        continuum(i)%flux = spectrumchunk(cindex_median)
-      endif
-     enddo
+    do i=halfwindow+1,spectrumlength-halfwindow
+      spectrumchunk = realspec(i-halfwindow:i+halfwindow)%flux
+      call qsort(spectrumchunk)
+      continuum(i)%flux = spectrumchunk(cindex)
+    enddo
 
 !fill in the ends
 

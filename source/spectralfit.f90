@@ -270,7 +270,7 @@ call get_uncertainties(fittedspectrum, realspec, fittedlines)
 ! normalise if H beta is present and user did not specify a normalisation
 
 hbetaflux=0.d0
-normalisation=1.d0
+!normalisation=1.d0
 
 do i=1,totallines
   if (abs(fittedlines(i)%wavelength - 4861.33) .lt. 0.005) then
@@ -281,7 +281,7 @@ enddo
 
 if (.not. normalise) then
 
-  normalisation = 1.d0
+  normalisation = 0.d0
 
   if (hbetaflux .gt. 0.d0) then
     normalisation = 100./hbetaflux

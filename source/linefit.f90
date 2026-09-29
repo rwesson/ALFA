@@ -67,6 +67,10 @@ real :: scalefactor
     population(popnumber,:) = fittedlines
   enddo
 
+! initialise
+  population(:,:)%redshift = redshiftguess
+  population(:,:)%resolution = resolutionguess
+
 ! evolve
 
   do gencount=1,generations
